@@ -1,11 +1,24 @@
-from fastapi import FastAPI, HTTPException
+import os
+import sys
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from supabase_client import supabase
+from auth_controller import login_usuario_supabase
+from pedidos_router import router as pedidos_router
 
-app = FastAPI(title="CraftHub API", version="1.0.0")
+app = FastAPI(
+    title="CraftHub API",
+    description="Backend para la plataforma de artesanías y cultura panameña",
+    version="1.0.0"
+)
 
-# ─── CORS (permite conexión desde Flutter Web o cualquier origen) ────────────
+# ---------------------------------------------------------------------------
+# CORS
+# ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],        # ⚠️ En producción reemplaza "*" por tu dominio
@@ -14,63 +27,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── MODELOS ─────────────────────────────────────────────────────────────────
-class CredencialesLogin(BaseModel):
-    email: str
+# ---------------------------------------------------------------------------
+# ROUTERS
+# ---------------------------------------------------------------------------
+app.include_router(pedidos_router)
+
+# ---------------------------------------------------------------------------
+# MODELOS
+# ---------------------------------------------------------------------------
+class LoginRequest(BaseModel):
+    email: EmailStr
     password: str
 
-# ─── ENDPOINTS ───────────────────────────────────────────────────────────────
-
+# ---------------------------------------------------------------------------
+# ENDPOINTS
+# ---------------------------------------------------------------------------
 @app.get("/")
 def raiz():
-    return {"mensaje": "CraftHub API activa ✅"}
+    return {
+        "status": "online",
+        "proyecto": "CraftHub API Backend",
+        "mensaje": "Servidor corriendo exitosamente."
+    }
 
 
-@app.post("/auth/login")
-def login(credenciales: CredencialesLogin):
+@app.post("/api/auth/login")
+async def login(credenciales: LoginRequest):
     """
     Autentica al usuario con Supabase Auth y devuelve su perfil.
-
-    🔗 FLUTTER: conectar en lib/services/auth_service.dart
-         POST http://<tu-ip>:8000/auth/login
+    🔗 FLUTTER: lib/services/auth_service.dart
+         POST http://<tu-ip>:8000/api/auth/login
          Body: { "email": "...", "password": "..." }
     """
-    try:
-        # Paso 1: Autenticar en Supabase Auth
-        respuesta_auth = supabase.auth.sign_in_with_password({
-            "email": credenciales.email,
-            "password": credenciales.password
-        })
+    resultado = login_usuario_supabase(credenciales.email, credenciales.password)
 
-        usuario = respuesta_auth.user
-        sesion  = respuesta_auth.session
-
-        if not usuario:
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
-
-        # Paso 2: Obtener perfil de la tabla pública
-        resultado_perfil = (
-            supabase.table("perfiles")
-            .select("*")
-            .eq("user_id", usuario.id)
-            .single()
-            .execute()
+    if resultado["status"] == "error":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Error de autenticación: {resultado['message']}"
         )
 
-        perfil = resultado_perfil.data
+    return resultado
 
-        return {
-            "ok": True,
-            "access_token": sesion.access_token,   # 🔗 Flutter: guarda este token
-            "token_type": "bearer",
-            "usuario": {
-                "id":    usuario.id,
-                "email": usuario.email,
-            },
-            "perfil": perfil   # contiene rol, nombre, foto, etc.
-        }
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# ---------------------------------------------------------------------------
+# INICIO
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    import uvicorn
+    print("\n[CraftHub] Iniciando servidor backend...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
