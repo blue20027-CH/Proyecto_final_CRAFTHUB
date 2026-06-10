@@ -212,15 +212,19 @@ class _HomeCompradorState extends State<HomeComprador> {
             tooltip: 'Notificaciones', tieneNotif: true,
             onTap: () {}),                        // ðŸ”Œ GET /api/notificaciones
         _IconTopBar(
-          icono: Icons.location_on_outlined,
-          tooltip: 'Mapa artesanos',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (ctx) => PantallaMapa(esOscuro: Theme.of(ctx).brightness == Brightness.dark)),
-            );
-          },
-        ), // ðŸ”Œ navegar a /mapa
+            icono: Icons.location_on_outlined,
+           tooltip: 'Mapa artesanos',
+           onTap: () {
+             Navigator.push(
+             context,
+              MaterialPageRoute(
+              builder: (ctx) => PantallaMapa(
+              esOscuro: Theme.of(ctx).brightness == Brightness.dark,
+        ),
+      ),
+    );
+  },
+), // ðŸ”Œ navegar a /mapa
 
         // BotÃ³n toggle tema
         _IconTopBar(

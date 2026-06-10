@@ -179,9 +179,9 @@ class _PantallaMapaState extends State<PantallaMapa> {
     final colorPanel =
         esOscuro ? CraftHubColors.panelOscuro : CraftHubColors.panelClaro;
 
-    return Container(
-      color: colorFondo,
-      child: Column(
+    return Scaffold(
+      backgroundColor: colorFondo,
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── HEADER ───────────────────────────────────────────────────

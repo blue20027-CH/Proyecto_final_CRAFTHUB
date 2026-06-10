@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../vendedor/pantalla_dashoard_vendedor.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/boton_primario.dart';
 import '../../widgets/boton_google.dart';
@@ -335,7 +336,12 @@ class _FormularioRegistro extends StatelessWidget {
         BotonPrimario(
           texto: 'Crear cuenta',
           alPresionar: () {
-            // TODO: lógica de registro con FastAPI
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PantallaDashboardVendedor(esOscuro: esOscuro),
+              ),
+            ); // TODO: lógica de registro con FastAPI
           },
           mostrarFlecha: true,
           ancho: double.infinity,

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class CompradorTopbar extends StatelessWidget {
   final Color colorVino;
+  final VoidCallback? onIrAMapa; // ← agrega
 
   const CompradorTopbar({
     super.key,
     required this.colorVino,
+    this.onIrAMapa, // ← agrega
   });
 
   @override
