@@ -16,18 +16,18 @@ class PantallaRegistroVendedor extends StatefulWidget {
 
 class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
   // Controladores de texto
-  final _ctrlNombres    = TextEditingController();
-  final _ctrlApellidos  = TextEditingController();
-  final _ctrlCorreo     = TextEditingController();
-  final _ctrlUsuario    = TextEditingController();
-  final _ctrlPassword   = TextEditingController();
-  final _ctrlTelefono   = TextEditingController();
-  final _ctrlUbicacion  = TextEditingController();
-  final _ctrlId         = TextEditingController();
+  final _ctrlNombres = TextEditingController();
+  final _ctrlApellidos = TextEditingController();
+  final _ctrlCorreo = TextEditingController();
+  final _ctrlUsuario = TextEditingController();
+  final _ctrlPassword = TextEditingController();
+  final _ctrlTelefono = TextEditingController();
+  final _ctrlUbicacion = TextEditingController();
+  final _ctrlId = TextEditingController();
 
   // Estados
-  bool _verPassword    = false;
-  bool _ofrecDelivery  = true;
+  bool _verPassword = false;
+  bool _ofrecDelivery = true;
   String? _genero;
   String? _fechaNac;
 
@@ -91,7 +91,9 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
               child: Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 56, vertical: 24),
+                    horizontal: 56,
+                    vertical: 24,
+                  ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 620),
                     child: _FormularioRegistro(
@@ -112,10 +114,8 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
                           setState(() => _verPassword = !_verPassword),
                       alCambiarDelivery: (v) =>
                           setState(() => _ofrecDelivery = v),
-                      alCambiarGenero: (v) =>
-                          setState(() => _genero = v),
-                      alCambiarFecha: (v) =>
-                          setState(() => _fechaNac = v),
+                      alCambiarGenero: (v) => setState(() => _genero = v),
+                      alCambiarFecha: (v) => setState(() => _fechaNac = v),
                     ),
                   ),
                 ),
@@ -176,7 +176,6 @@ class _FormularioRegistro extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-
         // ── ENCABEZADO ──────────────────────────────────────────────
         _Encabezado(esOscuro: esOscuro),
 
@@ -316,8 +315,8 @@ class _FormularioRegistro extends StatelessWidget {
             alCambiar: alCambiarGenero,
             items: const [
               DropdownMenuItem(value: 'masculino', child: Text('Masculino')),
-              DropdownMenuItem(value: 'femenino',  child: Text('Femenino')),
-              DropdownMenuItem(value: 'otro',      child: Text('Prefiero no decir')),
+              DropdownMenuItem(value: 'femenino', child: Text('Femenino')),
+              DropdownMenuItem(value: 'otro', child: Text('Prefiero no decir')),
             ],
           ),
         ),
@@ -325,10 +324,7 @@ class _FormularioRegistro extends StatelessWidget {
         const SizedBox(height: 14),
 
         // ── TOGGLE DELIVERY ───────────────────────────────────────────
-        _ToggleDelivery(
-          valor: ofrecDelivery,
-          alCambiar: alCambiarDelivery,
-        ),
+        _ToggleDelivery(valor: ofrecDelivery, alCambiar: alCambiarDelivery),
 
         const SizedBox(height: 18),
 
@@ -339,7 +335,7 @@ class _FormularioRegistro extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => PantallaDashboardVendedor(esOscuro: esOscuro),
+                builder: (_) => HomeVendedor(esOscuro: esOscuro),
               ),
             ); // TODO: lógica de registro con FastAPI
           },
@@ -355,10 +351,7 @@ class _FormularioRegistro extends StatelessWidget {
         const SizedBox(height: 16),
 
         // ── BOTÓN GOOGLE ──────────────────────────────────────────────
-        BotonGoogle(
-          esOscuro: esOscuro,
-          alPresionar: () {},
-        ),
+        BotonGoogle(esOscuro: esOscuro, alPresionar: () {}),
 
         const SizedBox(height: 18),
 
@@ -417,10 +410,7 @@ class _Encabezado extends StatelessWidget {
     return Column(
       children: [
         // Botón volver alineado a la izquierda
-        Align(
-          alignment: Alignment.centerLeft,
-          child: _BotonVolver(),
-        ),
+        Align(alignment: Alignment.centerLeft, child: _BotonVolver()),
         const SizedBox(height: 8),
         // Logo centrado
         Row(
@@ -473,7 +463,7 @@ class _BotonVolverState extends State<_BotonVolver> {
   Widget build(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _sobreEl = true),
-      onExit:  (_) => setState(() => _sobreEl = false),
+      onExit: (_) => setState(() => _sobreEl = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => Navigator.maybePop(context),
@@ -489,8 +479,11 @@ class _BotonVolverState extends State<_BotonVolver> {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back_rounded,
-                  size: 16, color: CraftHubColors.textoClaro),
+              Icon(
+                Icons.arrow_back_rounded,
+                size: 16,
+                color: CraftHubColors.textoClaro,
+              ),
               SizedBox(width: 6),
               Text(
                 'Volver',
@@ -543,8 +536,11 @@ class _ToggleDelivery extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.delivery_dining_outlined,
-            size: 20, color: CraftHubColors.textoSecClaro),
+        const Icon(
+          Icons.delivery_dining_outlined,
+          size: 20,
+          color: CraftHubColors.textoSecClaro,
+        ),
         const SizedBox(width: 10),
         const Text(
           '¿Ofreces delivery?',
@@ -578,10 +574,7 @@ class _Separador extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Divider(
-            color: Colors.black.withOpacity(0.10),
-            thickness: 1,
-          ),
+          child: Divider(color: Colors.black.withOpacity(0.10), thickness: 1),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 14),
@@ -595,10 +588,7 @@ class _Separador extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Divider(
-            color: Colors.black.withOpacity(0.10),
-            thickness: 1,
-          ),
+          child: Divider(color: Colors.black.withOpacity(0.10), thickness: 1),
         ),
       ],
     );
