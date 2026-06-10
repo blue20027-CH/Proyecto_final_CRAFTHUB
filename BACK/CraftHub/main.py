@@ -3,12 +3,13 @@ import sys
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 from supabase_client import supabase
 from auth_controller import login_usuario_supabase
 from pedidos_router import router as pedidos_router
+from notificaciones_router import router as notificaciones_router
+from perfil_router import router as perfil_router
+from auth_router import router as auth_router
 
 app = FastAPI(
     title="CraftHub API",
@@ -31,6 +32,9 @@ app.add_middleware(
 # ROUTERS
 # ---------------------------------------------------------------------------
 app.include_router(pedidos_router)
+app.include_router(notificaciones_router)
+app.include_router(perfil_router)
+app.include_router(auth_router)
 
 # ---------------------------------------------------------------------------
 # MODELOS
@@ -50,7 +54,6 @@ def raiz():
         "mensaje": "Servidor corriendo exitosamente."
     }
 
-
 @app.post("/api/auth/login")
 async def login(credenciales: LoginRequest):
     """
@@ -60,15 +63,12 @@ async def login(credenciales: LoginRequest):
          Body: { "email": "...", "password": "..." }
     """
     resultado = login_usuario_supabase(credenciales.email, credenciales.password)
-
     if resultado["status"] == "error":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Error de autenticación: {resultado['message']}"
         )
-
     return resultado
-
 
 # ---------------------------------------------------------------------------
 # INICIO
