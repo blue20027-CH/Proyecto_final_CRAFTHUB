@@ -1,12 +1,13 @@
 // lib/screens/vendedor/home_vendedor.dart
 
+import 'package:abi_frotend_nd/screens/vendedor/pantalla_inventario.dart';
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_tutoriales.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:abi_frotend_nd/main.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
-import '../../widgets/vendedor/vendedor_topbar.dart';
 import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
@@ -181,11 +182,11 @@ class _HomeVendedorState extends State<HomeVendedor> {
       case 0:
         return _ContenidoDashboard(esOscuro: oscuro);
       case 1:
-        //return const ();
+        return const PantallaInventario();
       case 2:
-        //return const ArtesanosScreen();
+      //return const ArtesanosScreen();
       case 3:
-        // return const PantallaFavoritos();
+      // return const PantallaFavoritos();
       case 4:
         return const PantallaTutoriales();
       default:
@@ -194,8 +195,12 @@ class _HomeVendedorState extends State<HomeVendedor> {
   }
 
   Widget _buildTopBar(bool oscuro) {
-    final border = oscuro ? CraftHubColors.bordeOscuro : CraftHubColors.bordeClaro;
-    final fondo  = oscuro ? CraftHubColors.fondoOscuro : CraftHubColors.fondoClaro;
+    final border = oscuro
+        ? CraftHubColors.bordeOscuro
+        : CraftHubColors.bordeClaro;
+    final fondo = oscuro
+        ? CraftHubColors.fondoOscuro
+        : CraftHubColors.fondoClaro;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -211,7 +216,10 @@ class _HomeVendedorState extends State<HomeVendedor> {
                 style: GoogleFonts.poppins(fontSize: 13),
                 decoration: InputDecoration(
                   hintText: 'Buscar productos, artesanos, provincias…',
-                  hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.grey,
+                  ),
                   prefixIcon: const Icon(Icons.search_rounded, size: 20),
                   filled: true,
                   fillColor: oscuro ? CraftHubColors.panelOscuro : Colors.white,
@@ -226,7 +234,10 @@ class _HomeVendedorState extends State<HomeVendedor> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(color: CraftHubColors.vinoTinto, width: 1.2),
+                    borderSide: const BorderSide(
+                      color: CraftHubColors.vinoTinto,
+                      width: 1.2,
+                    ),
                   ),
                 ),
               ),
@@ -254,14 +265,14 @@ class _HomeVendedorState extends State<HomeVendedor> {
             icono: Icons.location_on_outlined,
             tooltip: 'Mapa artesanos',
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (ctx) => PantallaMapa(
-                    esOscuro: Theme.of(ctx).brightness == Brightness.dark,
-                  ),
-                ),
-              );
+              //Navigator.push(
+              // context,
+              // MaterialPageRoute(
+              //  builder: (ctx) => PantallaMapa(
+              //   esOscuro: Theme.of(ctx).brightness == Brightness.dark,
+              // ),
+              //  ),
+              //  );
             },
           ),
           _IconTopBar(
@@ -275,7 +286,6 @@ class _HomeVendedorState extends State<HomeVendedor> {
       ),
     );
   }
-
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -893,3 +903,88 @@ BoxDecoration _decorPanel() => BoxDecoration(
     ),
   ],
 );
+
+class _IconTopBar extends StatefulWidget {
+  final IconData icono;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool tieneNotif;
+
+  const _IconTopBar({
+    required this.icono,
+    required this.tooltip,
+    required this.onTap,
+    this.tieneNotif = false,
+  });
+
+  @override
+  State<_IconTopBar> createState() => _IconTopBarState();
+}
+
+class _IconTopBarState extends State<_IconTopBar> {
+  bool _hover = false;
+  @override
+  Widget build(BuildContext context) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: Tooltip(
+        message: widget.tooltip,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
+            margin: const EdgeInsets.only(left: 8),
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _hover
+                  ? (oscuro
+                        ? Colors.white.withOpacity(0.08)
+                        : Colors.black.withOpacity(0.05))
+                  : (oscuro ? CraftHubColors.panelOscuro : Colors.white),
+              border: Border.all(
+                color: oscuro
+                    ? CraftHubColors.bordeOscuro
+                    : CraftHubColors.bordeClaro,
+                width: 0.8,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  widget.icono,
+                  size: 19,
+                  color: oscuro
+                      ? CraftHubColors.textoOscuro
+                      : const Color(0xFF5A4A42),
+                ),
+                if (widget.tieneNotif)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: CraftHubColors.vinoTinto,
+                        border: Border.all(
+                          color: oscuro
+                              ? CraftHubColors.fondoOscuro
+                              : CraftHubColors.fondoClaro,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

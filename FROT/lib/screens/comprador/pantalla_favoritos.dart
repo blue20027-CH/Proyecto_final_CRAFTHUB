@@ -55,13 +55,6 @@ class _PantallaFavoritosState extends State<PantallaFavoritos> {
     });
   }
 
-  void _quitarFavorito(String id) {
-    setState(() {
-      _favoritosFiltrados.removeWhere((p) => p.id == id);
-    });
-    // 🔗 API: DELETE /api/v1/favoritos/{usuarioId}/{id}
-  }
-
   void _abrirModalArtesanos() {
     mostrarModalArtesanosSeguidos(
       context: context,

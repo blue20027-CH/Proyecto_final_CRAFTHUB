@@ -310,25 +310,3 @@ class _TarjetaArtesanoModalState extends State<_TarjetaArtesanoModal> {
   }
 }
 
-/// Mensaje vacío reutilizable.
-class _MensajeVacio extends StatelessWidget {
-  final String mensaje;
-  final Color colorSuave;
-
-  const _MensajeVacio({required this.mensaje, required this.colorSuave});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(
-        mensaje,
-        style: TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 12,
-          color: colorSuave,
-        ),
-      ),
-    );
-  }
-}

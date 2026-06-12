@@ -78,7 +78,9 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
     if (!_formKey.currentState!.validate()) return;
     if (_rutaVideoSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona un archivo de video.')),
+        const SnackBar(
+          content: Text('Por favor selecciona un archivo de video.'),
+        ),
       );
       return;
     }
@@ -90,6 +92,10 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
     }
 
     setState(() => _subiendoArchivo = true);
+
+    if (_rutaMiniaturaSeleccionada != null) {
+      // La miniatura está seleccionada y se usará en la integración real del backend.
+    }
 
     // 🔌 INTEGRACIÓN API – reemplazar el bloque de abajo con la llamada HTTP real:
     // ─────────────────────────────────────────────────────────────────────────
@@ -150,8 +156,11 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                         color: CraftHubColors.vinoTinto,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.upload_rounded,
-                          color: Colors.white, size: 22),
+                      child: const Icon(
+                        Icons.upload_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Column(
@@ -186,7 +195,10 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                 const SizedBox(height: 28),
 
                 // ── Selector de archivo de video ─────────────────────────────
-                _LabelCampo(texto: 'Archivo de video *', colorTexto: colorTexto),
+                _LabelCampo(
+                  texto: 'Archivo de video *',
+                  colorTexto: colorTexto,
+                ),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: _seleccionarVideo,
@@ -197,7 +209,8 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                     decoration: BoxDecoration(
                       color: _rutaVideoSeleccionado != null
                           ? CraftHubColors.vinoTintoSuave.withOpacity(
-                              esOscuro ? 0.15 : 0.5)
+                              esOscuro ? 0.15 : 0.5,
+                            )
                           : CraftHubColors.fondo(esOscuro),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
@@ -241,9 +254,10 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                             child: Text(
                               'Formatos: MP4, MOV, AVI (máx. 500 MB)',
                               style: TextStyle(
-                                  color: colorSec,
-                                  fontSize: 11,
-                                  fontFamily: 'Poppins'),
+                                color: colorSec,
+                                fontSize: 11,
+                                fontFamily: 'Poppins',
+                              ),
                             ),
                           ),
                       ],
@@ -253,7 +267,10 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                 const SizedBox(height: 20),
 
                 // ── Título ───────────────────────────────────────────────────
-                _LabelCampo(texto: 'Título del tutorial *', colorTexto: colorTexto),
+                _LabelCampo(
+                  texto: 'Título del tutorial *',
+                  colorTexto: colorTexto,
+                ),
                 const SizedBox(height: 8),
                 _CampoTexto(
                   controlador: _controladorTitulo,
@@ -291,13 +308,16 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                   decoration: InputDecoration(
                     hintText: 'Selecciona una categoría',
                     hintStyle: TextStyle(
-                        color: colorSec,
-                        fontSize: 13,
-                        fontFamily: 'Poppins'),
+                      color: colorSec,
+                      fontSize: 13,
+                      fontFamily: 'Poppins',
+                    ),
                     filled: true,
                     fillColor: CraftHubColors.fondo(esOscuro),
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 14),
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: colorBorde),
@@ -309,19 +329,21 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
-                          color: CraftHubColors.vinoTinto, width: 1.5),
+                        color: CraftHubColors.vinoTinto,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                   dropdownColor: colorFondo,
                   style: TextStyle(
-                      color: colorTexto,
-                      fontSize: 13,
-                      fontFamily: 'Poppins'),
+                    color: colorTexto,
+                    fontSize: 13,
+                    fontFamily: 'Poppins',
+                  ),
                   items: _categorias
-                      .map((cat) => DropdownMenuItem(
-                            value: cat,
-                            child: Text(cat),
-                          ))
+                      .map(
+                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      )
                       .toList(),
                   onChanged: (val) =>
                       setState(() => _categoriaSeleccionada = val),
@@ -332,22 +354,26 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
 
                 // ── Miniatura (opcional) ──────────────────────────────────────
                 _LabelCampo(
-                    texto: 'Miniatura personalizada (opcional)',
-                    colorTexto: colorTexto),
+                  texto: 'Miniatura personalizada (opcional)',
+                  colorTexto: colorTexto,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: CraftHubColors.fondo(esOscuro),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: colorBorde),
                         ),
                         child: Text(
-                          _nombreArchivoMiniatura ?? 'Ningún archivo seleccionado',
+                          _nombreArchivoMiniatura ??
+                              'Ningún archivo seleccionado',
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: _nombreArchivoMiniatura != null
@@ -363,15 +389,17 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                     OutlinedButton.icon(
                       onPressed: _seleccionarMiniatura,
                       icon: const Icon(Icons.image_outlined, size: 16),
-                      label: const Text('Explorar',
-                          style: TextStyle(
-                              fontFamily: 'Poppins', fontSize: 13)),
+                      label: const Text(
+                        'Explorar',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
+                      ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: CraftHubColors.vinoTinto,
-                        side: const BorderSide(
-                            color: CraftHubColors.vinoTinto),
+                        side: const BorderSide(color: CraftHubColors.vinoTinto),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -392,15 +420,15 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: colorSec,
                           side: BorderSide(color: colorBorde),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text('Cancelar',
-                            style: TextStyle(
-                                fontFamily: 'Poppins', fontSize: 14)),
+                        child: const Text(
+                          'Cancelar',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -411,8 +439,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: CraftHubColors.vinoTinto,
                           foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -504,22 +531,24 @@ class _CampoTexto extends StatelessWidget {
         ),
         filled: true,
         fillColor: CraftHubColors.fondo(esOscuro),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              BorderSide(color: CraftHubColors.borde(esOscuro)),
+          borderSide: BorderSide(color: CraftHubColors.borde(esOscuro)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              BorderSide(color: CraftHubColors.borde(esOscuro)),
+          borderSide: BorderSide(color: CraftHubColors.borde(esOscuro)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(
-              color: CraftHubColors.vinoTinto, width: 1.5),
+            color: CraftHubColors.vinoTinto,
+            width: 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
