@@ -189,7 +189,7 @@ class _FormularioRegistro extends StatelessWidget {
               TextSpan(
                 text: 'Crea tu cuenta como ',
                 style: TextStyle(
-                  fontFamily: 'RocaTwo',
+                  fontFamily: 'PlayfairDisplay',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoClaro,
@@ -198,7 +198,7 @@ class _FormularioRegistro extends StatelessWidget {
               TextSpan(
                 text: 'vendedor',
                 style: TextStyle(
-                  fontFamily: 'RocaTwo',
+                  fontFamily: 'PlayfairDisplay',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
                   color: CraftHubColors.vinoTinto,
@@ -339,8 +339,6 @@ class _FormularioRegistro extends StatelessWidget {
               ),
             ); // TODO: lógica de registro con FastAPI
           },
-          mostrarFlecha: true,
-          ancho: double.infinity,
         ),
 
         const SizedBox(height: 16),
@@ -425,7 +423,7 @@ class _Encabezado extends StatelessWidget {
             const Text(
               'CraftHub',
               style: TextStyle(
-                fontFamily: 'RocaTwo',
+                fontFamily: 'PlayfairDisplay',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: CraftHubColors.vinoTinto,

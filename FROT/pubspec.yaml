@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.2.3            # Para conectar con tu FastAPI en Python
   flutter_map: ^7.0.2      # reemplaza google_maps_flutter para Windows
   latlong2: ^0.9.1         # coordenadas para flutter_map
+  lucide_icons_flutter: ^3.1.14+2   # iconos modernos y personalizables
   url_launcher: ^6.3.0     # abrir Google Maps con direcciones
   geolocator: ^13.0.0      # ubicación real del usuario
   table_calendar: ^3.1.2     # Para el calendario de ferias/eventos
@@ -81,16 +82,21 @@ flutter:
     - assets/images/rol_back.png
 
   fonts:
+    # 1. Toda la familia Poppins junta
     - family: Poppins
       fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-SemiBold.ttf
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins/Poppins-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Poppins-Bold.ttf
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
           weight: 700
-    - family: RocaTwo
+
+    # 2. Toda la familia Playfair Display junta
+    - family: PlayfairDisplay
       fonts:
-        - asset: assets/fonts/RocaTwo-Regular.ttf
+        - asset: assets/fonts/Playfair_Display/PlayfairDisplay-Regular.ttf
+        - asset: assets/fonts/Playfair_Display/PlayfairDisplay-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

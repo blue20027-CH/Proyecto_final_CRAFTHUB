@@ -230,7 +230,7 @@ class _ContenidoCentral extends StatelessWidget {
 
           // ── BOTÓN INICIAR SESIÓN ──────────────────────────────────────
           BotonPrimario(
-  texto: 'Sign In',
+  texto: 'Iniciar sesión',
   alPresionar: () {
     Navigator.push(
       context,
@@ -239,7 +239,6 @@ class _ContenidoCentral extends StatelessWidget {
       ), // Cierra el MaterialPageRoute
     ); // <-- Aquí faltaba el ")" para cerrar el Navigator.push
   },
-  mostrarFlecha: true,
   ancho: 340,
 ),
 
@@ -296,7 +295,7 @@ class _SeccionLogo extends StatelessWidget {
             Text(
               'CRAFTHUB',
               style: TextStyle(
-                fontFamily: 'RocaTwo',
+                fontFamily: 'PlayfairDisplay',
                 fontSize: 46,
                 fontWeight: FontWeight.w700,
                 color: colorTexto,

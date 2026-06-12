@@ -308,7 +308,7 @@ class _HeaderDashboard extends StatelessWidget {
               Text(
                 'Bienvenida, $nombreVendedor',
                 style: const TextStyle(
-                  fontFamily: 'RocaTwo',
+                  fontFamily: 'PlayfairDisplay',
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoClaro,
@@ -410,7 +410,7 @@ class _PanelIngresos extends StatelessWidget {
           Text(
             '\$${datos.ingresosTotal.toStringAsFixed(2)}',
             style: const TextStyle(
-              fontFamily: 'RocaTwo',
+              fontFamily: 'PlayfairDisplay',
               fontSize: 32,
               fontWeight: FontWeight.w700,
               color: CraftHubColors.textoClaro,

@@ -305,7 +305,7 @@ class _PanelLogin extends StatelessWidget {
                       TextSpan(
                         text: 'CRAFT',
                         style: TextStyle(
-                          fontFamily: 'RocaTwo',
+                          fontFamily: 'PlayfairDisplay',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: colorTexto,
@@ -316,7 +316,7 @@ class _PanelLogin extends StatelessWidget {
                       const TextSpan(
                         text: 'HUB',
                         style: TextStyle(
-                          fontFamily: 'RocaTwo',
+                          fontFamily: 'PlayfairDisplay',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: CraftHubColors.vinoTinto,
@@ -434,7 +434,6 @@ class _PanelLogin extends StatelessWidget {
             : BotonPrimario(
                 texto: 'Entrar',
                 alPresionar: alIniciarSesion,
-                mostrarFlecha: true,
                 ancho: double.infinity,
               ),
 
@@ -452,42 +451,7 @@ class _PanelLogin extends StatelessWidget {
           alPresionar: alIniciarGoogle,
         ),
 
-        const SizedBox(height: 16),
-
-        // ── LINK REGISTRO ────────────────────────────────────────────────
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '¿No tienes una cuenta? ',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 11,
-                color: colorSec,
-              ),
-            ),
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  // API_HOOK: navega a pantalla de registro
-                  // Navigator.pushNamed(context, '/registro');
-                },
-                child: const Text(
-                  'Regístrate',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: CraftHubColors.vinoTinto,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 24),
+        const SizedBox(height: 110),
 
         // ── BADGES DE CONFIANZA ──────────────────────────────────────────
         _BadgesConfianza(esOscuro: esOscuro),

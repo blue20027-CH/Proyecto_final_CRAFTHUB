@@ -34,7 +34,7 @@ class CompradorTopbar extends StatelessWidget {
             ),
           ),
         ),
-        const Spacer(),
+      
         IconButton(
           onPressed: () {},
           icon: const Icon(Icons.chat_bubble_outline),

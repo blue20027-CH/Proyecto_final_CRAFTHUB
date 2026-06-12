@@ -221,7 +221,7 @@ class _SubirVideoFormState extends State<SubirVideoForm>
                         _etiqueta('Archivo de video *', colorTexto),
                         const SizedBox(height: 6),
                         _zonaArchivo(
-                          icono: HugeIcons.strokeRoundedVideo01,
+                          icono: Icons.videocam_rounded,
                           texto:
                               _archivoVideoNombre ??
                               'Seleccionar video (.mp4, .mov, .avi)',
@@ -238,7 +238,7 @@ class _SubirVideoFormState extends State<SubirVideoForm>
                         _etiqueta('Imagen de portada (opcional)', colorTexto),
                         const SizedBox(height: 6),
                         _zonaArchivo(
-                          icono: HugeIcons.strokeRoundedImage01,
+                          icono: Icons.image_rounded,
                           texto:
                               _archivoPosterNombre ??
                               'Seleccionar portada (.jpg, .png)',
@@ -488,8 +488,8 @@ class _SubirVideoFormState extends State<SubirVideoForm>
         ),
         child: Row(
           children: [
-            HugeIcon(
-              icon: icono,
+            Icon(
+              icono,
               color: seleccionado ? const Color(0xFF821515) : colorSubtexto,
               size: 20,
             ),

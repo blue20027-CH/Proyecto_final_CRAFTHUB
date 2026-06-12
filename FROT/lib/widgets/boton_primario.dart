@@ -5,14 +5,12 @@ import '../core/theme/app_theme.dart';
 class BotonPrimario extends StatefulWidget {
   final String texto;
   final VoidCallback alPresionar;
-  final bool mostrarFlecha;
   final double? ancho;
 
   const BotonPrimario({
     super.key,
     required this.texto,
     required this.alPresionar,
-    this.mostrarFlecha = false,
     this.ancho,
   });
 
@@ -65,14 +63,6 @@ class _BotonPrimarioState extends State<BotonPrimario> {
                     letterSpacing: 0.3,
                   ),
                 ),
-                if (widget.mostrarFlecha) ...[
-                  const SizedBox(width: 10),
-                  const Icon(
-                    Icons.arrow_forward_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ],
               ],
             ),
           ),
