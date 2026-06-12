@@ -40,19 +40,17 @@ flutter:
   assets:
     - assets/images/logo_crafthub.png
     - assets/images/fondo_inicio.png
-    - assets/images/rol_back.png
-    - assets/images/categorias/
+    - assets/images/rol_back.png 
 
   fonts:
-  - family: Poppins
-    fonts:
-      - asset: assets/fonts/Poppins/Poppins-Regular.ttf
-      - asset: assets/fonts/Poppins/Poppins-SemiBold.ttf
-        weight: 600
-      - asset: assets/fonts/Poppins/Poppins-Bold.ttf
-        weight: 700
-
-  - family: RocaTwo
-    fonts:
-      - asset: assets/fonts/RocaTwo/Roca_Two_Bold.ttf
-      - asset: assets/fonts/RocaTwo/Roca_Two_Thin.ttf
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+          weight: 700
+    - family: RocaTwo
+      fonts:
+        - asset: assets/fonts/RocaTwo/Roca_Two_Bold.ttf
+        - asset: assets/fonts/RocaTwo/Roca_Two_Thin.ttf
