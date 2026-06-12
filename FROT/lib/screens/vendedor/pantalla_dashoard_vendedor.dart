@@ -1,5 +1,6 @@
 // lib/screens/vendedor/home_vendedor.dart
 
+import 'package:abi_frotend_nd/screens/vendedor/pantalla_tutoriales.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
@@ -139,7 +140,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
       case 3:
         return const Center(child: Text('Clientes')); // TODO
       case 4:
-        return const Center(child: Text('Mensajes')); // TODO
+        return const PantallaTutoriales(); // TODO
       case 5:
         return const Center(child: Text('Reportes')); // TODO
       case 6:
