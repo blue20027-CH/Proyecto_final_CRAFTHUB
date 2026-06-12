@@ -11,6 +11,8 @@ import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
 import '../../widgets/vendedor/resumen_rapido.dart';
+import '../../core/theme/gestor_tema.dart';
+import '../comprador/pantalla_mapa.dart';
 
 // ─────────────────────────────────────────────────────────────
 // MODELOS MOCK
