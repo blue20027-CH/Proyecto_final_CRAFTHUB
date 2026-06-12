@@ -221,7 +221,7 @@ class _EncabezadoFavoritos extends StatelessWidget {
             const Text(
               'Mis favoritos',
               style: TextStyle(
-                fontFamily: 'PlayfairDisplay',
+                fontFamily: 'RocaTwo',
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.5,

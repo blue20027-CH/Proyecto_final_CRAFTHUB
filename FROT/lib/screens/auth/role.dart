@@ -68,7 +68,7 @@ class _BarraSuperior extends StatelessWidget {
                 Text(
                   'CraftHub',
                   style: TextStyle(
-                    fontFamily: 'PlayfairDisplay',
+                    fontFamily: 'RocaTwo',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: CraftHubColors.textoPrincipal(esOscuro),
@@ -155,7 +155,7 @@ class _CuerpoSeleccion extends StatelessWidget {
           '¿Cuál es tu rol en CraftHub?',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: 'PlayfairDisplay',
+            fontFamily: 'RocaTwo',
             fontSize: 36,
             fontWeight: FontWeight.w700,
             color: CraftHubColors.textoPrincipal(esOscuro),
@@ -337,7 +337,7 @@ class _TarjetaRolState extends State<_TarjetaRol> {
               widget.titulo,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'PlayfairDisplay',
+                fontFamily: 'RocaTwo',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: colorTexto,

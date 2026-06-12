@@ -2,9 +2,11 @@
 
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_tutoriales.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
-import '../../widgets/vendedor/topbar_vendedor.dart';
+import '../../widgets/vendedor/vendedor_topbar.dart';
 import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
@@ -114,11 +116,12 @@ final _datosMock = _DatosDashboard(
   visitasTienda: 2345,
 );
 
-// ─────────────────────────────────────────────────────────────
+// ───────────────────────────────────────────────── ────────────
 // HOME VENDEDOR — Scaffold principal único
 // ─────────────────────────────────────────────────────────────
 class HomeVendedor extends StatefulWidget {
   final bool esOscuro;
+
   const HomeVendedor({super.key, required this.esOscuro});
 
   @override
@@ -126,61 +129,43 @@ class HomeVendedor extends StatefulWidget {
 }
 
 class _HomeVendedorState extends State<HomeVendedor> {
-  int _indiceActual = 0;
+  int _navIndice = 0;
+  final TextEditingController _busquedaCtrl = TextEditingController();
 
-  // Devuelve SOLO el contenido inner — sin Scaffold, sin sidebar, sin topbar
-  Widget _obtenerPantallaActual() {
-    switch (_indiceActual) {
-      case 0:
-        return _ContenidoDashboard(esOscuro: widget.esOscuro);
-      case 1:
-        return const Center(child: Text('Productos')); // TODO
-      case 2:
-        return const Center(child: Text('Pedidos')); // TODO
-      case 3:
-        return const Center(child: Text('Clientes')); // TODO
-      case 4:
-        return const PantallaTutoriales(); // TODO
-      case 5:
-        return const Center(child: Text('Reportes')); // TODO
-      case 6:
-        return const Center(child: Text('Configuración')); // TODO
-      default:
-        return _ContenidoDashboard(esOscuro: widget.esOscuro);
-    }
+  @override
+  void dispose() {
+    _busquedaCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    final colorFondo = esModoOscuro
+        ? CraftHubColors.fondoOscuro
+        : CraftHubColors.fondoClaro;
+
     return Scaffold(
-      backgroundColor: CraftHubColors.fondoClaro,
+      backgroundColor: colorFondo,
       body: Row(
         children: [
-          // ── Sidebar ────────────────────────────────────────────────
+          // 1. El sidebar se expande/colapsa solo — el Row se adapta automáticamente
           SidebarVendedor(
-            indiceActivo: _indiceActual,
-            alSeleccionar: (i) => setState(() => _indiceActual = i),
+            indiceActivo: _navIndice,
+            alSeleccionar: (i) => setState(() => _navIndice = i),
             alCerrarSesion: () {
-              // 🔌 POST /api/auth/logout → limpiar token y navegar a inicio
-              Navigator.pushReplacementNamed(context, '/');
+              // 📌 POST /api/auth/logout
             },
           ),
 
-          // ── Contenido principal ────────────────────────────────────
+          // 2. El Expanded ocupa todo el espacio restante automáticamente
           Expanded(
             child: Column(
               children: [
-                // Topbar
-                VendedorTopbar(
-                  cantidadNotif: 3, // 🔌 GET /api/vendedor/notificaciones/count
-                  cantidadMensajes: 2, // 🔌 GET /api/vendedor/mensajes/count
-                  onVerNotificaciones: () {},
-                  onVerMensajes: () => setState(() => _indiceActual = 4),
-                  onVerPerfil: () {},
+                _buildTopBar(esModoOscuro),
+                Expanded(
+                  child: _obtenerPantallaActual(_navIndice, esModoOscuro),
                 ),
-
-                // Panel de contenido activo
-                Expanded(child: _obtenerPantallaActual()),
               ],
             ),
           ),
@@ -188,6 +173,107 @@ class _HomeVendedorState extends State<HomeVendedor> {
       ),
     );
   }
+
+  Widget _obtenerPantallaActual(int indice, bool oscuro) {
+    switch (indice) {
+      case 0:
+        return _ContenidoDashboard(esOscuro: oscuro);
+      case 1:
+        //return const ();
+      case 2:
+        //return const ArtesanosScreen();
+      case 3:
+        // return const PantallaFavoritos();
+      case 4:
+        return const PantallaTutoriales();
+      default:
+        return _ContenidoDashboard(esOscuro: oscuro);
+    }
+  }
+
+  Widget _buildTopBar(bool oscuro) {
+    final border = oscuro ? CraftHubColors.bordeOscuro : CraftHubColors.bordeClaro;
+    final fondo  = oscuro ? CraftHubColors.fondoOscuro : CraftHubColors.fondoClaro;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      decoration: BoxDecoration(color: fondo),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: TextField(
+                controller: _busquedaCtrl,
+                // 📌 onChanged: (q) => _cargarProductos(busqueda: q)  → GET /api/productos?q=
+                style: GoogleFonts.poppins(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Buscar productos, artesanos, provincias…',
+                  hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  filled: true,
+                  fillColor: oscuro ? CraftHubColors.panelOscuro : Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: border, width: 0.8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(color: CraftHubColors.vinoTinto, width: 1.2),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          _IconTopBar(
+            icono: Icons.chat_bubble_outline_rounded,
+            tooltip: 'Mensajes',
+            onTap: () {}, // 📌 navegar a /mensajes
+          ),
+          _IconTopBar(
+            icono: Icons.calendar_month_outlined,
+            tooltip: 'Eventos',
+            onTap: () {}, // 📌 navegar a /calendario
+          ),
+          _IconTopBar(
+            icono: Icons.notifications_none_rounded,
+            tooltip: 'Notificaciones',
+            tieneNotif: true,
+            onTap: () {}, // 📌 GET /api/notificaciones
+          ),
+          _IconTopBar(
+            icono: Icons.location_on_outlined,
+            tooltip: 'Mapa artesanos',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (ctx) => PantallaMapa(
+                    esOscuro: Theme.of(ctx).brightness == Brightness.dark,
+                  ),
+                ),
+              );
+            },
+          ),
+          _IconTopBar(
+            icono: Theme.of(context).brightness == Brightness.dark
+                ? Icons.light_mode_outlined
+                : Icons.dark_mode_outlined,
+            tooltip: 'Cambiar tema',
+            onTap: () => context.read<GestorTema>().alternarTema(),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -308,7 +394,7 @@ class _HeaderDashboard extends StatelessWidget {
               Text(
                 'Bienvenida, $nombreVendedor',
                 style: const TextStyle(
-                  fontFamily: 'PlayfairDisplay',
+                  fontFamily: 'RocaTwo',
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoClaro,
@@ -410,7 +496,7 @@ class _PanelIngresos extends StatelessWidget {
           Text(
             '\$${datos.ingresosTotal.toStringAsFixed(2)}',
             style: const TextStyle(
-              fontFamily: 'PlayfairDisplay',
+              fontFamily: 'RocaTwo',
               fontSize: 32,
               fontWeight: FontWeight.w700,
               color: CraftHubColors.textoClaro,

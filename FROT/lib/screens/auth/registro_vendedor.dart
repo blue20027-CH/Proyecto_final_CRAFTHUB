@@ -189,7 +189,7 @@ class _FormularioRegistro extends StatelessWidget {
               TextSpan(
                 text: 'Crea tu cuenta como ',
                 style: TextStyle(
-                  fontFamily: 'PlayfairDisplay',
+                  fontFamily: 'RocaTwo',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoClaro,
@@ -198,7 +198,7 @@ class _FormularioRegistro extends StatelessWidget {
               TextSpan(
                 text: 'vendedor',
                 style: TextStyle(
-                  fontFamily: 'PlayfairDisplay',
+                  fontFamily: 'RocaTwo',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
                   color: CraftHubColors.vinoTinto,
@@ -423,7 +423,7 @@ class _Encabezado extends StatelessWidget {
             const Text(
               'CraftHub',
               style: TextStyle(
-                fontFamily: 'PlayfairDisplay',
+                fontFamily: 'RocaTwo',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: CraftHubColors.vinoTinto,

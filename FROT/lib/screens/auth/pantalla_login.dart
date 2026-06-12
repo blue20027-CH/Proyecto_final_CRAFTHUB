@@ -305,7 +305,7 @@ class _PanelLogin extends StatelessWidget {
                       TextSpan(
                         text: 'CRAFT',
                         style: TextStyle(
-                          fontFamily: 'PlayfairDisplay',
+                          fontFamily: 'RocaTwo',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: colorTexto,
@@ -316,7 +316,7 @@ class _PanelLogin extends StatelessWidget {
                       const TextSpan(
                         text: 'HUB',
                         style: TextStyle(
-                          fontFamily: 'PlayfairDisplay',
+                          fontFamily: 'RocaTwo',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: CraftHubColors.vinoTinto,

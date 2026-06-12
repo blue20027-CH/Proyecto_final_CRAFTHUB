@@ -35,7 +35,7 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
             Text(
               widget.promedio.toStringAsFixed(1),
               style: const TextStyle(
-                fontFamily: 'PlayfairDisplay',
+                fontFamily: 'RocaTwo',
                 fontSize: 48,
                 fontWeight: FontWeight.w700,
                 color: CraftHubColors.textoClaro,

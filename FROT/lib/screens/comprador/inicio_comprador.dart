@@ -167,16 +167,16 @@ class _HomeCompradorState extends State<HomeComprador> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       decoration: BoxDecoration(
         color: fondo,
-        border: Border(bottom: BorderSide(color: border, width: 0.8)),
       ),
-      child: Row(children: [
+      child: Row(
+        children: [
         // Barra de bÃºsqueda â€” larga estilo Apple
         Expanded(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 520),
             child: TextField(
               controller: _busquedaCtrl,
-              // ðŸ”Œ onChanged: (q) => _cargarProductos(busqueda: q)
+              // onChanged: (q) => _cargarProductos(busqueda: q),
               style: GoogleFonts.poppins(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Buscar productos, artesanos, provinciasâ€¦',

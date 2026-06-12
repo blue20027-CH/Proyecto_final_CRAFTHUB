@@ -92,11 +92,17 @@ flutter:
           weight: 700
 
     # 2. Toda la familia Playfair Display junta
-    - family: PlayfairDisplay
+    - family: RocaTwo
       fonts:
-        - asset: assets/fonts/Playfair_Display/PlayfairDisplay-Regular.ttf
-        - asset: assets/fonts/Playfair_Display/PlayfairDisplay-Bold.ttf
+        - asset: assets/fonts/Playfair_Display/RocaTwo-Regular.ttf
+        - asset: assets/fonts/Playfair_Display/RocaTwo-Bold.ttf
           weight: 700
+    
+    - family: RocaTwo
+      fonts:
+        - asset: assets/fonts/RocaTwo/Roca_Two_Bold.ttf
+          weight: 700
+        - asset: assets/fonts/RocaTwo/Roca_Two_Thin.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
