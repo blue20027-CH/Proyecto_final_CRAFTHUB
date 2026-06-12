@@ -1,3 +1,4 @@
+import 'package:abi_frotend_nd/screens/auth/pantalla_intereses.dart';
 import 'package:abi_frotend_nd/screens/comprador/inicio_comprador.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -62,8 +63,12 @@ class _BarraSuperior extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/logo_crafthub.png',
-                    width: 28, height: 28, fit: BoxFit.contain),
+                Image.asset(
+                  'assets/images/logo_crafthub.png',
+                  width: 28,
+                  height: 28,
+                  fit: BoxFit.contain,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'CraftHub',
@@ -114,8 +119,8 @@ class _BotonVolverState extends State<_BotonVolver> {
           decoration: BoxDecoration(
             color: _sobreEl
                 ? (widget.esOscuro
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.black.withOpacity(0.05))
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.05))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -124,13 +129,15 @@ class _BotonVolverState extends State<_BotonVolver> {
             children: [
               Icon(Icons.arrow_back_rounded, size: 16, color: colorTexto),
               const SizedBox(width: 6),
-              Text('Volver',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: colorTexto,
-                  )),
+              Text(
+                'Volver',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colorTexto,
+                ),
+              ),
             ],
           ),
         ),
@@ -179,7 +186,8 @@ class _CuerpoSeleccion extends StatelessWidget {
         IntrinsicHeight(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch, // ← ambas se estiran igual
+            crossAxisAlignment:
+                CrossAxisAlignment.stretch, // ← ambas se estiran igual
             children: [
               SizedBox(
                 width: 380,
@@ -195,11 +203,11 @@ class _CuerpoSeleccion extends StatelessWidget {
                       icono: Icons.person_add_outlined,
                       esPrimario: false,
                       alPresionar: () => Navigator.push(
-                               context,
-                                 MaterialPageRoute(
-                                     builder: (_) => const PantallaRegistroVendedor(),
-                                ),
-                         ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PantallaRegistroVendedor(),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -219,22 +227,22 @@ class _CuerpoSeleccion extends StatelessWidget {
                       icono: Icons.search_rounded,
                       esPrimario: true,
                       alPresionar: () => Navigator.push(
-                               context,
-                                 MaterialPageRoute(
-                                     builder: (_) => const HomeComprador (),
-                                ),
-                            ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HomeComprador(),
+                        ),
+                      ),
                     ),
                     _DatoBoton(
                       texto: 'Registrarme como comprador',
                       icono: Icons.person_add_outlined,
                       esPrimario: false,
                       alPresionar: () => Navigator.push(
-                               context,
-                                 MaterialPageRoute(
-                                     builder: (_) => const PantallaRegistroVendedor(),
-                                ),
-                            ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PantallaIntereses(),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -298,7 +306,7 @@ class _TarjetaRolState extends State<_TarjetaRol> {
         ? CraftHubColors.bordeOscuro
         : CraftHubColors.bordeClaro;
     final colorTexto = CraftHubColors.textoPrincipal(widget.esOscuro);
-    final colorSec   = CraftHubColors.textoSecundario(widget.esOscuro);
+    final colorSec = CraftHubColors.textoSecundario(widget.esOscuro);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _sobreEl = true),
@@ -316,20 +324,24 @@ class _TarjetaRolState extends State<_TarjetaRol> {
             width: 1.5,
           ),
           boxShadow: _sobreEl
-              ? [BoxShadow(
-                  color: CraftHubColors.vinoTinto.withOpacity(0.10),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                )]
-              : [BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                )],
+              ? [
+                  BoxShadow(
+                    color: CraftHubColors.vinoTinto.withOpacity(0.10),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         // Column con MainAxisSize.max + Spacer empuja botones siempre abajo
         child: Column(
-          mainAxisSize: MainAxisSize.max,   // ← ocupa todo el alto disponible
+          mainAxisSize: MainAxisSize.max, // ← ocupa todo el alto disponible
           children: [
             _CirculoIcono(icono: widget.icono, esOscuro: widget.esOscuro),
             const SizedBox(height: 20),
@@ -358,16 +370,18 @@ class _TarjetaRolState extends State<_TarjetaRol> {
             ),
             const Spacer(), // ← empuja los botones al fondo siempre
             const SizedBox(height: 28),
-            ...widget.botones.map((b) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _BotonTarjeta(
-                texto: b.texto,
-                icono: b.icono,
-                esPrimario: b.esPrimario,
-                esOscuro: widget.esOscuro,
-                alPresionar: b.alPresionar,
+            ...widget.botones.map(
+              (b) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _BotonTarjeta(
+                  texto: b.texto,
+                  icono: b.icono,
+                  esPrimario: b.esPrimario,
+                  esOscuro: widget.esOscuro,
+                  alPresionar: b.alPresionar,
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),
@@ -409,21 +423,28 @@ class _SeparadorDiamante extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 40, height: 1,
-            color: CraftHubColors.vinoTinto.withOpacity(0.5)),
+        Container(
+          width: 40,
+          height: 1,
+          color: CraftHubColors.vinoTinto.withOpacity(0.5),
+        ),
         const SizedBox(width: 6),
         Transform.rotate(
           angle: 0.785398,
           child: Container(
-            width: 6, height: 6,
+            width: 6,
+            height: 6,
             decoration: BoxDecoration(
               border: Border.all(color: CraftHubColors.vinoTinto, width: 1.5),
             ),
           ),
         ),
         const SizedBox(width: 6),
-        Container(width: 40, height: 1,
-            color: CraftHubColors.vinoTinto.withOpacity(0.5)),
+        Container(
+          width: 40,
+          height: 1,
+          color: CraftHubColors.vinoTinto.withOpacity(0.5),
+        ),
       ],
     );
   }
@@ -463,10 +484,10 @@ class _BotonTarjetaState extends State<_BotonTarjeta> {
     final colorBorde = widget.esPrimario
         ? Colors.transparent
         : (_sobreEl
-            ? CraftHubColors.vinoTinto
-            : (widget.esOscuro
-                ? CraftHubColors.bordeOscuro
-                : CraftHubColors.bordeClaro));
+              ? CraftHubColors.vinoTinto
+              : (widget.esOscuro
+                    ? CraftHubColors.bordeOscuro
+                    : CraftHubColors.bordeClaro));
 
     final colorTexto = widget.esPrimario
         ? Colors.white
@@ -485,11 +506,13 @@ class _BotonTarjetaState extends State<_BotonTarjeta> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: colorBorde, width: 1.3),
           boxShadow: widget.esPrimario && _sobreEl
-              ? [BoxShadow(
-                  color: CraftHubColors.vinoTinto.withOpacity(0.35),
-                  blurRadius: 14,
-                  offset: const Offset(0, 5),
-                )]
+              ? [
+                  BoxShadow(
+                    color: CraftHubColors.vinoTinto.withOpacity(0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ]
               : [],
         ),
         child: Material(
