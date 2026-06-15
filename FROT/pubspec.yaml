@@ -43,6 +43,30 @@ flutter:
     - assets/images/logo_crafthub.png
     - assets/images/fondo_inicio.png
     - assets/images/rol_back.png 
+    - assets/images/banderas/Panama.png
+    - assets/images/banderas/Colon.png
+    - assets/images/banderas/Chiriqui.png
+    - assets/images/banderas/Veraguas.png
+    - assets/images/banderas/Bocas_del_Toro.png
+    - assets/images/banderas/Los_Santos.png
+    - assets/images/banderas/Darien.png
+    - assets/images/banderas/Herrera.png
+    - assets/images/banderas/Emberá_Wounaan.png
+    - assets/images/banderas/Ngabe_Buglé.png
+    - assets/images/banderas/Cocle.png
+    - assets/images/banderas/Madugandí.png
+    - assets/images/banderas/Guna_Yala.png
+    - assets/images/banderas/Panama_Oeste.png
+    - assets/images/Categoria/vestir.png
+    - assets/images/Categoria/muebles.png
+    - assets/images/Categoria/artesania.png
+    - assets/images/Categoria/instrumentos.png
+    - assets/images/Categoria/joyeria.png
+    - assets/images/Categoria/ceramica.png
+    - assets/images/Categoria/alimentos.png
+    - assets/images/Categoria/calzado.png
+    - assets/images/Categoria/accesorios.png
+    
 
   fonts:
     - family: Poppins

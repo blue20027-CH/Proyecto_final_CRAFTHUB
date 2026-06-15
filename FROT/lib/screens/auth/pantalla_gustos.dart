@@ -48,85 +48,131 @@ class _Categoria {
 
 // Datos mock: reemplazar con llamadas a GET /api/regiones y GET /api/categorias.
 const List<_Provincia> _provincias = [
-  _Provincia(id: 'colon', nombre: 'Colón', bandera: '🟡'),
-  _Provincia(id: 'chiriqui', nombre: 'Chiriquí', bandera: '🔴'),
-  _Provincia(id: 'bocas', nombre: 'Bocas del Toro', bandera: '🟢'),
-  _Provincia(id: 'veraguas', nombre: 'Veraguas', bandera: '🔵'),
-  _Provincia(id: 'cocle', nombre: 'Coclé', bandera: '💠'),
-  _Provincia(id: 'panama', nombre: 'Panamá', bandera: '🔴'),
-  _Provincia(id: 'panama_oeste', nombre: 'Panamá Oeste', bandera: '🟠'),
-  _Provincia(id: 'los_santos', nombre: 'Los Santos', bandera: '🟧'),
-  _Provincia(id: 'darien', nombre: 'Darién', bandera: '🟤'),
-  _Provincia(id: 'herrera', nombre: 'Herrera', bandera: '🟡'),
+  _Provincia(
+    id: 'colon',
+    nombre: 'Colón',
+    bandera: 'assets/images/banderas/Colon.png',
+  ),
+  _Provincia(
+    id: 'chiriqui',
+    nombre: 'Chiriquí',
+    bandera: 'assets/images/banderas/Chiriqui.png',
+  ),
+  _Provincia(
+    id: 'bocas',
+    nombre: 'Bocas del Toro',
+    bandera: 'assets/images/banderas/Bocas_del_Toro.png',
+  ),
+  _Provincia(
+    id: 'veraguas',
+    nombre: 'Veraguas',
+    bandera: 'assets/images/banderas/Veraguas.png',
+  ),
+  _Provincia(
+    id: 'cocle',
+    nombre: 'Coclé',
+    bandera: 'assets/images/banderas/Cocle.png',
+  ),
+  _Provincia(
+    id: 'panama',
+    nombre: 'Panamá',
+    bandera: 'assets/images/banderas/Panama.png',
+  ),
+  _Provincia(
+    id: 'panama_oeste',
+    nombre: 'Panamá Oeste',
+    bandera: 'assets/images/banderas/Panama_Oeste.png',
+  ),
+  _Provincia(
+    id: 'los_santos',
+    nombre: 'Los Santos',
+    bandera: 'assets/images/banderas/Los_Santos.png',
+  ),
+  _Provincia(
+    id: 'darien',
+    nombre: 'Darién',
+    bandera: 'assets/images/banderas/Darien.png',
+  ),
+  _Provincia(
+    id: 'herrera',
+    nombre: 'Herrera',
+    bandera: 'assets/images/banderas/Herrera.png',
+  ),
 ];
 
 const List<_Comarca> _comarcas = [
-  _Comarca(id: 'guna_yala', nombre: 'Comarca Guna-Yala', bandera: '🏳️'),
-  _Comarca(id: 'ngabe_bugle', nombre: 'Comarca Ngäbe-Buglé', bandera: '🏳️'),
+  _Comarca(
+    id: 'guna_yala',
+    nombre: 'Comarca Guna-Yala',
+    bandera: 'assets/images/banderas/Guna_Yala.png',
+  ),
+  _Comarca(
+    id: 'ngabe_bugle',
+    nombre: 'Comarca Ngäbe-Buglé',
+    bandera: 'assets/images/banderas/Ngabe_Buglé.png',
+  ),
   _Comarca(
     id: 'embera_wounaan',
     nombre: 'Comarca Emberá-Wounaan',
-    bandera: '🏳️',
+    bandera: 'assets/images/banderas/Emberá_Wounaan.png',
   ),
-  _Comarca(id: 'madugandi', nombre: 'Comarca Madugandí', bandera: '🏳️'),
-  _Comarca(id: 'wargandi', nombre: 'Comarca Wargandí', bandera: '🏳️'), 
+  _Comarca(
+    id: 'madugandi',
+    nombre: 'Comarca Madugandí',
+    bandera: 'assets/images/banderas/Madugandí.png',
+  ),
+  _Comarca(
+    id: 'wargandi',
+    nombre: 'Comarca Wargandí',
+    bandera: 'assets/images/banderas/Wargandí.png',
+  ),
 ];
 
 const List<_Categoria> _categorias = [
   _Categoria(
-    id: 'tejidos',
-    nombre: 'Tejidos y textiles',
-    rutaImagen: 'assets/categorias/tejidos.png',
-  ),
-  _Categoria(
     id: 'ceramica',
     nombre: 'Cerámica',
-    rutaImagen: 'assets/categorias/ceramica.png',
+    rutaImagen: 'assets/images/Categoria/ceramica.png',
   ),
   _Categoria(
     id: 'joyeria',
     nombre: 'Joyería artesanal',
-    rutaImagen: 'assets/categorias/joyeria.png',
+    rutaImagen: 'assets/images/Categoria/joyeria.png',
   ),
   _Categoria(
-    id: 'madera',
-    nombre: 'Madera tallada',
-    rutaImagen: 'assets/categorias/madera.png',
+    id: 'muebles',
+    nombre: 'Muebeles y decoración',
+    rutaImagen: 'assets/images/Categoria/muebles.png',
   ),
   _Categoria(
-    id: 'cesteria',
-    nombre: 'Cestería',
-    rutaImagen: 'assets/categorias/cesteria.png',
+    id: 'accesorios',
+    nombre: 'Accesorios y moda',
+    rutaImagen: 'assets/images/Categoria/accesorios.png',
   ),
   _Categoria(
-    id: 'decoracion',
-    nombre: 'Decoración',
-    rutaImagen: 'assets/categorias/decoracion.png',
+    id: 'alimentos',
+    nombre: 'Alimento',
+    rutaImagen: 'assets/images/Categoria/alimentos.png',
   ),
   _Categoria(
-    id: 'cuero',
-    nombre: 'Cuero',
-    rutaImagen: 'assets/categorias/cuero.png',
+    id: 'calzado',
+    nombre: 'Calzado',
+    rutaImagen: 'assets/images/Categoria/calzado.png',
   ),
   _Categoria(
-    id: 'pintura',
-    nombre: 'Pintura artesanal',
-    rutaImagen: 'assets/categorias/pintura.png',
+    id: 'artesania',
+    nombre: 'Aresania tradicional',
+    rutaImagen: 'assets/images/Categoria/artesania.png',
   ),
   _Categoria(
     id: 'instrumentos',
     nombre: 'Instrumentos',
-    rutaImagen: 'assets/categorias/instrumentos.png',
+    rutaImagen: 'assets/images/Categoria/instrumentos.png',
   ),
   _Categoria(
-    id: 'naturales',
-    nombre: 'Productos naturales',
-    rutaImagen: 'assets/categorias/naturales.png',
-  ),
-  _Categoria(
-    id: 'souvenirs',
-    nombre: 'Regalos y souvenirs',
-    rutaImagen: 'assets/categorias/souvenirs.png',
+    id: 'vestuario',
+    nombre: 'Vestuario y textiles',
+    rutaImagen: 'assets/images/Categoria/vestir.png',
   ),
 ];
 
