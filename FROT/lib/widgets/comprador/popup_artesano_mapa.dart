@@ -109,7 +109,7 @@ class PopupArtesanoMapa extends StatelessWidget {
                       Text(
                         nombre,
                         style: const TextStyle(
-                          fontFamily: 'RocaTwo',
+                          fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: CraftHubColors.textoClaro,

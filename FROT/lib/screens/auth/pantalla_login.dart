@@ -264,6 +264,7 @@ class _PanelLogin extends StatelessWidget {
   });
 
   @override
+  
   Widget build(BuildContext context) {
     final colorTexto = CraftHubColors.textoPrincipal(esOscuro);
     final colorSec   = CraftHubColors.textoSecundario(esOscuro);
@@ -305,7 +306,7 @@ class _PanelLogin extends StatelessWidget {
                       TextSpan(
                         text: 'CRAFT',
                         style: TextStyle(
-                          fontFamily: 'RocaTwo',
+                          fontFamily: 'Poppins',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: colorTexto,
@@ -316,7 +317,7 @@ class _PanelLogin extends StatelessWidget {
                       const TextSpan(
                         text: 'HUB',
                         style: TextStyle(
-                          fontFamily: 'RocaTwo',
+                          fontFamily: 'Poppins',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: CraftHubColors.vinoTinto,

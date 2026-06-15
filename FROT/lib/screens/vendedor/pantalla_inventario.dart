@@ -255,7 +255,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
                 Text(
                   'Mi inventario',
                   style: TextStyle(
-                    fontFamily: 'RocaTwo',
+                    fontFamily: 'Poppins',
                     fontSize: 30,
                     fontWeight: FontWeight.w700,
                     color: esModoOscuro

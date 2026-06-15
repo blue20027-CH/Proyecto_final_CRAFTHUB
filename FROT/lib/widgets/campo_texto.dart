@@ -9,6 +9,8 @@ class CampoTexto extends StatelessWidget {
   final bool esPassword;
   final bool verPassword;
   final VoidCallback? alAlternarVisibilidad;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const CampoTexto({
     super.key,
@@ -19,6 +21,8 @@ class CampoTexto extends StatelessWidget {
     this.esPassword = false,
     this.verPassword = false,
     this.alAlternarVisibilidad,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -37,8 +41,10 @@ class CampoTexto extends StatelessWidget {
         : CraftHubColors.textoSecClaro;
 
     return TextField(
-      controller: controlador,
-      obscureText: esPassword && !verPassword,
+  controller: controlador,
+  readOnly: readOnly,
+  onTap: onTap,
+  obscureText: esPassword && !verPassword,
       style: TextStyle(
         fontFamily: 'Poppins',
         fontSize: 14,

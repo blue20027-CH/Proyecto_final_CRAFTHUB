@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/inicio_screen.dart';
@@ -16,6 +17,7 @@ class GestorTema extends ChangeNotifier {
 }
 
 void main() {
+  debugPaintBaselinesEnabled = false;
   runApp(
     ChangeNotifierProvider(
       create: (_) => GestorTema(),

@@ -401,7 +401,7 @@ class _HeaderMapa extends StatelessWidget {
               Text(
                 'Artesanos cerca de ti',
                 style: TextStyle(
-                  fontFamily: 'RocaTwo',
+                  fontFamily: 'Poppins',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: colorTexto,
@@ -878,7 +878,7 @@ class _SeccionCategorias extends StatelessWidget {
           Text(
             'Explorar artesanos por categoría',
             style: TextStyle(
-              fontFamily: 'RocaTwo',
+              fontFamily: 'Poppins',
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: CraftHubColors.textoPrincipal(esOscuro),

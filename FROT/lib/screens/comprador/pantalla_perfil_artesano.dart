@@ -284,7 +284,7 @@ class _SeccionBanner extends StatelessWidget {
                           Text(
                             artesano.nombre,
                             style: const TextStyle(
-                              fontFamily: 'RocaTwo',
+                              fontFamily: 'Poppins',
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
                               color: CraftHubColors.textoClaro,
@@ -578,7 +578,7 @@ class _PanelIzquierdo extends StatelessWidget {
         Text(
           'Sobre $primerNombre',
           style: const TextStyle(
-            fontFamily: 'RocaTwo',
+            fontFamily: 'Poppins',
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: CraftHubColors.textoClaro,
@@ -706,7 +706,7 @@ class _PanelProductos extends StatelessWidget {
             Text(
               tituloProductos,
               style: const TextStyle(
-                fontFamily: 'RocaTwo',
+                fontFamily: 'Poppins',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: CraftHubColors.textoClaro,

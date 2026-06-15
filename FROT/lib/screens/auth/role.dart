@@ -1,4 +1,4 @@
-import 'package:abi_frotend_nd/screens/auth/pantalla_intereses.dart';
+import 'package:abi_frotend_nd/screens/auth/pantalla_gustos.dart';
 import 'package:abi_frotend_nd/screens/comprador/inicio_comprador.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -73,7 +73,7 @@ class _BarraSuperior extends StatelessWidget {
                 Text(
                   'CraftHub',
                   style: TextStyle(
-                    fontFamily: 'RocaTwo',
+                    fontFamily: 'Poppins',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: CraftHubColors.textoPrincipal(esOscuro),
@@ -162,7 +162,7 @@ class _CuerpoSeleccion extends StatelessWidget {
           '¿Cuál es tu rol en CraftHub?',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: 'RocaTwo',
+            fontFamily: 'Poppins',
             fontSize: 36,
             fontWeight: FontWeight.w700,
             color: CraftHubColors.textoPrincipal(esOscuro),
@@ -194,7 +194,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                 child: _TarjetaRol(
                   esOscuro: esOscuro,
                   icono: Icons.storefront_outlined,
-                  titulo: 'Soy artesano / Vendedor',
+                  titulo: 'Vendedor',
                   descripcion:
                       'Crea tu tienda, muestra tus productos\ny conecta con personas que valoran\nlo hecho a mano.',
                   botones: [
@@ -218,7 +218,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                 child: _TarjetaRol(
                   esOscuro: esOscuro,
                   icono: Icons.shopping_bag_outlined,
-                  titulo: 'Soy comprador',
+                  titulo: 'Comprador',
                   descripcion:
                       'Descubre historias, apoya a los artesanos\ny encuentra piezas únicas hechas\ncon pasión.',
                   botones: [
@@ -349,7 +349,7 @@ class _TarjetaRolState extends State<_TarjetaRol> {
               widget.titulo,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontFamily: 'RocaTwo',
+                fontFamily: 'Poppins',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: colorTexto,

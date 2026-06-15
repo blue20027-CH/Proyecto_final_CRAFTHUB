@@ -295,7 +295,7 @@ class _SeccionLogo extends StatelessWidget {
             Text(
               'CRAFTHUB',
               style: TextStyle(
-                fontFamily: 'RocaTwo',
+                fontFamily: 'Poppins',
                 fontSize: 46,
                 fontWeight: FontWeight.w700,
                 color: colorTexto,

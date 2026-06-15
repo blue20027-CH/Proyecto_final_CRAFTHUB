@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 class AppTextStyles {
   static const String _fontPoppins  = 'Poppins';
-  static const String _fontRocaTwo  = 'RocaTwo';
 
-  // ─── TÍTULOS (RocaTwo) ────────────────────────────────────────────────────
+  // ─── TÍTULOS (Poppins) ────────────────────────────────────────────────────
   static const TextStyle displayLarge = TextStyle(
-    fontFamily: _fontRocaTwo,
+    fontFamily: _fontPoppins,
     fontSize: 48,
     fontWeight: FontWeight.w700,
     letterSpacing: 2,

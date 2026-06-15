@@ -29,7 +29,6 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
 
   // Estados
   bool _verPassword = false;
-  bool _ofrecDelivery = true;
   String? _genero;
   String? _fechaNac;
 
@@ -110,14 +109,11 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
                       ctrlUbicacion: _ctrlUbicacion,
                       ctrlId: _ctrlId,
                       verPassword: _verPassword,
-                      ofrecDelivery: _ofrecDelivery,
                       genero: _genero,
                       fechaNac: _fechaNac,
                       ctrlFechaNacimiento: _ctrlFechaNacimiento,
                       alAlternarPassword: () =>
                           setState(() => _verPassword = !_verPassword),
-                      alCambiarDelivery: (v) =>
-                          setState(() => _ofrecDelivery = v),
                       alCambiarGenero: (v) => setState(() => _genero = v),
                       alCambiarFecha: (v) => setState(() => _fechaNac = v),
                     ),
@@ -147,11 +143,9 @@ class _FormularioRegistro extends StatelessWidget {
   final TextEditingController ctrlId;
   final TextEditingController ctrlFechaNacimiento;
   final bool verPassword;
-  final bool ofrecDelivery;
   final String? genero;
   final String? fechaNac;
   final VoidCallback alAlternarPassword;
-  final ValueChanged<bool> alCambiarDelivery;
   final ValueChanged<String?> alCambiarGenero;
   final ValueChanged<String?> alCambiarFecha;
 
@@ -166,11 +160,9 @@ class _FormularioRegistro extends StatelessWidget {
     required this.ctrlUbicacion,
     required this.ctrlId,
     required this.verPassword,
-    required this.ofrecDelivery,
     required this.genero,
     required this.fechaNac,
     required this.alAlternarPassword,
-    required this.alCambiarDelivery,
     required this.alCambiarGenero,
     required this.alCambiarFecha,
     required this.ctrlFechaNacimiento,
@@ -202,7 +194,7 @@ class _FormularioRegistro extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: 'vendedor',
+                text: 'Comprador',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 30,
@@ -343,11 +335,6 @@ class _FormularioRegistro extends StatelessWidget {
         ),
 
         const SizedBox(height: 14),
-
-        // ── TOGGLE DELIVERY ───────────────────────────────────────────
-        _ToggleDelivery(valor: ofrecDelivery, alCambiar: alCambiarDelivery),
-
-        const SizedBox(height: 18),
 
         // ── BOTÓN CREAR CUENTA ────────────────────────────────────────
         BotonPrimario(
@@ -560,48 +547,6 @@ class _FilaDos extends StatelessWidget {
         Expanded(child: izquierda),
         const SizedBox(width: 12),
         Expanded(child: derecha),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────
-// TOGGLE DELIVERY
-// ─────────────────────────────────────────────────────────────
-class _ToggleDelivery extends StatelessWidget {
-  final bool valor;
-  final ValueChanged<bool> alCambiar;
-
-  const _ToggleDelivery({required this.valor, required this.alCambiar});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(
-          Icons.delivery_dining_outlined,
-          size: 20,
-          color: CraftHubColors.textoSecClaro,
-        ),
-        const SizedBox(width: 10),
-        const Text(
-          '¿Ofreces delivery?',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 13.5,
-            fontWeight: FontWeight.w500,
-            color: CraftHubColors.textoClaro,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Switch(
-          value: valor,
-          onChanged: alCambiar,
-          activeColor: CraftHubColors.vinoTinto,
-          activeTrackColor: CraftHubColors.vinoTinto.withOpacity(0.3),
-          inactiveThumbColor: CraftHubColors.textoSecClaro,
-          inactiveTrackColor: CraftHubColors.bordeClaro,
-        ),
       ],
     );
   }
