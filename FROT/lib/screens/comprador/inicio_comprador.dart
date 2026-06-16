@@ -11,6 +11,7 @@ import '../../main.dart';
 import '../../widgets/comprador/sidebar_comprador.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/comprador/carrusel_hero.dart';
+import '../../services/api_service.dart';
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ðŸ”Œ DATOS MOCK â€” reemplazar con llamadas a FastAPI
@@ -71,7 +72,7 @@ const List<String> comarcas = [
   'Guna de MadugandÃ­','Guna de WargandÃ­',
 ];
 const List<String> categorias = [
-  'Textiles','CerÃ¡mica','Madera','JoyerÃ­a','DecoraciÃ³n','Accesorios',
+  'Todos','Vestir','CerÃ¡mica','Madera','JoyerÃ­a','DecoraciÃ³n','Accesorios',
 ];
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -84,7 +85,7 @@ class HomeComprador extends StatefulWidget {
 
 class _HomeCompradorState extends State<HomeComprador> {
   int _navIndice       = 0;
-  String _categoriaActiva = 'Textiles';
+  String _categoriaActiva = 'Todos';
   String? _provinciaActiva;
   // ignore: unused_field
   bool _mostrarProvincias = false;
@@ -93,7 +94,31 @@ class _HomeCompradorState extends State<HomeComprador> {
   final _busquedaCtrl = TextEditingController();
 
   // ðŸ”Œ Lista de productos: se llena desde la API
-  List<ProductoModelo> _productos = List.from(mockProductos);
+  // 🔌 Lista de productos: se llena desde la API
+List<ProductoModelo> _productos = [];
+bool _cargando = true;
+String? _error;
+
+@override
+void initState() {
+  super.initState();
+  _cargarProductos();
+}
+
+Future<void> _cargarProductos() async {
+  setState(() { _cargando = true; _error = null; });
+  try {
+    final productos = await ApiService.getProductos(
+      categoria: _categoriaActiva,
+      busqueda: _busquedaCtrl.text,
+    );
+    setState(() => _productos = productos);
+  } catch (e) {
+    setState(() => _error = 'No se pudieron cargar los productos: $e');
+  } finally {
+    setState(() => _cargando = false);
+  }
+}
 
   // ðŸ”Œ AquÃ­ irÃ¡ la llamada real:
   // Future<void> _cargarProductos() async {
@@ -176,7 +201,7 @@ class _HomeCompradorState extends State<HomeComprador> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: TextField(
               controller: _busquedaCtrl,
-              // onChanged: (q) => _cargarProductos(busqueda: q),
+              onChanged: (q) => _cargarProductos(),
               style: GoogleFonts.poppins(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Buscar productos, artesanos, provinciasâ€¦',
@@ -290,25 +315,40 @@ class _HomeCompradorState extends State<HomeComprador> {
             color: oscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro)),
         const SizedBox(height: 12),
         // ðŸ”Œ GET /api/productos?categoria=X&provincia=Y&pagina=1
-        MasonryGridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 4,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          itemCount: _productos.length,
-          itemBuilder: (_, i) {
-            final alturas = [280.0, 220.0, 310.0, 250.0, 290.0, 240.0];
-            return TarjetaProducto(
-              producto: _productos[i],
-              altura: alturas[i % alturas.length],
-              alPresionar: () {
-                // ðŸ”Œ navegar a PantallaDetalleProducto(productoId: _productos[i].id)
-              },
-            );
-          },
-        ),
-
+        if (_cargando)
+  const Padding(
+    padding: EdgeInsets.symmetric(vertical: 40),
+    child: Center(child: CircularProgressIndicator()),
+  )
+else if (_error != null)
+  Padding(
+    padding: const EdgeInsets.symmetric(vertical: 40),
+    child: Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red))),
+  )
+else if (_productos.isEmpty)
+  const Padding(
+    padding: EdgeInsets.symmetric(vertical: 40),
+    child: Center(child: Text('No hay productos disponibles.')),
+  )
+else
+  MasonryGridView.count(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    crossAxisCount: 4,
+    mainAxisSpacing: 12,
+    crossAxisSpacing: 12,
+    itemCount: _productos.length,
+    itemBuilder: (_, i) {
+      final alturas = [280.0, 220.0, 310.0, 250.0, 290.0, 240.0];
+      return TarjetaProducto(
+        producto: _productos[i],
+        altura: alturas[i % alturas.length],
+        alPresionar: () {
+          // 🔌 navegar a PantallaDetalleProducto(productoId: _productos[i].id)
+        },
+      );
+    },
+  ),
       ]),
     );
   }
@@ -319,10 +359,10 @@ class _HomeCompradorState extends State<HomeComprador> {
         ...categorias.map((cat) => _ChipCategoria(
           label: cat,
           activo: _categoriaActiva == cat,
-          onTap: () {
-            setState(() => _categoriaActiva = cat);
-            // ðŸ”Œ _cargarProductos()
-          },
+       onTap: () {
+         setState(() => _categoriaActiva = cat);
+              _cargarProductos();
+            },
         )),
         // Dropdown Provincias y Comarcas
         _ChipProvincias(

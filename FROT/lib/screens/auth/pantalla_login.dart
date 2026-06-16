@@ -5,6 +5,9 @@ import '../../main.dart';
 import '../../widgets/boton_primario.dart';
 import '../../widgets/campo_texto.dart';
 import '../../widgets/boton_google.dart';
+import '../../services/servicio_auth.dart';
+import '../comprador/inicio_comprador.dart';
+import '../vendedor/pantalla_dashoard_vendedor.dart';
 
 // ─────────────────────────────────────────────────────────────
 // SERVICIO DE AUTENTICACIÓN — conecta con FastAPI
@@ -50,7 +53,12 @@ import '../../widgets/boton_google.dart';
 // }
 
 class PantallaLogin extends StatefulWidget {
-  const PantallaLogin({super.key});
+  final String modo;
+
+  const PantallaLogin({
+    super.key,
+    this.modo = 'Comprador',
+  });
 
   @override
   State<PantallaLogin> createState() => _PantallaLoginState();
@@ -100,8 +108,26 @@ class _PantallaLoginState extends State<PantallaLogin> {
       // }
 
       // ── SIMULACIÓN TEMPORAL (elimina cuando conectes FastAPI) ──
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) Navigator.pushReplacementNamed(context, '/catalogo');
+      final respuesta = await loginConEmailYPassword(
+        _ctrlEmail.text.trim(),
+        _ctrlPassword.text,
+        modo: widget.modo,
+      );
+
+      if (respuesta == null || respuesta['success'] != true) {
+        throw Exception('No se pudo iniciar sesion.');
+      }
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => widget.modo == 'Vendedor'
+                ? HomeVendedor(esOscuro: context.read<GestorTema>().esModoOscuro)
+                : const HomeComprador(),
+          ),
+        );
+      }
 
     } catch (e) {
       setState(() => _errorMensaje = e.toString().replaceAll('Exception: ', ''));

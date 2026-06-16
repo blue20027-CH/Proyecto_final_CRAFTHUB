@@ -27,13 +27,13 @@ class ProductoModelo {
   // 🔌 Convierte JSON del backend en modelo
   factory ProductoModelo.fromJson(Map<String, dynamic> json) {
     return ProductoModelo(
-      id:          json['id'],
-      nombre:      json['nombre'],
-      precio:      (json['precio'] as num).toDouble(),
-      imagenUrl:   json['imagen_url'],
-      artesano:    json['artesano'],
-      provincia:   json['provincia'],
-      categoria:   json['categoria'],
+      id:          json['id'].toString(),
+      nombre:      (json['nombre'] ?? '').toString(),
+      precio:      double.tryParse((json['precio'] ?? 0).toString()) ?? 0,
+      imagenUrl:   (json['imagen_url'] ?? json['imagen'] ?? json['img'] ?? '').toString(),
+      artesano:    (json['artesano'] ?? json['creador'] ?? 'Artesano local').toString(),
+      provincia:   (json['provincia'] ?? json['origen'] ?? json['region'] ?? 'Panama').toString(),
+      categoria:   (json['categoria'] ?? 'General').toString(),
       esFavorito:  json['es_favorito'] ?? false,
     );
   }

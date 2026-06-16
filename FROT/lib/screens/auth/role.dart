@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../screens/auth/registro_vendedor.dart';
+import '../../screens/auth/pantalla_login.dart';
 import '../../main.dart';
 
 class PantallaSeleccionRol extends StatefulWidget {
@@ -201,7 +202,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                     _DatoBoton(
                       texto: 'Registrarme como vendedor',
                       icono: Icons.person_add_outlined,
-                      esPrimario: false,
+                      esPrimario: true,
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(

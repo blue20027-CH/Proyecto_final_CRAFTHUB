@@ -8,9 +8,13 @@ import 'package:http/http.dart' as http;
 // RECUERDA: 
 // - Si usas emulador Android, usa: 'http://10.0.2.2:8000'
 // - Si usas simulador iOS o Desktop, usa: 'http://localhost:8000'
-final String baseUrl = "http://localhost:8000"; 
+const String baseUrl = "http://127.0.0.1:8080";
 
-Future<Map<String, dynamic>?> loginConEmailYPassword(String email, String password) async {
+Future<Map<String, dynamic>?> loginConEmailYPassword(
+  String email,
+  String password, {
+  String modo = 'Comprador',
+}) async {
   final url = Uri.parse('$baseUrl/api/auth/login');
 
   try {
@@ -23,6 +27,7 @@ Future<Map<String, dynamic>?> loginConEmailYPassword(String email, String passwo
       body: jsonEncode({
         'email': email,
         'password': password,
+        'modo': modo,
       }),
     );
 
@@ -30,13 +35,13 @@ Future<Map<String, dynamic>?> loginConEmailYPassword(String email, String passwo
     if (response.statusCode == 200) {
           final Map<String, dynamic> data = jsonDecode(response.body);
   // ignore: avoid_print
-          print("Login exitoso. Bienvenido, ${data['nombre']}"); 
+          print("Login exitoso. Bienvenido, ${data['perfil']?['nombre'] ?? data['email']}"); 
       // Retornamos el mapa con el access_token, rol, nombre, email y foto_perfil
       return data;
     } 
     
     // 401: Credenciales incorrectas (Mapeado desde FastAPI)
-    else if (response.statusCode == 401) {
+    else if (response.statusCode == 401 || response.statusCode == 403) {
       final errorData = jsonDecode(response.body);
       throw Exception(errorData['detail'] ?? 'Credenciales incorrectas');
     } 
@@ -48,7 +53,8 @@ Future<Map<String, dynamic>?> loginConEmailYPassword(String email, String passwo
     
     // Cualquier otro error de servidor (500, 404, etc.)
     else {
-      throw Exception('Error en el servidor (${response.statusCode})');
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['detail'] ?? 'Error en el servidor (${response.statusCode})');
     }
 
   } catch (e) {

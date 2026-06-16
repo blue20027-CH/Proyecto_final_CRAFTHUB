@@ -12,7 +12,7 @@ class ProductoModel {
   factory ProductoModel.fromJson(Map<String, dynamic> json) {
     return ProductoModel(
       nombre: json['nombre'] ?? '',
-      imagen: json['imagen'] ?? '',
+      imagen: json['imagen'] ?? json['img'] ?? '',
       precio: double.tryParse(json['precio'].toString()) ?? 0,
     );
   }

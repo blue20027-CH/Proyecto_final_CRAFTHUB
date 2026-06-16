@@ -10,6 +10,8 @@ from pedidos_router import router as pedidos_router
 from notificaciones_router import router as notificaciones_router
 from perfil_router import router as perfil_router
 from auth_router import router as auth_router
+from productos_router import router as productos_router
+from vendedor_router import router as vendedor_router
 
 app = FastAPI(
     title="CraftHub API",
@@ -35,6 +37,8 @@ app.include_router(pedidos_router)
 app.include_router(notificaciones_router)
 app.include_router(perfil_router)
 app.include_router(auth_router)
+app.include_router(productos_router)
+app.include_router(vendedor_router)
 
 # ---------------------------------------------------------------------------
 # MODELOS

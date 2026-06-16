@@ -5,13 +5,13 @@ import '../models/producto_model.dart';
 import '../models/artesano_model.dart';
 
 class CompradorApiService {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://127.0.0.1:8080';
 
   // AQUI CONECTARAS TU API DE PYTHON
   // Ejemplo esperado en FastAPI:
   // GET http://localhost:8000/api/productos
   static Future<List<ProductoModel>> obtenerProductos() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/productos'));
+    final response = await http.get(Uri.parse('$baseUrl/productos')).timeout(const Duration(seconds: 8));
 
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
