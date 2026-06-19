@@ -40,6 +40,8 @@ class DatosDashboardVendedor {
     required this.visitasTienda,
   });
 
+  List<double> get ingresoesMensuales => ingresosMensuales;
+
   factory DatosDashboardVendedor.fromJson(Map<String, dynamic> json) {
     final distribucion = json['distribucion_evaluaciones'] as Map? ?? {};
     final top = json['top_productos'] as List? ?? [];

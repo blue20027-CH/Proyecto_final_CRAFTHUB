@@ -11,9 +11,15 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../models/modelo_producto_inventario.dart';
 import '../../../widgets/vendedor/widgets_inventario.dart';
+import '../../services/vendedor_api_service.dart';
 
 class PantallaInventario extends StatefulWidget {
-  const PantallaInventario({super.key});
+  final String nombreVendedor;
+
+  const PantallaInventario({
+    super.key,
+    required this.nombreVendedor,
+  });
 
   @override
   State<PantallaInventario> createState() => _PantallaInventarioState();
@@ -26,6 +32,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
   final Set<String> _seleccionados = {};
   bool _todosSeleccionados = false;
   bool _cargando = true;
+  String? _error;
 
   // ── Filtros ───────────────────────────────────────────────────────────────
   String _busqueda = '';
@@ -59,36 +66,31 @@ class _PantallaInventarioState extends State<PantallaInventario> {
   // Headers: { 'Authorization': 'Bearer $token' }
   // Respuesta: { "productos": [...], "estadisticas": { "total": N, ... } }
   Future<void> _cargarProductos() async {
-    setState(() => _cargando = true);
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
 
-    // 🔌 API: Reemplaza el bloque siguiente con:
-    //
-    // final respuesta = await http.get(
-    //   Uri.parse('https://tu-api.com/api/vendedor/$vendedorId/productos'),
-    //   headers: {'Authorization': 'Bearer $token'},
-    // );
-    // final datos = jsonDecode(respuesta.body);
-    // _productos = (datos['productos'] as List)
-    //     .map((j) => ProductoInventario.fromJson(j))
-    //     .toList();
-    // _totalProductos  = datos['estadisticas']['total'];
-    // _productosActivos = datos['estadisticas']['activos'];
-    // _productosAgotados = datos['estadisticas']['agotados'];
-    // _visitasMes      = datos['estadisticas']['visitas_mes'];
-    // _ventasTotales   = (datos['estadisticas']['ventas_totales'] as num).toDouble();
+    try {
+      final respuesta = await VendedorApiService.cargarProductos(widget.nombreVendedor);
+      final stats = respuesta.estadisticas;
 
-    await Future.delayed(const Duration(milliseconds: 400));
-    _productos = productosMock;
-    _totalProductos = 125;
-    _productosActivos = 98;
-    _productosAgotados = 18;
-    _visitasMes = 12400;
-    _ventasTotales = 3478.90;
+      _productos = respuesta.productos;
+      _totalProductos = int.tryParse((stats['total'] ?? 0).toString()) ?? 0;
+      _productosActivos = int.tryParse((stats['activos'] ?? 0).toString()) ?? 0;
+      _productosAgotados = int.tryParse((stats['agotados'] ?? 0).toString()) ?? 0;
+      _visitasMes = int.tryParse((stats['visitas_mes'] ?? 0).toString()) ?? 0;
+      _ventasTotales = double.tryParse((stats['ventas_totales'] ?? 0).toString()) ?? 0;
 
-    _aplicarFiltros();
-    setState(() => _cargando = false);
+      _aplicarFiltros();
+    } catch (e) {
+      _productos = [];
+      _productosFiltrados = [];
+      _error = e.toString().replaceAll('Exception: ', '');
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
   }
-
   void _aplicarFiltros() {
     var lista = _productos.where((p) {
       final coincideBusqueda =
@@ -190,6 +192,18 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         color: colorFondo,
         child: const Center(
           child: CircularProgressIndicator(color: Color(0xFF821515)),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Container(
+        color: colorFondo,
+        child: Center(
+          child: Text(
+            'No se pudo cargar el inventario: $_error',
+            style: const TextStyle(color: Colors.redAccent),
+          ),
         ),
       );
     }
@@ -968,3 +982,4 @@ class _OpcionMenu extends StatelessWidget {
     );
   }
 }
+

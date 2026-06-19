@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SidebarVendedor extends StatelessWidget {
+  final String nombre;
+  final String fotoUrl;
   final int indiceActivo;
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
 
   const SidebarVendedor({
     super.key,
+    this.nombre = 'Vendedor',
+    this.fotoUrl = '',
     required this.indiceActivo,
     required this.alSeleccionar,
     required this.alCerrarSesion,
@@ -22,7 +26,7 @@ class SidebarVendedor extends StatelessWidget {
     {'icono': Icons.people_outline,        'label': 'Clientes'},
     {'icono': Icons.chat_bubble_outline,   'label': 'Mensajes'},
     {'icono': Icons.bar_chart_rounded,     'label': 'Reportes'},
-    {'icono': Icons.settings_outlined,     'label': 'Configuración'},
+    {'icono': Icons.settings_outlined,     'label': 'ConfiguraciÃ³n'},
   ];
 
   @override
@@ -71,9 +75,9 @@ class SidebarVendedor extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
             child: _ItemNav(
               icono:    Icons.logout_rounded,
-              label:    'Cerrar sesión',
+              label:    'Cerrar sesiÃ³n',
               activo:   false,
-              // 🔌 POST /api/auth/logout → limpiar token
+              // ðŸ”Œ POST /api/auth/logout â†’ limpiar token
               onTap:    alCerrarSesion,
               esLogout: true,
             ),
@@ -83,12 +87,18 @@ class SidebarVendedor extends StatelessWidget {
     );
   }
 
+  String _iniciales(String valor) {
+    final partes = valor.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).take(2);
+    final texto = partes.map((p) => p[0].toUpperCase()).join();
+    return texto.isEmpty ? 'V' : texto;
+  }
+
   Widget _buildAvatar() {
-    // 🔌 GET /api/vendedor/perfil → fotoUrl, nombre
+    // ðŸ”Œ GET /api/vendedor/perfil â†’ fotoUrl, nombre
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: 'María González', // 🔌 vendedor.nombre
+        message: nombre,
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
@@ -96,21 +106,44 @@ class SidebarVendedor extends StatelessWidget {
         ),
         textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
         child: ClipOval(
-          child: Image.network(
-            'https://i.pravatar.cc/150?img=25', // 🔌 vendedor.fotoUrl
-            width: 40, height: 40, fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              width: 40, height: 40, color: Colors.white24,
-              child: const Icon(Icons.person, size: 22, color: Colors.white54),
-            ),
-          ),
+          child: fotoUrl.isNotEmpty
+              ? Image.network(
+                  fotoUrl,
+                  width: 40, height: 40, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _AvatarIniciales(texto: _iniciales(nombre)),
+                )
+              : _AvatarIniciales(texto: _iniciales(nombre)),
         ),
       ),
     );
   }
 }
 
-// ── Ítem de navegación (solo icono + tooltip) ─────────────────────────────
+class _AvatarIniciales extends StatelessWidget {
+  final String texto;
+
+  const _AvatarIniciales({required this.texto});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      color: Colors.white24,
+      alignment: Alignment.center,
+      child: Text(
+        texto,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+// â”€â”€ Ãtem de navegaciÃ³n (solo icono + tooltip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ItemNav extends StatefulWidget {
   final IconData icono;
@@ -181,3 +214,4 @@ class _ItemNavState extends State<_ItemNav> {
     );
   }
 }
+

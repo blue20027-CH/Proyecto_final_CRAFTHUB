@@ -1,4 +1,4 @@
-// lib/screens/vendedor/home_vendedor.dart
+﻿// lib/screens/vendedor/home_vendedor.dart
 
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_inventario.dart';
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_tutoriales.dart';
@@ -12,11 +12,12 @@ import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
 import '../../widgets/vendedor/resumen_rapido.dart';
+import '../../services/vendedor_api_service.dart';
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MODELOS MOCK
-// 🔗 API: GET /vendedor/dashboard?periodo=
-// ─────────────────────────────────────────────────────────────
+// ðŸ”— API: GET /vendedor/dashboard?periodo=
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _DatosDashboard {
   final String nombreVendedor;
   final double ingresosTotal;
@@ -54,7 +55,7 @@ class _DatosDashboard {
 }
 
 final _datosMock = _DatosDashboard(
-  nombreVendedor: 'María',
+  nombreVendedor: 'MarÃ­a',
   ingresosTotal: 8545.00,
   variacionIngresos: 18.6,
   ingresoesMensuales: [900, 1400, 1200, 1800, 2200, 1800, 2400],
@@ -72,7 +73,7 @@ final _datosMock = _DatosDashboard(
     ModeloProductoRanking(
       posicion: 2,
       nombre: 'Vasija decorativa',
-      categoria: 'Decoración',
+      categoria: 'DecoraciÃ³n',
       imagenUrl:
           'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=80',
       ventas: 97,
@@ -90,7 +91,7 @@ final _datosMock = _DatosDashboard(
     ModeloProductoRanking(
       posicion: 4,
       nombre: 'Aretes de filigrana',
-      categoria: 'Joyería',
+      categoria: 'JoyerÃ­a',
       imagenUrl:
           'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=80',
       ventas: 65,
@@ -117,13 +118,20 @@ final _datosMock = _DatosDashboard(
   visitasTienda: 2345,
 );
 
-// ───────────────────────────────────────────────── ────────────
-// HOME VENDEDOR — Scaffold principal único
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// HOME VENDEDOR â€” Scaffold principal Ãºnico
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class HomeVendedor extends StatefulWidget {
   final bool esOscuro;
+  final String nombreVendedor;
+  final String fotoPerfil;
 
-  const HomeVendedor({super.key, required this.esOscuro});
+  const HomeVendedor({
+    super.key,
+    required this.esOscuro,
+    this.nombreVendedor = 'Vendedor',
+    this.fotoPerfil = '',
+  });
 
   @override
   State<HomeVendedor> createState() => _HomeVendedorState();
@@ -150,16 +158,18 @@ class _HomeVendedorState extends State<HomeVendedor> {
       backgroundColor: colorFondo,
       body: Row(
         children: [
-          // 1. El sidebar se expande/colapsa solo — el Row se adapta automáticamente
+          // 1. El sidebar se expande/colapsa solo â€” el Row se adapta automÃ¡ticamente
           SidebarVendedor(
+            nombre: widget.nombreVendedor,
+            fotoUrl: widget.fotoPerfil,
             indiceActivo: _navIndice,
             alSeleccionar: (i) => setState(() => _navIndice = i),
             alCerrarSesion: () {
-              // 📌 POST /api/auth/logout
+              // ðŸ“Œ POST /api/auth/logout
             },
           ),
 
-          // 2. El Expanded ocupa todo el espacio restante automáticamente
+          // 2. El Expanded ocupa todo el espacio restante automÃ¡ticamente
           Expanded(
             child: Column(
               children: [
@@ -178,9 +188,12 @@ class _HomeVendedorState extends State<HomeVendedor> {
   Widget _obtenerPantallaActual(int indice, bool oscuro) {
     switch (indice) {
       case 0:
-        return _ContenidoDashboard(esOscuro: oscuro);
+        return _ContenidoDashboard(
+          esOscuro: oscuro,
+          nombreVendedor: widget.nombreVendedor,
+        );
       case 1:
-        return const PantallaInventario();
+        return PantallaInventario(nombreVendedor: widget.nombreVendedor);
       case 2:
       //return const ArtesanosScreen();
       case 3:
@@ -188,7 +201,10 @@ class _HomeVendedorState extends State<HomeVendedor> {
       case 4:
         return const PantallaTutoriales();
       default:
-        return _ContenidoDashboard(esOscuro: oscuro);
+        return _ContenidoDashboard(
+          esOscuro: oscuro,
+          nombreVendedor: widget.nombreVendedor,
+        );
     }
   }
 
@@ -210,10 +226,10 @@ class _HomeVendedorState extends State<HomeVendedor> {
               constraints: const BoxConstraints(maxWidth: 520),
               child: TextField(
                 controller: _busquedaCtrl,
-                // 📌 onChanged: (q) => _cargarProductos(busqueda: q)  → GET /api/productos?q=
+                // ðŸ“Œ onChanged: (q) => _cargarProductos(busqueda: q)  â†’ GET /api/productos?q=
                 style: GoogleFonts.poppins(fontSize: 13),
                 decoration: InputDecoration(
-                  hintText: 'Buscar productos, artesanos, provincias…',
+                  hintText: 'Buscar productos, artesanos, provinciasâ€¦',
                   hintStyle: GoogleFonts.poppins(
                     fontSize: 13,
                     color: Colors.grey,
@@ -246,18 +262,18 @@ class _HomeVendedorState extends State<HomeVendedor> {
           _IconTopBar(
             icono: Icons.chat_bubble_outline_rounded,
             tooltip: 'Mensajes',
-            onTap: () {}, // 📌 navegar a /mensajes
+            onTap: () {}, // ðŸ“Œ navegar a /mensajes
           ),
           _IconTopBar(
             icono: Icons.calendar_month_outlined,
             tooltip: 'Eventos',
-            onTap: () {}, // 📌 navegar a /calendario
+            onTap: () {}, // ðŸ“Œ navegar a /calendario
           ),
           _IconTopBar(
             icono: Icons.notifications_none_rounded,
             tooltip: 'Notificaciones',
             tieneNotif: true,
-            onTap: () {}, // 📌 GET /api/notificaciones
+            onTap: () {}, // ðŸ“Œ GET /api/notificaciones
           ),
           _IconTopBar(
             icono: Icons.location_on_outlined,
@@ -286,37 +302,93 @@ class _HomeVendedorState extends State<HomeVendedor> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// CONTENIDO DASHBOARD — solo el inner, sin Scaffold
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// CONTENIDO DASHBOARD â€” solo el inner, sin Scaffold
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _ContenidoDashboard extends StatefulWidget {
   final bool esOscuro;
-  const _ContenidoDashboard({required this.esOscuro});
+  final String nombreVendedor;
+
+  const _ContenidoDashboard({
+    required this.esOscuro,
+    required this.nombreVendedor,
+  });
 
   @override
   State<_ContenidoDashboard> createState() => _ContenidoDashboardState();
 }
 
 class _ContenidoDashboardState extends State<_ContenidoDashboard> {
-  // 🔗 API: GET /vendedor/dashboard?periodo=
-  String _periodoSeleccionado = 'Últimos 6 meses';
+  // ðŸ”— API: GET /vendedor/dashboard?periodo=
+  String _periodoSeleccionado = 'Ãšltimos 6 meses';
+  DatosDashboardVendedor? _datos;
+  bool _cargando = true;
+  String? _error;
   final List<String> _periodos = [
-    'Últimos 30 días',
-    'Últimos 3 meses',
-    'Últimos 6 meses',
-    'Este año',
+    'Ãšltimos 30 dÃ­as',
+    'Ãšltimos 3 meses',
+    'Ãšltimos 6 meses',
+    'Este aÃ±o',
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _cargarDashboard();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ContenidoDashboard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.nombreVendedor != widget.nombreVendedor) {
+      _cargarDashboard();
+    }
+  }
+
+  Future<void> _cargarDashboard() async {
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+
+    try {
+      final datos = await VendedorApiService.cargarDashboard(widget.nombreVendedor);
+      if (mounted) setState(() => _datos = datos);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final datos = _datosMock; // 🔌 reemplazar con llamada real a FastAPI
+    if (_cargando) {
+      return const Center(
+        child: CircularProgressIndicator(color: CraftHubColors.vinoTinto),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Text(
+          'No se pudo cargar el dashboard: $_error',
+          style: const TextStyle(color: CraftHubColors.error),
+        ),
+      );
+    }
+
+    final datos = _datos;
+    if (datos == null) {
+      return const Center(child: Text('No hay datos del vendedor.'));
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── HEADER ────────────────────────────────────────────────
+          // â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _HeaderDashboard(
             nombreVendedor: datos.nombreVendedor,
             periodoSeleccionado: _periodoSeleccionado,
@@ -326,7 +398,7 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
 
           const SizedBox(height: 20),
 
-          // ── FILA 1: Ingresos + Evaluaciones ───────────────────────
+          // â”€â”€ FILA 1: Ingresos + Evaluaciones â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -340,7 +412,7 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
 
           const SizedBox(height: 16),
 
-          // ── FILA 2: Top productos + Stats clientes ────────────────
+          // â”€â”€ FILA 2: Top productos + Stats clientes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -354,20 +426,20 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
 
           const SizedBox(height: 16),
 
-          // ── RESUMEN RÁPIDO ────────────────────────────────────────
+          // â”€â”€ RESUMEN RÃPIDO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           ResumenRapido(
             pedidosTotales: datos.pedidosTotales,
-            variacionPedidos: '↑ 16%',
+            variacionPedidos: 'â†‘ 16%',
             pendientesEnviar: datos.pendientesEnviar,
             productosActivos: datos.productosActivos,
             visitasTienda: datos.visitasTienda,
-            variacionVisitas: '↑ 23%',
+            variacionVisitas: 'â†‘ 23%',
             alVerPedidos: () {
-              // TODO: cambiar índice a pedidos
-              // setState(() => _indiceActual = 2) — lo maneja HomeVendedor
+              // TODO: cambiar Ã­ndice a pedidos
+              // setState(() => _indiceActual = 2) â€” lo maneja HomeVendedor
             },
             alVerProductos: () {
-              // TODO: cambiar índice a productos
+              // TODO: cambiar Ã­ndice a productos
             },
           ),
         ],
@@ -376,9 +448,9 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HEADER
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _HeaderDashboard extends StatelessWidget {
   final String nombreVendedor;
   final String periodoSeleccionado;
@@ -411,7 +483,7 @@ class _HeaderDashboard extends StatelessWidget {
                 ),
               ),
               const Text(
-                'Aquí tienes un resumen de tu actividad y rendimiento.',
+                'AquÃ­ tienes un resumen de tu actividad y rendimiento.',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -464,11 +536,11 @@ class _HeaderDashboard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PANEL INGRESOS
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PanelIngresos extends StatelessWidget {
-  final _DatosDashboard datos;
+  final DatosDashboardVendedor datos;
   const _PanelIngresos({required this.datos});
 
   @override
@@ -493,7 +565,7 @@ class _PanelIngresos extends StatelessWidget {
               const SizedBox(width: 6),
               Tooltip(
                 message:
-                    'Suma de todos tus ingresos en el período seleccionado',
+                    'Suma de todos tus ingresos en el perÃ­odo seleccionado',
                 child: const Icon(
                   Icons.info_outline_rounded,
                   size: 14,
@@ -545,11 +617,11 @@ class _PanelIngresos extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PANEL EVALUACIONES
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PanelEvaluaciones extends StatelessWidget {
-  final _DatosDashboard datos;
+  final DatosDashboardVendedor datos;
   const _PanelEvaluaciones({required this.datos});
 
   @override
@@ -581,7 +653,7 @@ class _PanelEvaluaciones extends StatelessWidget {
               _BotonTexto(
                 texto: 'Ver opiniones',
                 alPresionar: () {
-                  // TODO: navegar a reseñas
+                  // TODO: navegar a reseÃ±as
                 },
               ),
             ],
@@ -600,11 +672,11 @@ class _PanelEvaluaciones extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PANEL TOP PRODUCTOS
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PanelTopProductos extends StatelessWidget {
-  final _DatosDashboard datos;
+  final DatosDashboardVendedor datos;
   const _PanelTopProductos({required this.datos});
 
   @override
@@ -632,7 +704,7 @@ class _PanelTopProductos extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               const Text(
-                'Top 5 productos más vendidos',
+                'Top 5 productos mÃ¡s vendidos',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 14,
@@ -704,11 +776,11 @@ class _PanelTopProductos extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PANEL STATS CLIENTES
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PanelStatsClientes extends StatelessWidget {
-  final _DatosDashboard datos;
+  final DatosDashboardVendedor datos;
   const _PanelStatsClientes({required this.datos});
 
   @override
@@ -723,7 +795,7 @@ class _PanelStatsClientes extends StatelessWidget {
             icono: Icons.sentiment_satisfied_alt_outlined,
             titulo: 'Clientes felices',
             valor: '${datos.clientesFelices}',
-            variacion: '↑ 20%',
+            variacion: 'â†‘ 20%',
             positivo: true,
           ),
           const Divider(color: CraftHubColors.bordeClaro, height: 1),
@@ -731,7 +803,7 @@ class _PanelStatsClientes extends StatelessWidget {
             icono: Icons.chat_bubble_outline_rounded,
             titulo: 'Nuevas opiniones',
             valor: '${datos.nuevasOpiniones}',
-            variacion: '↑ 12%',
+            variacion: 'â†‘ 12%',
             positivo: true,
           ),
           const Divider(color: CraftHubColors.bordeClaro, height: 1),
@@ -838,9 +910,9 @@ class _StatCliente extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// BOTÓN TEXTO
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BOTÃ“N TEXTO
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _BotonTexto extends StatefulWidget {
   final String texto;
   final VoidCallback alPresionar;
@@ -886,9 +958,9 @@ class _BotonTextoState extends State<_BotonTexto> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// DECORACIÓN PANEL REUTILIZABLE
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// DECORACIÃ“N PANEL REUTILIZABLE
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 BoxDecoration _decorPanel() => BoxDecoration(
   color: CraftHubColors.panelClaro,
   borderRadius: BorderRadius.circular(16),
@@ -986,3 +1058,4 @@ class _IconTopBarState extends State<_IconTopBar> {
     );
   }
 }
+

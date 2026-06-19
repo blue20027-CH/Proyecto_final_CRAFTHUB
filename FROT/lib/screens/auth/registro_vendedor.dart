@@ -75,7 +75,7 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
                       end: Alignment.centerRight,
                       colors: [
                         Colors.transparent,
-                        CraftHubColors.fondoClaro.withOpacity(0.5),
+                        CraftHubColors.fondoClaro.withValues(alpha: 0.5),
                         CraftHubColors.fondoClaro,
                       ],
                       stops: const [0.0, 0.65, 1.0],
@@ -356,7 +356,7 @@ class _FormularioRegistro extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => HomeVendedor(esOscuro: esOscuro),
+                builder: (_) => HomeVendedor(esOscuro: esOscuro, nombreVendedor: '',),
               ),
             ); // TODO: lógica de registro con FastAPI
           },

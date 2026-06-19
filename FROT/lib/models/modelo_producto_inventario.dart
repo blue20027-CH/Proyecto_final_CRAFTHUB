@@ -32,16 +32,16 @@ class ProductoInventario {
   // Usa este factory para mapear la respuesta JSON del backend
   factory ProductoInventario.fromJson(Map<String, dynamic> json) {
     return ProductoInventario(
-      id: json['id'] as String,
-      sku: json['sku'] as String,
-      nombre: json['nombre'] as String,
-      coleccion: json['coleccion'] as String,
-      categoria: json['categoria'] as String,
-      precio: (json['precio'] as num).toDouble(),
-      stock: json['stock'] as int,
-      ventas: json['ventas'] as int,
-      estado: _estadoDesdeString(json['estado'] as String),
-      rutaImagen: json['imagen_url'] as String,
+      id: json['id'].toString(),
+      sku: (json['sku'] ?? 'PROD-${json['id'] ?? ''}').toString(),
+      nombre: (json['nombre'] ?? '').toString(),
+      coleccion: (json['coleccion'] ?? 'General').toString(),
+      categoria: (json['categoria'] ?? 'General').toString(),
+      precio: double.tryParse((json['precio'] ?? 0).toString()) ?? 0,
+      stock: int.tryParse((json['stock'] ?? 0).toString()) ?? 0,
+      ventas: int.tryParse((json['ventas'] ?? 0).toString()) ?? 0,
+      estado: _estadoDesdeString((json['estado'] ?? 'activo').toString()),
+      rutaImagen: (json['imagen_url'] ?? json['imagen'] ?? json['img'] ?? '').toString(),
     );
   }
 
@@ -145,3 +145,4 @@ List<ProductoInventario> productosMock = [
     rutaImagen: 'assets/productos/sombrero_pintao.png',
   ),
 ];
+

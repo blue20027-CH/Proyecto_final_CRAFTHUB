@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../main.dart';
@@ -9,18 +9,18 @@ import '../../services/servicio_auth.dart';
 import '../comprador/inicio_comprador.dart';
 import '../vendedor/pantalla_dashoard_vendedor.dart';
 
-// ─────────────────────────────────────────────────────────────
-// SERVICIO DE AUTENTICACIÓN — conecta con FastAPI
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// SERVICIO DE AUTENTICACIÃ“N â€” conecta con FastAPI
 // Crea este archivo en: lib/services/servicio_auth.dart
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //
 // import 'dart:convert';
 // import 'package:http/http.dart' as http;
 //
 // class ServicioAuth {
-//   static const String _baseUrl = 'http://TU_IP:8000'; // ← Cambia por tu URL FastAPI
+//   static const String _baseUrl = 'http://TU_IP:8000'; // â† Cambia por tu URL FastAPI
 //
-//   /// POST /auth/login → retorna token JWT + rol del usuario
+//   /// POST /auth/login â†’ retorna token JWT + rol del usuario
 //   static Future<Map<String, dynamic>> iniciarSesion(String email, String password) async {
 //     final res = await http.post(
 //       Uri.parse('$_baseUrl/auth/login'),
@@ -28,10 +28,10 @@ import '../vendedor/pantalla_dashoard_vendedor.dart';
 //       body: jsonEncode({'email': email, 'password': password}),
 //     );
 //     if (res.statusCode == 200) return jsonDecode(res.body);
-//     throw Exception(jsonDecode(res.body)['detail'] ?? 'Error al iniciar sesión');
+//     throw Exception(jsonDecode(res.body)['detail'] ?? 'Error al iniciar sesiÃ³n');
 //   }
 //
-// /// POST /auth/google → recibe token de Google, retorna JWT propio
+// /// POST /auth/google â†’ recibe token de Google, retorna JWT propio
 //   static Future<Map<String, dynamic>> iniciarSesionGoogle(String tokenGoogle) async {
 //     final res = await http.post(
 //       Uri.parse('$_baseUrl/auth/google'),
@@ -42,7 +42,7 @@ import '../vendedor/pantalla_dashoard_vendedor.dart';
 //     throw Exception('Error con Google Login');
 //   }
 //
-//   /// POST /auth/reset-password → envía email de recuperación
+//   /// POST /auth/reset-password â†’ envÃ­a email de recuperaciÃ³n
 //   static Future<void> solicitarResetPassword(String email) async {
 //     await http.post(
 //       Uri.parse('$_baseUrl/auth/reset-password'),
@@ -69,7 +69,14 @@ class _PantallaLoginState extends State<PantallaLogin> {
   final TextEditingController _ctrlPassword = TextEditingController();
   bool _verPassword  = false;
   bool _cargando     = false;
+  late String _modoSeleccionado;
   String? _errorMensaje;
+
+  @override
+  void initState() {
+    super.initState();
+    _modoSeleccionado = widget.modo;
+  }
 
   @override
   void dispose() {
@@ -78,7 +85,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
     super.dispose();
   }
 
-  // ── API_HOOK: Lógica de inicio de sesión ─────────────────────────────────
+  // â”€â”€ API_HOOK: LÃ³gica de inicio de sesiÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _iniciarSesion() async {
     if (_ctrlEmail.text.trim().isEmpty || _ctrlPassword.text.isEmpty) {
       setState(() => _errorMensaje = 'Por favor completa todos los campos.');
@@ -88,7 +95,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
     setState(() { _cargando = true; _errorMensaje = null; });
 
     try {
-      // CONECTAR CON FASTAPI — descomenta cuando tengas el servicio listo:
+      // CONECTAR CON FASTAPI â€” descomenta cuando tengas el servicio listo:
       //
       // final respuesta = await ServicioAuth.iniciarSesion(
       //   _ctrlEmail.text.trim(),
@@ -100,18 +107,18 @@ class _PantallaLoginState extends State<PantallaLogin> {
       // // Guarda el token (shared_preferences recomendado):
       // // await PrefsService.guardarToken(token);
       //
-      // // Navega según el rol:
+      // // Navega segÃºn el rol:
       // if (rol == 'vendedor') {
       //   Navigator.pushReplacementNamed(context, '/dashboard-vendedor');
       // } else {
       //   Navigator.pushReplacementNamed(context, '/catalogo');
       // }
 
-      // ── SIMULACIÓN TEMPORAL (elimina cuando conectes FastAPI) ──
+      // â”€â”€ SIMULACIÃ“N TEMPORAL (elimina cuando conectes FastAPI) â”€â”€
       final respuesta = await loginConEmailYPassword(
         _ctrlEmail.text.trim(),
         _ctrlPassword.text,
-        modo: widget.modo,
+        modo: _modoSeleccionado,
       );
 
       if (respuesta == null || respuesta['success'] != true) {
@@ -119,11 +126,19 @@ class _PantallaLoginState extends State<PantallaLogin> {
       }
 
       if (mounted) {
+        final perfil = respuesta['perfil'] as Map<String, dynamic>? ?? {};
+        final nombre = (perfil['nombre'] ?? respuesta['email'] ?? '').toString();
+        final foto = (perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => widget.modo == 'Vendedor'
-                ? HomeVendedor(esOscuro: context.read<GestorTema>().esModoOscuro)
+            builder: (_) => _modoSeleccionado == 'Vendedor'
+                ? HomeVendedor(
+                    esOscuro: context.read<GestorTema>().esModoOscuro,
+                    nombreVendedor: nombre,
+                    fotoPerfil: foto,
+                  )
                 : const HomeComprador(),
           ),
         );
@@ -136,21 +151,21 @@ class _PantallaLoginState extends State<PantallaLogin> {
     }
   }
 
-  // ── API_HOOK: Inicio de sesión con Google ────────────────────────────────
+  // â”€â”€ API_HOOK: Inicio de sesiÃ³n con Google â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _iniciarSesionGoogle() async {
     setState(() { _cargando = true; _errorMensaje = null; });
 
     try {
-      // 1. Obtén el token de Google con google_sign_in package
+      // 1. ObtÃ©n el token de Google con google_sign_in package
       // final googleUser = await GoogleSignIn().signIn();
       // final googleAuth = await googleUser?.authentication;
       // final tokenGoogle = googleAuth?.idToken ?? '';
       //
-      // 2. Envíalo a tu FastAPI:
+      // 2. EnvÃ­alo a tu FastAPI:
       // final respuesta = await ServicioAuth.iniciarSesionGoogle(tokenGoogle);
       // final String token = respuesta['access_token'];
       // final String rol   = respuesta['rol'];
-      // ...navega según rol
+      // ...navega segÃºn rol
 
       await Future.delayed(const Duration(milliseconds: 800));
     } catch (e) {
@@ -160,14 +175,14 @@ class _PantallaLoginState extends State<PantallaLogin> {
     }
   }
 
-  // ── API_HOOK: Recuperar contraseña ───────────────────────────────────────
+  // â”€â”€ API_HOOK: Recuperar contraseÃ±a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> _recuperarPassword() async {
     if (_ctrlEmail.text.trim().isEmpty) {
-      setState(() => _errorMensaje = 'Ingresa tu correo primero para recuperar la contraseña.');
+      setState(() => _errorMensaje = 'Ingresa tu correo primero para recuperar la contraseÃ±a.');
       return;
     }
     // await ServicioAuth.solicitarResetPassword(_ctrlEmail.text.trim());
-    // Muestra confirmación al usuario con toastification
+    // Muestra confirmaciÃ³n al usuario con toastification
   }
 
   @override
@@ -175,11 +190,11 @@ class _PantallaLoginState extends State<PantallaLogin> {
     final esOscuro = context.watch<GestorTema>().esModoOscuro;
 
     return Scaffold(
-      body: SizedBox.expand( // ← Ocupa toda la pantalla sin scroll
+      body: SizedBox.expand( // â† Ocupa toda la pantalla sin scroll
         child: Row(
           children: [
 
-            // ── LADO IZQUIERDO: imagen + degradado ─────────────────────────
+            // â”€â”€ LADO IZQUIERDO: imagen + degradado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Expanded(
               flex: 55,
               child: Stack(
@@ -191,7 +206,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     alignment: Alignment.centerRight,
                   ),
                   // Degradado fusionado: arranca desde el borde derecho
-                  // y se extiende generosamente para no dejar línea visible
+                  // y se extiende generosamente para no dejar lÃ­nea visible
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -201,17 +216,17 @@ class _PantallaLoginState extends State<PantallaLogin> {
                           colors: esOscuro
                               ? [
                                   CraftHubColors.fondoOscuro,
-                                  CraftHubColors.fondoOscuro.withOpacity(0.92),
-                                  CraftHubColors.fondoOscuro.withOpacity(0.55),
+                                  CraftHubColors.fondoOscuro.withValues(alpha: 0.92),
+                                  CraftHubColors.fondoOscuro.withValues(alpha: 0.55),
                                   Colors.transparent,
                                 ]
                               : [
                                   CraftHubColors.fondoClaro,
-                                  CraftHubColors.fondoClaro.withOpacity(0.92),
-                                  CraftHubColors.fondoClaro.withOpacity(0.55),
+                                  CraftHubColors.fondoClaro.withValues(alpha: 0.92),
+                                  CraftHubColors.fondoClaro.withValues(alpha: 0.55),
                                   Colors.transparent,
                                 ],
-                          // ← Stops extendidos: el color sólido llega
+                          // â† Stops extendidos: el color sÃ³lido llega
                           // hasta 0.5 del ancho, sin corte visible
                           stops: const [0.0, 0.15, 0.45, 1.0],
                         ),
@@ -222,7 +237,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
               ),
             ),
 
-            // ── LADO DERECHO: panel login (sin scroll, altura fija) ────────
+            // â”€â”€ LADO DERECHO: panel login (sin scroll, altura fija) â”€â”€â”€â”€â”€â”€â”€â”€
             Expanded(
               flex: 45,
               child: AnimatedContainer(
@@ -242,6 +257,9 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         verPassword: _verPassword,
                         cargando: _cargando,
                         errorMensaje: _errorMensaje,
+                        modoSeleccionado: _modoSeleccionado,
+                        alCambiarModo: (modo) =>
+                            setState(() => _modoSeleccionado = modo),
                         alAlternarPassword: () =>
                             setState(() => _verPassword = !_verPassword),
                         alIniciarSesion: _iniciarSesion,
@@ -261,9 +279,9 @@ class _PantallaLoginState extends State<PantallaLogin> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// PANEL PRINCIPAL — sin scroll, todo compacto
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PANEL PRINCIPAL â€” sin scroll, todo compacto
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PanelLogin extends StatelessWidget {
   final bool esOscuro;
   final TextEditingController ctrlEmail;
@@ -271,6 +289,8 @@ class _PanelLogin extends StatelessWidget {
   final bool verPassword;
   final bool cargando;
   final String? errorMensaje;
+  final String modoSeleccionado;
+  final ValueChanged<String> alCambiarModo;
   final VoidCallback alAlternarPassword;
   final VoidCallback alIniciarSesion;
   final VoidCallback alIniciarGoogle;
@@ -283,6 +303,8 @@ class _PanelLogin extends StatelessWidget {
     required this.verPassword,
     required this.cargando,
     required this.errorMensaje,
+    required this.modoSeleccionado,
+    required this.alCambiarModo,
     required this.alAlternarPassword,
     required this.alIniciarSesion,
     required this.alIniciarGoogle,
@@ -296,11 +318,11 @@ class _PanelLogin extends StatelessWidget {
     final colorSec   = CraftHubColors.textoSecundario(esOscuro);
 
     return Column(
-      mainAxisSize: MainAxisSize.min, // ← Sin scroll: se ajusta al contenido
+      mainAxisSize: MainAxisSize.min, // â† Sin scroll: se ajusta al contenido
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
 
-        // ── BOTÓN VOLVER ────────────────────────────────────────────────
+        // â”€â”€ BOTÃ“N VOLVER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Align(
           alignment: Alignment.centerLeft,
           child: _BotonVolver(esOscuro: esOscuro),
@@ -308,7 +330,7 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 14),
 
-        // ── LOGO + NOMBRE + ESLOGAN EN ROW ──────────────────────────────
+        // â”€â”€ LOGO + NOMBRE + ESLOGAN EN ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -356,7 +378,7 @@ class _PanelLogin extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Creatividad con propósito',
+                  'Creatividad con propÃ³sito',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 10,
@@ -372,9 +394,9 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 22),
 
-        // ── SUBTÍTULO (sin "Bienvenido de nuevo") ───────────────────────
+        // â”€â”€ SUBTÃTULO (sin "Bienvenido de nuevo") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Text(
-          'Inicia sesión para continuar',
+          'Inicia sesiÃ³n para continuar',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
@@ -382,9 +404,24 @@ class _PanelLogin extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 22),
+        const SizedBox(height: 16),
 
-        // ── CAMPO EMAIL ─────────────────────────────────────────────────
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(value: 'Comprador', label: Text('Comprador')),
+            ButtonSegment(value: 'Vendedor', label: Text('Vendedor')),
+          ],
+          selected: {modoSeleccionado},
+          onSelectionChanged: (seleccion) => alCambiarModo(seleccion.first),
+          style: ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            textStyle: WidgetStateProperty.all(
+              const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
         CampoTexto(
           controlador: ctrlEmail,
           hint: 'Correo o usuario',
@@ -394,10 +431,10 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // ── CAMPO PASSWORD ──────────────────────────────────────────────
+        // â”€â”€ CAMPO PASSWORD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         CampoTexto(
           controlador: ctrlPassword,
-          hint: 'Contraseña',
+          hint: 'ContraseÃ±a',
           icono: Icons.lock_outline_rounded,
           esOscuro: esOscuro,
           esPassword: true,
@@ -407,7 +444,7 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 6),
 
-        // ── MENSAJE DE ERROR (visible solo si hay error) ─────────────────
+        // â”€â”€ MENSAJE DE ERROR (visible solo si hay error) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (errorMensaje != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
@@ -421,11 +458,11 @@ class _PanelLogin extends StatelessWidget {
             ),
           ),
 
-        // ── OLVIDÉ CONTRASEÑA ───────────────────────────────────────────
+        // â”€â”€ OLVIDÃ‰ CONTRASEÃ‘A â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
-            onPressed: alRecuperarPassword, // ← API_HOOK
+            onPressed: alRecuperarPassword, // â† API_HOOK
             style: TextButton.styleFrom(
               foregroundColor: CraftHubColors.vinoTinto,
               padding: EdgeInsets.zero,
@@ -433,7 +470,7 @@ class _PanelLogin extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: const Text(
-              '¿Olvidaste tu contraseña?',
+              'Â¿Olvidaste tu contraseÃ±a?',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 10,
@@ -446,8 +483,8 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // ── BOTÓN ENTRAR ────────────────────────────────────────────────
-        // API_HOOK: llama a _iniciarSesion() → ServicioAuth.iniciarSesion()
+        // â”€â”€ BOTÃ“N ENTRAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // API_HOOK: llama a _iniciarSesion() â†’ ServicioAuth.iniciarSesion()
         cargando
             ? const SizedBox(
                 height: 48,
@@ -466,13 +503,13 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // ── SEPARADOR ───────────────────────────────────────────────────
+        // â”€â”€ SEPARADOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _Separador(esOscuro: esOscuro),
 
         const SizedBox(height: 16),
 
-        // ── BOTÓN GOOGLE ─────────────────────────────────────────────────
-        // API_HOOK: llama a _iniciarSesionGoogle() → ServicioAuth.iniciarSesionGoogle()
+        // â”€â”€ BOTÃ“N GOOGLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // API_HOOK: llama a _iniciarSesionGoogle() â†’ ServicioAuth.iniciarSesionGoogle()
         BotonGoogle(
           esOscuro: esOscuro,
           alPresionar: alIniciarGoogle,
@@ -480,7 +517,7 @@ class _PanelLogin extends StatelessWidget {
 
         const SizedBox(height: 110),
 
-        // ── BADGES DE CONFIANZA ──────────────────────────────────────────
+        // â”€â”€ BADGES DE CONFIANZA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         _BadgesConfianza(esOscuro: esOscuro),
 
       ],
@@ -488,9 +525,9 @@ class _PanelLogin extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// BOTÓN VOLVER
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BOTÃ“N VOLVER
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _BotonVolver extends StatefulWidget {
   final bool esOscuro;
   const _BotonVolver({required this.esOscuro});
@@ -547,9 +584,9 @@ class _BotonVolverState extends State<_BotonVolver> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SEPARADOR
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _Separador extends StatelessWidget {
   final bool esOscuro;
   const _Separador({required this.esOscuro});
@@ -566,7 +603,7 @@ class _Separador extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            'o continúa con',
+            'o continÃºa con',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
@@ -580,9 +617,9 @@ class _Separador extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // BADGES DE CONFIANZA
-// ─────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _BadgesConfianza extends StatelessWidget {
   final bool esOscuro;
   const _BadgesConfianza({required this.esOscuro});
@@ -592,7 +629,7 @@ class _BadgesConfianza extends StatelessWidget {
     final colorSec = CraftHubColors.textoSecundario(esOscuro);
 
     final badges = [
-      (Icons.verified_user_outlined, 'Seguro y confiable',  'Tu información está protegida'),
+      (Icons.verified_user_outlined, 'Seguro y confiable',  'Tu informaciÃ³n estÃ¡ protegida'),
       (Icons.group_outlined,          'Comunidad creativa',  'Conecta con artesanos'),
       (Icons.handshake_outlined,      'Apoya lo artesanal',  'Hecho a mano, hecho con amor'),
     ];
@@ -632,3 +669,4 @@ class _BadgesConfianza extends StatelessWidget {
     );
   }
 }
+
