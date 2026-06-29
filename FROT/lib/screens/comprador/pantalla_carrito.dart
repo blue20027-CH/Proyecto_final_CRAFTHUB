@@ -10,27 +10,8 @@ import '../../core/theme/app_theme.dart';
 
 // ============================================================
 // PANTALLA: MI CARRITO
-// Usa el Sidebar y TopBar ya existentes en tu proyecto.
-//
-// INTEGRACIÓN EN TU SCAFFOLD PRINCIPAL:
-//   Cuando el índice de navegación del sidebar sea "Mi carrito"
-//   (índice 1), muestra este widget como body del contenido.
-//
-// Ejemplo de uso dentro de tu pantalla principal:
-//
-//   body: Row(
-//     children: [
-//       SidebarComprador(...),   // tu widget existente
-//       Expanded(
-//         child: Column(
-//           children: [
-//             TopBarComprador(...),  // tu widget existente
-//             Expanded(child: PantallaCarrito()),
-//           ],
-//         ),
-//       ),
-//     ],
-//   ),
+// ✅ CORREGIDO: Ahora usa el CarritoProvider global (de main.dart)
+// en lugar de crear uno nuevo
 // ============================================================
 
 class PantallaCarrito extends StatelessWidget {
@@ -38,10 +19,7 @@ class PantallaCarrito extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CarritoProvider(),
-      child: const _ContenidoCarrito(),
-    );
+    return const _ContenidoCarrito();
   }
 }
 
@@ -50,12 +28,13 @@ class _ContenidoCarrito extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Lee del provider global
     final provider = context.watch<CarritoProvider>();
     final carrito = provider.carritoActivo;
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      color: esModoOscuro ? AppColors.fondoOscuro : AppColors.fondoClaro,
+      color: esModoOscuro ? CraftHubColors.fondoOscuro : CraftHubColors.fondoClaro,
       child: Column(
         children: [
           Expanded(
@@ -77,7 +56,7 @@ class _ContenidoCarrito extends StatelessWidget {
                           children: [
                             const SelectorCarrito(),
                             const Spacer(),
-                            if (carrito.items.isNotEmpty)
+                            if (carrito != null && carrito.items.isNotEmpty)
                               _BotonVaciarCarrito(
                                 alPresionar: () => _confirmarVaciar(context, provider),
                               ),
@@ -86,7 +65,7 @@ class _ContenidoCarrito extends StatelessWidget {
                         const SizedBox(height: 20),
 
                         // Estado vacío o lista de items
-                        if (carrito.items.isEmpty)
+                        if (carrito == null || carrito.items.isEmpty)
                           _EstadoCarritoVacio(esModoOscuro: esModoOscuro)
                         else
                           ...carrito.items.map(
@@ -96,7 +75,8 @@ class _ContenidoCarrito extends StatelessWidget {
                         const SizedBox(height: 32),
 
                         // Sección de sugerencias
-                        SeccionSugerencias(sugerencias: sugerenciasMock),
+                        if (carrito != null && carrito.items.isNotEmpty)
+                          SeccionSugerencias(sugerencias: sugerenciasMock),
 
                         const SizedBox(height: 24),
                       ],
@@ -107,7 +87,7 @@ class _ContenidoCarrito extends StatelessWidget {
                   // ──────────────────────────────────────────
                   // COLUMNA DERECHA — Resumen del pedido
                   // ──────────────────────────────────────────
-                  if (carrito.items.isNotEmpty)
+                  if (carrito != null && carrito.items.isNotEmpty)
                     const PanelResumenPedido(),
                 ],
               ),
@@ -193,12 +173,12 @@ class _EstadoCarritoVacio extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 60),
       decoration: BoxDecoration(
-        color: esModoOscuro ? AppColors.panelOscuro : Colors.white,
+        color: esModoOscuro ? CraftHubColors.panelOscuro : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: esModoOscuro
-              ? Colors.white.withOpacity(0.06)
-              : Colors.black.withOpacity(0.06),
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.06),
         ),
       ),
       child: Column(
@@ -207,8 +187,8 @@ class _EstadoCarritoVacio extends StatelessWidget {
             Icons.shopping_bag_outlined,
             size: 64,
             color: esModoOscuro
-                ? Colors.white.withOpacity(0.2)
-                : Colors.black.withOpacity(0.12),
+                ? Colors.white.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.12),
           ),
           const SizedBox(height: 16),
           Text(
@@ -218,8 +198,8 @@ class _EstadoCarritoVacio extends StatelessWidget {
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: esModoOscuro
-                  ? AppColors.textoOscuro
-                  : AppColors.textoClaro,
+                  ? CraftHubColors.textoOscuro
+                  : CraftHubColors.textoClaro,
             ),
           ),
           const SizedBox(height: 8),
@@ -230,8 +210,8 @@ class _EstadoCarritoVacio extends StatelessWidget {
               fontFamily: 'Poppins',
               fontSize: 13,
               color: esModoOscuro
-                  ? AppColors.textoSecOscuro
-                  : AppColors.textoSecClaro,
+                  ? Colors.grey[400]
+                  : Colors.grey[600],
               height: 1.6,
             ),
           ),
@@ -246,7 +226,7 @@ class _EstadoCarritoVacio extends StatelessWidget {
               style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.vinoTinto,
+              backgroundColor: CraftHubColors.vinoTinto,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -286,10 +266,10 @@ class _BotonVaciarCarritoState extends State<_BotonVaciarCarrito> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: _hover ? Colors.red.withOpacity(0.08) : Colors.transparent,
+            color: _hover ? Colors.red.withValues(alpha: 0.08) : Colors.transparent,
             border: Border.all(
               color: _hover
-                  ? Colors.red.withOpacity(0.3)
+                  ? Colors.red.withValues(alpha: 0.3)
                   : Colors.transparent,
             ),
           ),

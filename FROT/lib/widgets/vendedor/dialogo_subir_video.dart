@@ -208,8 +208,8 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: _rutaVideoSeleccionado != null
-                          ? CraftHubColors.vinoTintoSuave.withOpacity(
-                              esOscuro ? 0.15 : 0.5,
+                          ? CraftHubColors.vinoTintoSuave.withValues(
+                              alpha: esOscuro ? 0.15 : 0.5,
                             )
                           : CraftHubColors.fondo(esOscuro),
                       borderRadius: BorderRadius.circular(12),
@@ -304,7 +304,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                 _LabelCampo(texto: 'Categoría *', colorTexto: colorTexto),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _categoriaSeleccionada,
+                  initialValue: _categoriaSeleccionada,
                   decoration: InputDecoration(
                     hintText: 'Selecciona una categoría',
                     hintStyle: TextStyle(

@@ -32,7 +32,7 @@ class PopupArtesanoMapa extends StatelessWidget {
       'caminando' => (distanciaKm / 5 * 60).round(),
       _ => 0,
     };
-    if (minutos < 60) return '${minutos} min';
+    if (minutos < 60) return '$minutos min';
     final h = minutos ~/ 60;
     final m = minutos % 60;
     return m == 0 ? '${h}h' : '${h}h ${m}m';
@@ -54,7 +54,7 @@ class PopupArtesanoMapa extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.18),
+            color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -67,7 +67,7 @@ class PopupArtesanoMapa extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CraftHubColors.vinoTinto.withOpacity(0.06),
+              color: CraftHubColors.vinoTinto.withValues(alpha: 0.06),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
             ),
@@ -83,7 +83,7 @@ class PopupArtesanoMapa extends StatelessWidget {
                         color: CraftHubColors.vinoTinto, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.10),
+                        color: Colors.black.withValues(alpha: 0.10),
                         blurRadius: 8,
                       ),
                     ],
@@ -152,7 +152,7 @@ class PopupArtesanoMapa extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.close_rounded,
@@ -300,7 +300,7 @@ class _BotonDireccionState extends State<_BotonDireccion> {
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: CraftHubColors.vinoTinto.withOpacity(0.30),
+                color: CraftHubColors.vinoTinto.withValues(alpha: 0.30),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

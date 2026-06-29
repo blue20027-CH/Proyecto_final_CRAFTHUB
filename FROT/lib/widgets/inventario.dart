@@ -40,7 +40,7 @@ class TarjetaEstadistica extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(esModoOscuro ? 0.2 : 0.04),
+              color: Colors.black.withValues(alpha: esModoOscuro ? 0.2 : 0.04),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -52,7 +52,7 @@ class TarjetaEstadistica extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: colorIcono.withOpacity(0.12),
+                color: colorIcono.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icono, color: colorIcono, size: 22),
@@ -123,7 +123,7 @@ class BadgeEstado extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -165,9 +165,9 @@ class ChipColeccion extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: colorPrimario.withOpacity(0.08),
+        color: colorPrimario.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorPrimario.withOpacity(0.2)),
+        border: Border.all(color: colorPrimario.withValues(alpha: 0.2)),
       ),
       child: Text(
         nombre,
@@ -214,8 +214,8 @@ class _FilaProductoState extends State<FilaProducto> {
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
     final colorFila = _enHover || widget.seleccionado
         ? (esModoOscuro
-              ? const Color(0xFF821515).withOpacity(0.06)
-              : const Color(0xFF821515).withOpacity(0.03))
+              ? const Color(0xFF821515).withValues(alpha: 0.06)
+              : const Color(0xFF821515).withValues(alpha: 0.03))
         : Colors.transparent;
 
     return MouseRegion(
@@ -254,11 +254,11 @@ class _FilaProductoState extends State<FilaProducto> {
                         height: 48,
                         fit: BoxFit.cover,
                         // 🔌 API: Cambiar por Image.network(widget.producto.rutaImagen)
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF821515).withOpacity(0.1),
+                            color: const Color(0xFF821515).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(

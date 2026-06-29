@@ -3,14 +3,6 @@ import 'package:provider/provider.dart';
 import '../../core/carrito_provider.dart';
 import '../../core/theme/app_theme.dart';
 
-// ============================================================
-// PANEL DE RESUMEN DEL PEDIDO
-// Columna derecha con totales, botones de factura y pago.
-// TODO [API]: "Proceder al pago" → navegar a PantallaPasarelaPago
-//            "Descargar factura" → ApiService.descargarFactura()
-//            "Ver factura completa" → ApiService.verFacturaCompleta()
-// ============================================================
-
 class PanelResumenPedido extends StatelessWidget {
   const PanelResumenPedido({super.key});
 
@@ -20,19 +12,24 @@ class PanelResumenPedido extends StatelessWidget {
     final carrito = provider.carritoActivo;
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
 
+    // ✅ VALIDAR que carrito no sea null
+    if (carrito == null) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       width: 340,
       decoration: BoxDecoration(
-        color: esModoOscuro ? AppColors.panelOscuro : Colors.white,
+        color: esModoOscuro ? CraftHubColors.panelOscuro : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: esModoOscuro
-              ? Colors.white.withOpacity(0.06)
-              : Colors.black.withOpacity(0.06),
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.06),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -51,11 +48,11 @@ class PanelResumenPedido extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: AppColors.vinoTinto.withOpacity(0.1),
+                    color: CraftHubColors.vinoTinto.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.receipt_outlined,
-                      color: AppColors.vinoTinto, size: 18),
+                      color: CraftHubColors.vinoTinto, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -65,8 +62,8 @@ class PanelResumenPedido extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: esModoOscuro
-                        ? AppColors.textoOscuro
-                        : AppColors.textoClaro,
+                        ? CraftHubColors.textoOscuro
+                        : CraftHubColors.textoClaro,
                   ),
                 ),
               ],
@@ -97,8 +94,8 @@ class PanelResumenPedido extends StatelessWidget {
             const SizedBox(height: 16),
             Divider(
               color: esModoOscuro
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.08),
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.08),
             ),
             const SizedBox(height: 14),
 
@@ -113,8 +110,8 @@ class PanelResumenPedido extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: esModoOscuro
-                        ? AppColors.textoOscuro
-                        : AppColors.textoClaro,
+                        ? CraftHubColors.textoOscuro
+                        : CraftHubColors.textoClaro,
                   ),
                 ),
                 Text(
@@ -123,7 +120,7 @@ class PanelResumenPedido extends StatelessWidget {
                     fontFamily: 'Poppins',
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.vinoTinto,
+                    color: CraftHubColors.vinoTinto,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -162,15 +159,15 @@ class PanelResumenPedido extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: AppColors.vinoTinto.withOpacity(0.05),
+                color: CraftHubColors.vinoTinto.withValues(alpha: 0.05),
                 border: Border.all(
-                  color: AppColors.vinoTinto.withOpacity(0.12),
+                  color: CraftHubColors.vinoTinto.withValues(alpha: 0.12),
                 ),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.shield_outlined,
-                      color: AppColors.vinoTinto, size: 20),
+                      color: CraftHubColors.vinoTinto, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -183,8 +180,8 @@ class PanelResumenPedido extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: esModoOscuro
-                                ? AppColors.textoOscuro
-                                : AppColors.textoClaro,
+                                ? CraftHubColors.textoOscuro
+                                : CraftHubColors.textoClaro,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -194,8 +191,8 @@ class PanelResumenPedido extends StatelessWidget {
                             fontFamily: 'Poppins',
                             fontSize: 10.5,
                             color: esModoOscuro
-                                ? AppColors.textoSecOscuro
-                                : AppColors.textoSecClaro,
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
                             height: 1.5,
                           ),
                         ),
@@ -209,7 +206,6 @@ class PanelResumenPedido extends StatelessWidget {
 
             // ── Botón principal: Proceder al pago ─────────────
             _BotonProcederPago(
-              // TODO [API]: alPresionar → navegar a PantallaPasarelaPago
               alPresionar: () {
                 debugPrint('Navegando a pasarela de pago...');
               },
@@ -224,8 +220,8 @@ class PanelResumenPedido extends StatelessWidget {
                   Icon(Icons.local_shipping_outlined,
                       size: 14,
                       color: esModoOscuro
-                          ? AppColors.textoSecOscuro
-                          : AppColors.textoSecClaro),
+                          ? Colors.grey[400]
+                          : Colors.grey[600]),
                   const SizedBox(width: 6),
                   Text(
                     'Envíos a todo Panamá',
@@ -233,8 +229,8 @@ class PanelResumenPedido extends StatelessWidget {
                       fontFamily: 'Poppins',
                       fontSize: 12,
                       color: esModoOscuro
-                          ? AppColors.textoSecOscuro
-                          : AppColors.textoSecClaro,
+                          ? Colors.grey[400]
+                          : Colors.grey[600],
                     ),
                   ),
                 ],
@@ -247,9 +243,6 @@ class PanelResumenPedido extends StatelessWidget {
   }
 }
 
-// ============================================================
-// FILA DE RESUMEN (etiqueta — valor)
-// ============================================================
 class _FilaResumen extends StatelessWidget {
   final String etiqueta;
   final String valor;
@@ -273,7 +266,7 @@ class _FilaResumen extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
-            color: esModoOscuro ? AppColors.textoSecOscuro : AppColors.textoSecClaro,
+            color: esModoOscuro ? Colors.grey[400] : Colors.grey[600],
           ),
         ),
         Text(
@@ -283,7 +276,7 @@ class _FilaResumen extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: colorValor ??
-                (esModoOscuro ? AppColors.textoOscuro : AppColors.textoClaro),
+                (esModoOscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro),
           ),
         ),
       ],
@@ -291,9 +284,6 @@ class _FilaResumen extends StatelessWidget {
   }
 }
 
-// ============================================================
-// BOTÓN DE FACTURA (Descargar / Ver completa)
-// ============================================================
 class _BotonFactura extends StatefulWidget {
   final IconData icono;
   final String etiqueta;
@@ -330,16 +320,16 @@ class _BotonFacturaState extends State<_BotonFactura> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: _hover
-                ? AppColors.vinoTinto.withOpacity(0.1)
+                ? CraftHubColors.vinoTinto.withValues(alpha: 0.1)
                 : (widget.esModoOscuro
-                    ? AppColors.panelOscuro2
+                    ? CraftHubColors.panelOscuro
                     : const Color(0xFFF9F6F0)),
             border: Border.all(
               color: _hover
-                  ? AppColors.vinoTinto.withOpacity(0.3)
+                  ? CraftHubColors.vinoTinto.withValues(alpha: 0.3)
                   : (widget.esModoOscuro
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.08)),
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08)),
             ),
           ),
           child: Column(
@@ -348,10 +338,10 @@ class _BotonFacturaState extends State<_BotonFactura> {
                 widget.icono,
                 size: 18,
                 color: _hover
-                    ? AppColors.vinoTinto
+                    ? CraftHubColors.vinoTinto
                     : (widget.esModoOscuro
-                        ? AppColors.textoSecOscuro
-                        : AppColors.textoSecClaro),
+                        ? Colors.grey[400]
+                        : Colors.grey[600]),
               ),
               const SizedBox(height: 5),
               Text(
@@ -362,10 +352,10 @@ class _BotonFacturaState extends State<_BotonFactura> {
                   fontSize: 10.5,
                   fontWeight: FontWeight.w500,
                   color: _hover
-                      ? AppColors.vinoTinto
+                      ? CraftHubColors.vinoTinto
                       : (widget.esModoOscuro
-                          ? AppColors.textoSecOscuro
-                          : AppColors.textoSecClaro),
+                          ? Colors.grey[400]
+                          : Colors.grey[600]),
                   height: 1.4,
                 ),
               ),
@@ -377,9 +367,6 @@ class _BotonFacturaState extends State<_BotonFactura> {
   }
 }
 
-// ============================================================
-// BOTÓN PRINCIPAL: PROCEDER AL PAGO
-// ============================================================
 class _BotonProcederPago extends StatefulWidget {
   final VoidCallback alPresionar;
   const _BotonProcederPago({required this.alPresionar});
@@ -407,12 +394,12 @@ class _BotonProcederPagoState extends State<_BotonProcederPago> {
             borderRadius: BorderRadius.circular(14),
             gradient: LinearGradient(
               colors: _hover
-                  ? [const Color(0xFF9E1A1A), AppColors.vinoTinto]
-                  : [AppColors.vinoTinto, const Color(0xFF5E0F0F)],
+                  ? [const Color(0xFF9E1A1A), CraftHubColors.vinoTinto]
+                  : [CraftHubColors.vinoTinto, const Color(0xFF5E0F0F)],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.vinoTinto.withOpacity(_hover ? 0.45 : 0.25),
+                color: CraftHubColors.vinoTinto.withValues(alpha: _hover ? 0.45 : 0.25),
                 blurRadius: _hover ? 20 : 10,
                 offset: const Offset(0, 4),
               ),

@@ -207,7 +207,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.07),
+                          color: Colors.black.withValues(alpha: 0.07),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -231,7 +231,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
                           child: ListView.separated(
                             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                             itemCount: _artesanosFiltrados.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 2),
                             itemBuilder: (_, i) {
                               final a = _artesanosFiltrados[i];
@@ -280,7 +280,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
                               initialCenter:
                                   const LatLng(8.5940, -80.1099),
                               initialZoom: 7.0,
-                              onTap: (_, __) => _cerrarPopup(),
+                              onTap: (_, _) => _cerrarPopup(),
                             ),
                             children: [
                               TileLayer(
@@ -518,7 +518,7 @@ class _BotonUbicacionState extends State<_BotonUbicacion> {
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: CraftHubColors.vinoTinto.withOpacity(0.25),
+                color: CraftHubColors.vinoTinto.withValues(alpha: 0.25),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -571,11 +571,11 @@ class _PinArtesano extends StatelessWidget {
           decoration: BoxDecoration(
             color: seleccionado
                 ? CraftHubColors.vinoTinto
-                : Colors.white.withOpacity(0.9),
+                : Colors.white.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: Colors.black.withValues(alpha: 0.15),
                 blurRadius: 4,
               ),
             ],
@@ -606,7 +606,7 @@ class _PinArtesano extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.20),
+                color: Colors.black.withValues(alpha: 0.20),
                 blurRadius: 8,
               ),
             ],
@@ -667,7 +667,7 @@ class _ControlesZoom extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 8,
           ),
         ],

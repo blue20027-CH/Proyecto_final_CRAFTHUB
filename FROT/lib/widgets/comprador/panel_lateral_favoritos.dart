@@ -151,7 +151,7 @@ class PanelLateralFavoritos extends StatelessWidget {
                 : const Color(0xFFFDF0F0),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _colorVino.withOpacity(0.2),
+              color: _colorVino.withValues(alpha: 0.2),
             ),
           ),
           child: Column(
@@ -243,7 +243,7 @@ class _SeccionPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(esTemaOscuro ? 0.3 : 0.06),
+            color: Colors.black.withValues(alpha: esTemaOscuro ? 0.3 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -322,8 +322,8 @@ class _TarjetaCarrito extends StatelessWidget {
               child: Image.asset(
                 carrito.rutaImagenPortada,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFF821515).withOpacity(0.15),
+                errorBuilder: (_, _, _) => Container(
+                  color: const Color(0xFF821515).withValues(alpha: 0.15),
                   child: const Icon(Icons.shopping_bag_outlined,
                       color: Color(0xFF821515), size: 22),
                 ),
@@ -387,10 +387,10 @@ class _AvatarArtesano extends StatelessWidget {
             CircleAvatar(
               radius: 30,
               backgroundImage: AssetImage(artesano.rutaFoto),
-              backgroundColor: const Color(0xFF821515).withOpacity(0.15),
-              onBackgroundImageError: (_, __) {},
+              backgroundColor: const Color(0xFF821515).withValues(alpha: 0.15),
+              onBackgroundImageError: (_, _) {},
               child: Icon(Icons.person,
-                  color: const Color(0xFF821515).withOpacity(0.5)),
+                  color: const Color(0xFF821515).withValues(alpha: 0.5)),
             ),
             Positioned(
               bottom: 0,

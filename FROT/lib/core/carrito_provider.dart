@@ -1,86 +1,126 @@
 import 'package:flutter/material.dart';
 import '../models/carrito_model.dart';
-
-// ============================================================
-// PROVEEDOR DEL CARRITO
-// Gestiona el estado del carrito activo y la lista de carritos.
-// TODO [API]: Reemplazar operaciones mock con llamadas a ApiService
-// ============================================================
+import '../services/api_service.dart';
 
 class CarritoProvider extends ChangeNotifier {
-  List<CarritoModel> _carritos = List.from(carritosMock);
+  List<CarritoModel> _carritos = [];
   int _indiceCarritoActivo = 0;
+  String? _userId;
+  bool _cargando = false;
 
-  // ── Getters públicos ────────────────────────────────────────
-  List<CarritoModel> get carritos => _carritos;
-  CarritoModel get carritoActivo => _carritos[_indiceCarritoActivo];
   int get indiceCarritoActivo => _indiceCarritoActivo;
+  List<CarritoModel> get carritos => _carritos;
+  CarritoModel? get carritoActivo => _carritos.isEmpty ? null : _carritos[_indiceCarritoActivo];
+  bool get cargando => _cargando;
 
-  // ── Cambiar carrito activo ──────────────────────────────────
-  // TODO [API]: GET /api/carritos/{carritoId}/items
+  Future<void> inicializar(String userId) async {
+    _userId = userId;
+    Future.microtask(() => cargarCarritos());
+  }
+
+  Future<void> cargarCarritos() async {
+    if (_userId == null) return;
+    _cargando = true;
+    try {
+      final data = await ApiService.getCarritos(_userId!);
+      final lista = data['carritos'] as List<dynamic>;
+      _carritos = lista.map((c) => CarritoModel.fromJson(c)).toList();
+      if (_carritos.isEmpty) {
+        await _crearCarritoInicial();
+      }
+    } catch (e) {
+      debugPrint('Error cargando carritos: $e');
+    } finally {
+      _cargando = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _crearCarritoInicial() async {
+    if (_userId == null) return;
+    try {
+      final data = await ApiService.crearCarrito(_userId!, 'Mi carrito');
+      _carritos.add(CarritoModel.fromJson(data['carrito']));
+    } catch (e) {
+      debugPrint('Error creando carrito inicial: $e');
+    }
+  }
+
   void cambiarCarrito(int indice) {
     _indiceCarritoActivo = indice;
     notifyListeners();
   }
 
-  // ── Actualizar cantidad de un ítem ─────────────────────────
-  // TODO [API]: PUT /api/carritos/{carritoId}/items/{itemId}
-  void actualizarCantidad(int itemId, int nuevaCantidad) {
-    final items = carritoActivo.items;
-    final indice = items.indexWhere((i) => i.id == itemId);
-    if (indice != -1) {
-      if (nuevaCantidad <= 0) {
-        eliminarItem(itemId);
-      } else {
-        items[indice].cantidad = nuevaCantidad;
-        notifyListeners();
-      }
+  Future<void> agregarItem({
+    required int productoId,
+    required String nombreProducto,
+    required double precio,
+    String imagenUrl = '',
+    String artesano = '',
+    int cantidad = 1,
+  }) async {
+    if (carritoActivo == null) return;
+    try {
+      await ApiService.agregarItem(
+        carritoId: carritoActivo!.id,
+        productoId: productoId,
+        nombreProducto: nombreProducto,
+        precio: precio,
+        imagenUrl: imagenUrl,
+        artesano: artesano,
+        cantidad: cantidad,
+      );
+      await cargarCarritos();
+    } catch (e) {
+      debugPrint('Error agregando item: $e');
     }
   }
 
-  // ── Eliminar ítem del carrito ───────────────────────────────
-  // TODO [API]: DELETE /api/carritos/{carritoId}/items/{itemId}
-  void eliminarItem(int itemId) {
-    carritoActivo.items.removeWhere((i) => i.id == itemId);
-    notifyListeners();
+  Future<void> actualizarCantidad(String itemId, int nuevaCantidad) async {
+    try {
+      await ApiService.actualizarCantidad(itemId, nuevaCantidad);
+      await cargarCarritos();
+    } catch (e) {
+      debugPrint('Error actualizando cantidad: $e');
+    }
   }
 
-  // ── Vaciar carrito completo ─────────────────────────────────
-  // TODO [API]: DELETE /api/carritos/{carritoId}
-  void vaciarCarrito() {
-    carritoActivo.items.clear();
-    notifyListeners();
+  Future<void> eliminarItem(String itemId) async {
+    try {
+      await ApiService.eliminarItem(itemId);
+      await cargarCarritos();
+    } catch (e) {
+      debugPrint('Error eliminando item: $e');
+    }
   }
 
-  // ── Crear nuevo carrito ─────────────────────────────────────
-  // TODO [API]: POST /api/carritos  body: { nombre }
-  void crearNuevoCarrito(String nombre) {
-    final nuevoId = _carritos.length + 1;
-    _carritos.add(CarritoModel(
-      id: nuevoId,
-      nombre: nombre,
-      items: [],
-      fechaCreacion: DateTime.now(),
-    ));
-    _indiceCarritoActivo = _carritos.length - 1;
-    notifyListeners();
+  Future<void> vaciarCarrito() async {
+    if (carritoActivo == null) return;
+    try {
+      await ApiService.vaciarCarrito(carritoActivo!.id);
+      await cargarCarritos();
+    } catch (e) {
+      debugPrint('Error vaciando carrito: $e');
+    }
   }
 
-  // ── Descargar factura ───────────────────────────────────────
-  // TODO [API]: GET /api/carritos/{carritoId}/factura
-  // Retorna un PDF; usar url_launcher o dio para descargarlo
-  Future<void> descargarFactura() async {
-    // TODO [API]: Implementar descarga real del PDF
-    // final url = '${ApiService.baseUrl}/api/carritos/${carritoActivo.id}/factura';
-    // await launchUrl(Uri.parse(url));
-    debugPrint('Descargando factura del carrito ${carritoActivo.id}...');
+  Future<void> crearNuevoCarrito(String nombre) async {
+    if (_userId == null) return;
+    try {
+      final data = await ApiService.crearCarrito(_userId!, nombre);
+      _carritos.add(CarritoModel.fromJson(data['carrito']));
+      _indiceCarritoActivo = _carritos.length - 1;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error creando carrito: $e');
+    }
   }
 
-  // ── Ver factura completa ────────────────────────────────────
-  // TODO [API]: Navegar a pantalla de detalle de factura
-  // o abrir WebView con la factura en HTML
   void verFacturaCompleta(BuildContext context) {
-    // TODO [API]: Navigator.push(context, MaterialPageRoute(builder: (_) => PantallaFactura(carritoId: carritoActivo.id)));
-    debugPrint('Abriendo factura completa del carrito ${carritoActivo.id}...');
+    debugPrint('Abriendo factura...');
+  }
+
+  Future<void> descargarFactura() async {
+    debugPrint('Descargando factura...');
   }
 }

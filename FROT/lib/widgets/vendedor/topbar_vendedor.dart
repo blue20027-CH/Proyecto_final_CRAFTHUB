@@ -29,7 +29,7 @@ class VendedorTopbar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -258,7 +258,7 @@ class _PerfilRapidoState extends State<_PerfilRapido> {
                   width: 30,
                   height: 30,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     width: 30,
                     height: 30,
                     color: CraftHubColors.bordeClaro,

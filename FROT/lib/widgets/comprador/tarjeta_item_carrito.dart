@@ -36,14 +36,14 @@ class _TarjetaItemCarritoState extends State<TarjetaItemCarrito> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _hover
-                ? AppColors.vinoTinto.withOpacity(0.2)
+                ? AppColors.vinoTinto.withValues(alpha: 0.2)
                 : (esModoOscuro
-                    ? Colors.white.withOpacity(0.06)
-                    : Colors.black.withOpacity(0.06)),
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.06)),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(_hover ? 0.08 : 0.04),
+              color: Colors.black.withValues(alpha: _hover ? 0.08 : 0.04),
               blurRadius: _hover ? 16 : 8,
               offset: const Offset(0, 3),
             ),
@@ -63,7 +63,7 @@ class _TarjetaItemCarritoState extends State<TarjetaItemCarrito> {
                   child: Image.network(
                     widget.item.imagenUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: const Color(0xFFF0EBE3),
                       child: const Icon(Icons.image_outlined,
                           color: Colors.grey, size: 32),
@@ -241,16 +241,16 @@ class _BotonCantidadState extends State<_BotonCantidad> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: _hover
-                ? AppColors.vinoTinto.withOpacity(0.1)
+                ? AppColors.vinoTinto.withValues(alpha: 0.1)
                 : (esModoOscuro
                     ? AppColors.panelOscuro2
                     : const Color(0xFFF5F0EB)),
             border: Border.all(
               color: _hover
-                  ? AppColors.vinoTinto.withOpacity(0.3)
+                  ? AppColors.vinoTinto.withValues(alpha: 0.3)
                   : (esModoOscuro
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.08)),
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08)),
             ),
           ),
           child: Icon(
@@ -295,11 +295,11 @@ class _BotonEliminarState extends State<_BotonEliminar> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: _hover
-                ? Colors.red.withOpacity(0.1)
+                ? Colors.red.withValues(alpha: 0.1)
                 : Colors.transparent,
             border: Border.all(
               color: _hover
-                  ? Colors.red.withOpacity(0.3)
+                  ? Colors.red.withValues(alpha: 0.3)
                   : Colors.transparent,
             ),
           ),

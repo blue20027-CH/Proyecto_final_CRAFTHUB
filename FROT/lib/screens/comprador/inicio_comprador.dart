@@ -8,21 +8,23 @@ import 'pantalla_favoritos.dart';
 import 'pantalla_mapa.dart';
 import '../../core/theme/app_theme.dart';
 import '../../main.dart';
+import '../../core/carrito_provider.dart';
 import '../../widgets/comprador/sidebar_comprador.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/comprador/carrusel_hero.dart';
 import '../../services/api_service.dart';
+import '../../models/artesano_modelo.dart';
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ðŸ”Œ DATOS MOCK â€” reemplazar con llamadas a FastAPI
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ──────────────────────────────────────────────────────────────────────────────
+// 🔌 DATOS MOCK – reemplazar con llamadas a FastAPI
+// ──────────────────────────────────────────────────────────────────────────────
 final List<BannerModelo> mockBanners = [
-  BannerModelo(titulo: 'Bolso tejido\ntratdicional',
-    descripcion: 'Tejido a mano por artesanas de ColÃ³n, PanamÃ¡.',
-    imagenUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900',
+  BannerModelo(titulo: 'Bolso tejido\ntradicional',
+    descripcion: 'Tejido a mano por artesanas de Colón, Panamá.',
+    imagenUrl: 'https://i.imgur.com/ZWRiMCb.jpeg',
     productoId: '001'),
-  BannerModelo(titulo: 'CerÃ¡mica\nNgÃ¤be-BuglÃ©',
-    descripcion: 'Piezas Ãºnicas de la comarca NgÃ¤be-BuglÃ©.',
+  BannerModelo(titulo: 'Cerámica\nNgäbe-Buglé',
+    descripcion: 'Piezas únicas de la comarca Ngäbe-Buglé.',
     imagenUrl: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=900',
     productoId: '002'),
   BannerModelo(titulo: 'Molas\noriginales',
@@ -34,50 +36,55 @@ final List<BannerModelo> mockBanners = [
 final List<Map<String,String>> mockArtesanos = [
   {'nombre': 'Ana Santos',    'foto': 'https://i.pravatar.cc/150?img=1'},
   {'nombre': 'Carlos Ruiz',   'foto': 'https://i.pravatar.cc/150?img=3'},
-  {'nombre': 'Rosa MartÃ­nez', 'foto': 'https://i.pravatar.cc/150?img=5'},
-  {'nombre': 'Juan PÃ©rez',    'foto': 'https://i.pravatar.cc/150?img=8'},
-  {'nombre': 'Elena GarcÃ­a',  'foto': 'https://i.pravatar.cc/150?img=9'},
+  {'nombre': 'Rosa Martínez', 'foto': 'https://i.pravatar.cc/150?img=5'},
+  {'nombre': 'Juan Pérez',    'foto': 'https://i.pravatar.cc/150?img=8'},
+  {'nombre': 'Elena García',  'foto': 'https://i.pravatar.cc/150?img=9'},
   {'nombre': 'Miguel Torres', 'foto': 'https://i.pravatar.cc/150?img=12'},
-  {'nombre': 'Pedro DÃ­az',    'foto': 'https://i.pravatar.cc/150?img=15'},
+  {'nombre': 'Pedro Díaz',    'foto': 'https://i.pravatar.cc/150?img=15'},
 ];
 
 final List<ProductoModelo> mockProductos = [
-  ProductoModelo(id:'p1', nombre:'Pollera panameÃ±a', precio:45.00,
+  ProductoModelo(id:'p1', nombre:'Pollera panameña', precio:45.00,
     imagenUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
     artesano:'Ana Santos', provincia:'Herrera', categoria:'Textiles'),
   ProductoModelo(id:'p2', nombre:'Cesta tejida', precio:28.00,
     imagenUrl:'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400',
-    artesano:'Rosa MartÃ­nez', provincia:'CoclÃ©', categoria:'Textiles'),
-  ProductoModelo(id:'p3', nombre:'Vasija cerÃ¡mica', precio:62.00,
+    artesano:'Rosa Martínez', provincia:'Coclé', categoria:'Textiles'),
+  ProductoModelo(id:'p3', nombre:'Vasija cerámica', precio:62.00,
     imagenUrl:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400',
-    artesano:'Carlos Ruiz', provincia:'Los Santos', categoria:'CerÃ¡mica'),
+    artesano:'Carlos Ruiz', provincia:'Los Santos', categoria:'Cerámica'),
   ProductoModelo(id:'p4', nombre:'Tapete artesanal', precio:38.00,
     imagenUrl:'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    artesano:'Elena GarcÃ­a', provincia:'Guna Yala', categoria:'Textiles'),
+    artesano:'Elena García', provincia:'Guna Yala', categoria:'Textiles'),
   ProductoModelo(id:'p5', nombre:'Bolso cuero', precio:95.00,
     imagenUrl:'https://images.unsplash.com/photo-1603912699214-92627f304eb6?w=400',
-    artesano:'Juan PÃ©rez', provincia:'PanamÃ¡', categoria:'Accesorios'),
+    artesano:'Juan Pérez', provincia:'Panamá', categoria:'Accesorios'),
   ProductoModelo(id:'p6', nombre:'Set de tazas', precio:22.00,
     imagenUrl:'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=400',
-    artesano:'Miguel Torres', provincia:'ChiriquÃ­', categoria:'CerÃ¡mica'),
+    artesano:'Miguel Torres', provincia:'Chiriquí', categoria:'Cerámica'),
 ];
 
-// Provincias y comarcas de PanamÃ¡
+// Provincias y comarcas de Panamá
 const List<String> provincias = [
-  'Bocas del Toro','ChiriquÃ­','CoclÃ©','ColÃ³n','DariÃ©n',
-  'Herrera','Los Santos','PanamÃ¡','PanamÃ¡ Oeste','Veraguas',
+  'Bocas del Toro','Chiriquí','Coclé','Colón','Darién',
+  'Herrera','Los Santos','Panamá','Panamá Oeste','Veraguas',
 ];
 const List<String> comarcas = [
-  'Guna Yala','EmberÃ¡-Wounaan','NgÃ¤be-BuglÃ©',
-  'Guna de MadugandÃ­','Guna de WargandÃ­',
+  'Guna Yala','Emberá-Wounaan','Ngäbe-Buglé',
+  'Guna de Madugandí','Guna de Wargandí',
 ];
 const List<String> categorias = [
-  'Todos','Vestir','CerÃ¡mica','Madera','JoyerÃ­a','DecoraciÃ³n','Accesorios',
+  'Todos','Vestir','Artesanía','Muebles','Joyería','Alimentos','Accesorios','Calzado'
 ];
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ──────────────────────────────────────────────────────────────────────────────
 
 class HomeComprador extends StatefulWidget {
-  const HomeComprador({super.key});
+  final String userId;  // ✅ CAMBIO #1: AGREGADO
+
+  const HomeComprador({
+    super.key,
+    required this.userId,  // ✅ CAMBIO #1: AGREGADO
+  });
 
   @override
   State<HomeComprador> createState() => _HomeCompradorState();
@@ -87,46 +94,56 @@ class _HomeCompradorState extends State<HomeComprador> {
   int _navIndice       = 0;
   String _categoriaActiva = 'Todos';
   String? _provinciaActiva;
-  // ignore: unused_field
   bool _mostrarProvincias = false;
 
-  // ðŸ”Œ controlador de bÃºsqueda â†’ GET /api/productos?q=
   final _busquedaCtrl = TextEditingController();
 
-  // ðŸ”Œ Lista de productos: se llena desde la API
-  // 🔌 Lista de productos: se llena desde la API
-List<ProductoModelo> _productos = [];
-bool _cargando = true;
-String? _error;
+  List<ProductoModelo> _productos = [];
+  bool _cargando = true;
+  String? _error;
+  List<ArtesanoModelo> _artesanos = [];
 
-@override
-void initState() {
-  super.initState();
-  _cargarProductos();
-}
-
-Future<void> _cargarProductos() async {
-  setState(() { _cargando = true; _error = null; });
-  try {
-    final productos = await ApiService.getProductos(
-      categoria: _categoriaActiva,
-      busqueda: _busquedaCtrl.text,
-    );
-    setState(() => _productos = productos);
-  } catch (e) {
-    setState(() => _error = 'No se pudieron cargar los productos: $e');
-  } finally {
-    setState(() => _cargando = false);
+  @override
+  void initState() {
+    super.initState();
+    _inicializarCarrito();  // ✅ CAMBIO #2: AGREGADO
+    _cargarProductos();
+    _cargarArtesanos();
   }
-}
 
-  // ðŸ”Œ AquÃ­ irÃ¡ la llamada real:
-  // Future<void> _cargarProductos() async {
-  //   final resp = await http.get(Uri.parse(
-  //     '$baseUrl/api/productos?categoria=$_categoriaActiva&provincia=$_provinciaActiva'));
-  //   final data = jsonDecode(resp.body) as List;
-  //   setState(() => _productos = data.map(ProductoModelo.fromJson).toList());
-  // }
+  // ✅ CAMBIO #3: NUEVO MÉTODO - Inicializar Carrito con userId
+  Future<void> _inicializarCarrito() async {
+    try {
+      await context.read<CarritoProvider>().inicializar(widget.userId);
+      debugPrint('✅ Carrito inicializado para usuario: ${widget.userId}');
+    } catch (e) {
+      debugPrint('❌ Error inicializando carrito: $e');
+    }
+  }
+
+  Future<void> _cargarProductos() async {
+    setState(() { _cargando = true; _error = null; });
+    try {
+      final productos = await ApiService.getProductos(
+        categoria: _categoriaActiva,
+        busqueda: _busquedaCtrl.text,
+      );
+      setState(() => _productos = productos);
+    } catch (e) {
+      setState(() => _error = 'No se pudieron cargar los productos: $e');
+    } finally {
+      setState(() => _cargando = false);
+    }
+  }
+
+  Future<void> _cargarArtesanos() async {
+    try {
+      final artesanos = await ApiService.getArtesanos();
+      setState(() => _artesanos = artesanos);
+    } catch (e) {
+      print('Error cargando artesanos: $e');
+    }
+  }
 
   @override
   void dispose() { _busquedaCtrl.dispose(); super.dispose(); }
@@ -140,23 +157,18 @@ Future<void> _cargarProductos() async {
       backgroundColor: colorFondo,
       body: Row(
         children: [
-          // 1. El sidebar se expande/colapsa solo â€” el Row se adapta automÃ¡ticamente
           SidebarComprador(
             indiceActivo: _navIndice,
             alSeleccionar: (i) => setState(() => _navIndice = i),
             alCerrarSesion: () {
-              // ðŸ”Œ POST /api/auth/logout
+              // 🔌 POST /api/auth/logout
             },
           ),
 
-          // 2. El Expanded ocupa todo el espacio restante automÃ¡ticamente
           Expanded(
             child: Column(
               children: [
-                // Barra superior (Buscador, usuario, etc.)
                 _buildTopBar(esModoOscuro),
-                
-                // Contenido dinÃ¡mico principal que cambia segÃºn el Sidebar
                 Expanded(
                   child: _obtenerPantallaActual(_navIndice, esModoOscuro), 
                 ),
@@ -168,7 +180,6 @@ Future<void> _cargarProductos() async {
     );
   }
 
-  // â”€â”€ ðŸ› ï¸ MÃ‰TODO DE NAVEGACIÃ“N AGREGADO AQUÃ CORRECIENDO EL ERROR ROJO â”€â”€
   Widget _obtenerPantallaActual(int indice, bool oscuro) {
     switch (indice) {
       case 0:
@@ -195,7 +206,6 @@ Future<void> _cargarProductos() async {
       ),
       child: Row(
         children: [
-        // Barra de bÃºsqueda â€” larga estilo Apple
         Expanded(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 520),
@@ -204,7 +214,7 @@ Future<void> _cargarProductos() async {
               onChanged: (q) => _cargarProductos(),
               style: GoogleFonts.poppins(fontSize: 13),
               decoration: InputDecoration(
-                hintText: 'Buscar productos, artesanos, provinciasâ€¦',
+                hintText: 'Buscar productos, artesanos, provincias...',
                 hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 filled: true,
@@ -228,14 +238,13 @@ Future<void> _cargarProductos() async {
         ),
         const SizedBox(width: 16),
 
-        // Ãconos superiores derechos
         _IconTopBar(icono: Icons.chat_bubble_outline_rounded,
-            tooltip: 'Mensajes', onTap: () {}), // ðŸ”Œ navegar a /mensajes
+            tooltip: 'Mensajes', onTap: () {}),
         _IconTopBar(icono: Icons.calendar_month_outlined,
-            tooltip: 'Eventos', onTap: () {}),   // ðŸ”Œ navegar a /calendario
+            tooltip: 'Eventos', onTap: () {}),
         _IconTopBar(icono: Icons.notifications_none_rounded,
             tooltip: 'Notificaciones', tieneNotif: true,
-            onTap: () {}),                        // ðŸ”Œ GET /api/notificaciones
+            onTap: () {}),
         _IconTopBar(
             icono: Icons.location_on_outlined,
            tooltip: 'Mapa artesanos',
@@ -249,9 +258,8 @@ Future<void> _cargarProductos() async {
       ),
     );
   },
-), // ðŸ”Œ navegar a /mapa
+),
 
-        // BotÃ³n toggle tema
         _IconTopBar(
           icono: Theme.of(context).brightness == Brightness.dark
               ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
@@ -262,24 +270,19 @@ Future<void> _cargarProductos() async {
     );
   }
 
-  // ignore: unused_element
   Widget _buildContenido(bool oscuro) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        // â”€â”€ CARRUSEL HERO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // ðŸ”Œ banners viene de: GET /api/productos/destacados
         CarruselHero(
           banners: mockBanners,
           alVerMas: (id) {
-            // ðŸ”Œ navegar a PantallaDetalleProducto(productoId: id)
+            // 🔌 navegar a PantallaDetalleProducto(productoId: id)
           },
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ ARTESANOS DESTACADOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // ðŸ”Œ GET /api/artesanos/destacados
         Text('Artesanos destacados',
           style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600,
             color: oscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro)),
@@ -288,33 +291,29 @@ Future<void> _cargarProductos() async {
           height: 90,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: mockArtesanos.length, // ðŸ”Œ reemplazar con lista del backend
+            itemCount: _artesanos.length,
             itemBuilder: (_, i) => _TarjetaArtesano(
-              nombre: mockArtesanos[i]['nombre']!,
-              fotoUrl: mockArtesanos[i]['foto']!,
+           nombre: _artesanos[i].nombre,
+           fotoUrl: _artesanos[i].fotoUrl,
               onTap: () {
-                // ðŸ”Œ navegar a PerfilArtesano(artesanoId: id)
+                // 🔌 navegar a PerfilArtesano(artesanoId: id)
               },
             ),
           ),
         ),
         const SizedBox(height: 24),
 
-        // â”€â”€ FILTROS DE CATEGORÃAS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // ðŸ”Œ GET /api/categorias
-        Text('Explorar por categorÃ­as',
+        Text('Explorar por categorías',
           style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600,
             color: oscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro)),
         const SizedBox(height: 12),
         _buildFiltros(oscuro),
         const SizedBox(height: 24),
 
-        // â”€â”€ GRID MASONRY DE PRODUCTOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         Text('Productos artesanales',
           style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600,
             color: oscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro)),
         const SizedBox(height: 12),
-        // ðŸ”Œ GET /api/productos?categoria=X&provincia=Y&pagina=1
         if (_cargando)
   const Padding(
     padding: EdgeInsets.symmetric(vertical: 40),
@@ -364,12 +363,11 @@ else
               _cargarProductos();
             },
         )),
-        // Dropdown Provincias y Comarcas
         _ChipProvincias(
           provinciaSeleccionada: _provinciaActiva,
           onSeleccionar: (prov) {
             setState(() { _provinciaActiva = prov; _mostrarProvincias = false; });
-            // ðŸ”Œ _cargarProductos()
+            // 🔌 _cargarProductos()
           },
         ),
       ],
@@ -377,7 +375,7 @@ else
   }
 }
 
-// â”€â”€ Widgets auxiliares â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Widgets auxiliares ──────────────────────────────────────────────────────────────────────────
 
 class _IconTopBar extends StatefulWidget {
   final IconData icono;
@@ -409,7 +407,7 @@ class _IconTopBarState extends State<_IconTopBar> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _hover
-                  ? (oscuro ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05))
+                  ? (oscuro ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05))
                   : (oscuro ? CraftHubColors.panelOscuro : Colors.white),
               border: Border.all(
                 color: oscuro ? CraftHubColors.bordeOscuro : CraftHubColors.bordeClaro, width: 0.8),
@@ -449,36 +447,50 @@ class _TarjetaArtesanoState extends State<_TarjetaArtesano> {
       onEnter: (_) => setState(() => _hover = true),
       onExit:  (_) => setState(() => _hover = false),
       child: GestureDetector(
-        onTap: widget.onTap, // ðŸ”Œ navegar al perfil del artesano
+        onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           margin: const EdgeInsets.only(right: 16),
           transform: _hover ? (Matrix4.identity()..scale(1.05)) : Matrix4.identity(),
           child: Column(children: [
             Stack(children: [
-              CircleAvatar(radius: 28,
-                backgroundImage: NetworkImage(widget.fotoUrl), // ðŸ”Œ URL del backend
-                backgroundColor: CraftHubColors.fondoClaro),
-              Positioned(bottom: 0, right: 0,
-                child: Container(
-                  width: 17, height: 17,
-                  decoration: BoxDecoration(
-                    color: CraftHubColors.vinoTinto, shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5)),
-                  child: const Icon(Icons.check, size: 10, color: Colors.white),
-                )),
-            ]),
-            const SizedBox(height: 5),
-            Text(widget.nombre,
-              style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500,
-                color: const Color(0xFF5A4A42))),
-          ]),
+        CircleAvatar(
+          radius: 28,
+         backgroundColor: const Color.fromARGB(255, 251, 175, 175),
+         backgroundImage: widget.fotoUrl.isNotEmpty 
+        ? NetworkImage(widget.fotoUrl) 
+        : null,
+            child: widget.fotoUrl.isEmpty
+        ? Text(
+            widget.nombre.trim().split(' ').take(2)
+                .map((p) => p[0].toUpperCase()).join(),
+            style: const TextStyle(
+              color:CraftHubColors.vinoTinto,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        : null,
+  ),
+  Positioned(bottom: 0, right: 0,
+    child: Container(
+      width: 17, height: 17,
+      decoration: BoxDecoration(
+        color: CraftHubColors.vinoTinto, shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 1.5)),
+      child: const Icon(Icons.check, size: 10, color: Colors.white),
+    )),
+]),
+const SizedBox(height: 5),
+  Text(widget.nombre,
+    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500,
+      color: const Color(0xFF5A4A42))),
+]),
         ),
       ),
     );
   }
 }
-
 class _ChipCategoria extends StatefulWidget {
   final String label;
   final bool activo;
@@ -533,7 +545,6 @@ class _ChipProvincias extends StatefulWidget {
 class _ChipProvinciasState extends State<_ChipProvincias> {
   @override
   Widget build(BuildContext context) {
-    // ðŸ”Œ las listas de provincias/comarcas vienen de GET /api/provincias
     return PopupMenuButton<String>(
       tooltip: '',
       offset: const Offset(0, 40),
@@ -573,5 +584,3 @@ class _ChipProvinciasState extends State<_ChipProvincias> {
     );
   }
 }
-
-

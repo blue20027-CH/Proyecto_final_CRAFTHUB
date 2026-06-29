@@ -66,7 +66,7 @@ class _TarjetaFavoritoState extends State<TarjetaFavorito>
               Image.asset(
                 widget.producto.rutaImagen,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   color: esTemaOscuro
                       ? const Color(0xFF2A2A2A)
                       : const Color(0xFFEDE0D4),
@@ -88,7 +88,7 @@ class _TarjetaFavoritoState extends State<TarjetaFavorito>
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.15),
+                        Colors.black.withValues(alpha: 0.15),
                       ],
                     ),
                   ),
@@ -203,7 +203,7 @@ class _TarjetaFavoritoState extends State<TarjetaFavorito>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.18),
+                          color: Colors.black.withValues(alpha: 0.18),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),

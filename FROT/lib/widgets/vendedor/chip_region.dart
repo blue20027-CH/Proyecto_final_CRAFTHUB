@@ -52,8 +52,8 @@ class _ChipRegionState extends State<ChipRegion> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: widget.seleccionado
-                ? colorPrimario.withOpacity(0.08)
-                : (_enHover ? colorPrimario.withOpacity(0.04) : colorFondo),
+                ? colorPrimario.withValues(alpha: 0.08)
+                : (_enHover ? colorPrimario.withValues(alpha: 0.04) : colorFondo),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: colorBorde,
@@ -62,7 +62,7 @@ class _ChipRegionState extends State<ChipRegion> {
             boxShadow: _enHover || widget.seleccionado
                 ? [
                     BoxShadow(
-                      color: colorPrimario.withOpacity(0.12),
+                      color: colorPrimario.withValues(alpha: 0.12),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

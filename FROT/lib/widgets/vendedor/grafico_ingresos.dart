@@ -135,7 +135,7 @@ class _GraficoIngresosState extends State<GraficoIngresos> {
             barWidth: 2.5,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (spot, _, __, i) => FlDotCirclePainter(
+              getDotPainter: (spot, _, _, i) => FlDotCirclePainter(
                 radius: _puntoTocado == i ? 6 : 4,
                 color: CraftHubColors.vinoTinto,
                 strokeWidth: 2,
@@ -148,8 +148,8 @@ class _GraficoIngresosState extends State<GraficoIngresos> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  CraftHubColors.vinoTinto.withOpacity(0.20),
-                  CraftHubColors.vinoTinto.withOpacity(0.01),
+                  CraftHubColors.vinoTinto.withValues(alpha: 0.20),
+                  CraftHubColors.vinoTinto.withValues(alpha: 0.01),
                 ],
               ),
             ),

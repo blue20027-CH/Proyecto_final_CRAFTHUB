@@ -286,7 +286,7 @@ class _SubirVideoFormState extends State<SubirVideoForm>
                                   backgroundColor: const Color(0xFF821515),
                                   disabledBackgroundColor: const Color(
                                     0xFF821515,
-                                  ).withOpacity(0.5),
+                                  ).withValues(alpha: 0.5),
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 14,
                                   ),
@@ -414,7 +414,7 @@ class _SubirVideoFormState extends State<SubirVideoForm>
     Color colorTexto,
   ) {
     return DropdownButtonFormField<String>(
-      value: _categoriaSeleccionada,
+      initialValue: _categoriaSeleccionada,
       validator: (v) => v == null ? 'Selecciona una categoría' : null,
       onChanged: (v) => setState(() => _categoriaSeleccionada = v),
       dropdownColor: esOscuro ? const Color(0xFF2A2A2A) : Colors.white,
@@ -476,11 +476,11 @@ class _SubirVideoFormState extends State<SubirVideoForm>
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: seleccionado
-              ? const Color(0xFF821515).withOpacity(0.06)
+              ? const Color(0xFF821515).withValues(alpha: 0.06)
               : (esOscuro ? const Color(0xFF2A2A2A) : const Color(0xFFFAF8F5)),
           border: Border.all(
             color: seleccionado
-                ? const Color(0xFF821515).withOpacity(0.5)
+                ? const Color(0xFF821515).withValues(alpha: 0.5)
                 : colorBorde,
             width: seleccionado ? 1.5 : 1,
           ),

@@ -74,7 +74,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: _sobreEl
-                  ? CraftHubColors.vinoTinto.withOpacity(0.4)
+                  ? CraftHubColors.vinoTinto.withValues(alpha: 0.4)
                   : CraftHubColors.bordeClaro,
               width: 1.2,
             ),

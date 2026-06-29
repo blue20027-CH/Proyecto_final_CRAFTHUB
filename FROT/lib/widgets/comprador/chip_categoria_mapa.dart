@@ -46,7 +46,7 @@ class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
             boxShadow: _sobre || widget.seleccionado
                 ? [
                     BoxShadow(
-                      color: CraftHubColors.vinoTinto.withOpacity(0.18),
+                      color: CraftHubColors.vinoTinto.withValues(alpha: 0.18),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -64,7 +64,7 @@ class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
                   child: Image.network(
                     widget.imagenUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: CraftHubColors.bordeClaro,
                       child: const Icon(Icons.category_outlined,
                           color: CraftHubColors.textoSecClaro),
@@ -80,8 +80,8 @@ class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(
-                              widget.seleccionado ? 0.65 : 0.50),
+                          Colors.black.withValues(
+                              alpha: widget.seleccionado ? 0.65 : 0.50),
                         ],
                       ),
                     ),
@@ -109,7 +109,7 @@ class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,
-                          color: Colors.white.withOpacity(0.80),
+                          color: Colors.white.withValues(alpha: 0.80),
                         ),
                       ),
                     ],

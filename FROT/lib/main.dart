@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/carrito_provider.dart';
 import 'screens/auth/inicio_screen.dart';
 
-/// Gestor global del tema de la aplicación
 class GestorTema extends ChangeNotifier {
   bool _modoOscuro = false;
 
@@ -19,8 +19,11 @@ class GestorTema extends ChangeNotifier {
 void main() {
   debugPaintBaselinesEnabled = false;
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => GestorTema(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => GestorTema()),
+        ChangeNotifierProvider(create: (_) => CarritoProvider()),
+      ],
       child: const CraftHubApp(),
     ),
   );

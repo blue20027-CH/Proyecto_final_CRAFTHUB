@@ -35,13 +35,13 @@ class PantallaInicio extends StatelessWidget {
                   end: Alignment.centerRight,
                   colors: esOscuro
                       ? [
-                          const Color(0xFF0D0D0D).withOpacity(0.92),
-                          const Color(0xFF1A1A1A).withOpacity(0.70),
+                          const Color(0xFF0D0D0D).withValues(alpha: 0.92),
+                          const Color(0xFF1A1A1A).withValues(alpha: 0.70),
                           Colors.transparent,
                         ]
                       : [
-                          const Color(0xFFF5EDE3).withOpacity(0.95),
-                          const Color(0xFFF0E6D8).withOpacity(0.82),
+                          const Color(0xFFF5EDE3).withValues(alpha: 0.95),
+                          const Color(0xFFF0E6D8).withValues(alpha: 0.82),
                           Colors.transparent,
                         ],
                   stops: const [0.0, 0.55, 1.0],
@@ -94,7 +94,7 @@ class _BarraSuperior extends StatelessWidget {
               fontFamily: 'Poppins',
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: colorTexto.withOpacity(0.75),
+              color: colorTexto.withValues(alpha: 0.75),
               letterSpacing: 0.3,
             ),
           ),
@@ -130,13 +130,13 @@ class _SelectorIdioma extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
         color: esOscuro
-            ? Colors.white.withOpacity(0.08)
-            : Colors.white.withOpacity(0.55),
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.white.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: esOscuro
-              ? Colors.white.withOpacity(0.12)
-              : Colors.black.withOpacity(0.10),
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.black.withValues(alpha: 0.10),
         ),
       ),
       child: Row(
@@ -153,7 +153,7 @@ class _SelectorIdioma extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Icon(Icons.keyboard_arrow_down_rounded,
-              size: 18, color: colorTexto.withOpacity(0.7)),
+              size: 18, color: colorTexto.withValues(alpha: 0.7)),
         ],
       ),
     );
@@ -178,13 +178,13 @@ class _ToggleTema extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: esOscuro
-                ? Colors.white.withOpacity(0.08)
-                : Colors.white.withOpacity(0.55),
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.white.withValues(alpha: 0.55),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: esOscuro
-                  ? Colors.white.withOpacity(0.12)
-                  : Colors.black.withOpacity(0.10),
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.10),
             ),
           ),
           child: Icon(
@@ -311,7 +311,7 @@ class _SeccionLogo extends StatelessWidget {
                 fontFamily: 'Poppins',
                 fontSize: 11.5,
                 fontWeight: FontWeight.w400,
-                color: colorTexto.withOpacity(0.65),
+                color: colorTexto.withValues(alpha: 0.65),
                 letterSpacing: 3.5,
               ),
             ),
@@ -335,8 +335,8 @@ class _SeparadorOContinua extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorLinea = esOscuro
-        ? Colors.white.withOpacity(0.15)
-        : Colors.black.withOpacity(0.15);
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black.withValues(alpha: 0.15);
 
     return SizedBox(
       width: 340,
@@ -396,14 +396,14 @@ class _BotonGoogleState extends State<_BotonGoogle> {
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
             color: widget.esOscuro
-                ? Colors.white.withOpacity(0.15)
-                : Colors.black.withOpacity(0.12),
+                ? Colors.white.withValues(alpha: 0.15)
+                : Colors.black.withValues(alpha: 0.12),
             width: 1.2,
           ),
           boxShadow: _sobreEl
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   )

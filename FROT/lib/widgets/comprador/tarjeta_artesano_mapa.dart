@@ -36,7 +36,7 @@ class _TarjetaArtesanoMapaState extends State<TarjetaArtesanoMapa> {
         ? CraftHubColors.vinoTintoSuave
         : (_sobreEl ? const Color(0xFFF5F0EA) : Colors.transparent);
     final borde = widget.seleccionado
-        ? CraftHubColors.vinoTinto.withOpacity(0.4)
+        ? CraftHubColors.vinoTinto.withValues(alpha: 0.4)
         : Colors.transparent;
 
     return MouseRegion(

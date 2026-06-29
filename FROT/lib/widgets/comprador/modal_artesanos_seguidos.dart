@@ -69,7 +69,7 @@ class _ModalArtesanosSeguidosState extends State<_ModalArtesanosSeguidos> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 40,
               offset: const Offset(0, 10),
             ),
@@ -244,12 +244,12 @@ class _TarjetaArtesanoModalState extends State<_TarjetaArtesanoModal> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: _hovering
-              ? const Color(0xFF821515).withOpacity(0.08)
+              ? const Color(0xFF821515).withValues(alpha: 0.08)
               : colorFondoTarjeta,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: _hovering
-                ? const Color(0xFF821515).withOpacity(0.4)
+                ? const Color(0xFF821515).withValues(alpha: 0.4)
                 : Colors.transparent,
           ),
         ),
@@ -260,8 +260,8 @@ class _TarjetaArtesanoModalState extends State<_TarjetaArtesanoModal> {
               radius: 32,
               backgroundImage: AssetImage(widget.artesano.rutaFoto),
               backgroundColor:
-                  const Color(0xFF821515).withOpacity(0.15),
-              onBackgroundImageError: (_, __) {},
+                  const Color(0xFF821515).withValues(alpha: 0.15),
+              onBackgroundImageError: (_, _) {},
             ),
             const SizedBox(height: 8),
             Text(

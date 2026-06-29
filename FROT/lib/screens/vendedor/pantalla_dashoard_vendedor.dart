@@ -125,12 +125,14 @@ class HomeVendedor extends StatefulWidget {
   final bool esOscuro;
   final String nombreVendedor;
   final String fotoPerfil;
+  final String userId;
 
   const HomeVendedor({
     super.key,
     required this.esOscuro,
     this.nombreVendedor = 'Vendedor',
     this.fotoPerfil = '',
+    this.userId = '',
   });
 
   @override
@@ -198,8 +200,8 @@ class _HomeVendedorState extends State<HomeVendedor> {
       //return const ArtesanosScreen();
       case 3:
       // return const PantallaFavoritos();
-      case 4:
-        return const PantallaTutoriales();
+     case 4:
+     return PantallaTutoriales(userId: widget.userId);
       default:
         return _ContenidoDashboard(
           esOscuro: oscuro,
@@ -500,7 +502,7 @@ class _HeaderDashboard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: CraftHubColors.bordeClaro, width: 1.2),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
             ],
           ),
           child: Row(
@@ -967,7 +969,7 @@ BoxDecoration _decorPanel() => BoxDecoration(
   border: Border.all(color: CraftHubColors.bordeClaro),
   boxShadow: [
     BoxShadow(
-      color: Colors.black.withOpacity(0.04),
+      color: Colors.black.withValues(alpha: 0.04),
       blurRadius: 8,
       offset: const Offset(0, 2),
     ),
@@ -1011,8 +1013,8 @@ class _IconTopBarState extends State<_IconTopBar> {
               shape: BoxShape.circle,
               color: _hover
                   ? (oscuro
-                        ? Colors.white.withOpacity(0.08)
-                        : Colors.black.withOpacity(0.05))
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05))
                   : (oscuro ? CraftHubColors.panelOscuro : Colors.white),
               border: Border.all(
                 color: oscuro

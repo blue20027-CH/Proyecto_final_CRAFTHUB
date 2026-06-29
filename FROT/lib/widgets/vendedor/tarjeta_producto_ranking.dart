@@ -74,7 +74,7 @@ class _TarjetaProductoRankingState extends State<TarjetaProductoRanking> {
                 width: 42,
                 height: 42,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   width: 42,
                   height: 42,
                   color: CraftHubColors.bordeClaro,

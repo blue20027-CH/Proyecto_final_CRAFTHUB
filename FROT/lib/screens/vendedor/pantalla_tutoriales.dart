@@ -1,169 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_theme.dart';
+import '../../services/api_service.dart';
 import '../../widgets/vendedor/tarjeta_tutorial.dart';
 import '../../widgets/vendedor/tarjeta_mi_video.dart';
 import '../../widgets/vendedor/chip_categoria_tutorial.dart';
 import '../../widgets/vendedor/dialogo_subir_video.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DATOS MOCK – reemplazar con llamadas HTTP reales al conectar el backend
-// 🔌 GET /api/tutoriales?categoria=&pagina=1&limite=8
-// 🔌 GET /api/tutoriales/mis-videos  (solo para usuarios con rol artesano/vendedor)
-// ─────────────────────────────────────────────────────────────────────────────
-final List<ModeloTutorial> _tutorialesMock = [
-  ModeloTutorial(
-    id: '1',
-    titulo: 'Técnica de Temblores en Mostacilla',
-    nombreArtesano: 'Rosa Martínez',
-    avatarArtesano: 'assets/avatars/rosa.jpg',
-    miniatura: 'assets/tutoriales/temblores.jpg',
-    duracion: '24:15',
-    vistas: 12400,
-    publicadoHace: 'Hace 3 días',
-    categoria: 'Joyería',
-  ),
-  ModeloTutorial(
-    id: '2',
-    titulo: 'Cómo hacer cerámica artesanal',
-    nombreArtesano: 'Carlos Ruiz',
-    avatarArtesano: 'assets/avatars/carlos.jpg',
-    miniatura: 'assets/tutoriales/ceramica.jpg',
-    duracion: '18:42',
-    vistas: 8700,
-    publicadoHace: 'Hace 1 semana',
-    categoria: 'Cerámica',
-  ),
-  ModeloTutorial(
-    id: '3',
-    titulo: 'Bordado Mola Paso a Paso',
-    nombreArtesano: 'Ana Santos',
-    avatarArtesano: 'assets/avatars/ana.jpg',
-    miniatura: 'assets/tutoriales/mola.jpg',
-    duracion: '16:33',
-    vistas: 15100,
-    publicadoHace: 'Hace 5 días',
-    categoria: 'Textiles',
-  ),
-  ModeloTutorial(
-    id: '4',
-    titulo: 'Tallado en madera tradicional',
-    nombreArtesano: 'Pedro Díaz',
-    avatarArtesano: 'assets/avatars/pedro.jpg',
-    miniatura: 'assets/tutoriales/madera.jpg',
-    duracion: '22:10',
-    vistas: 9600,
-    publicadoHace: 'Hace 2 semanas',
-    categoria: 'Madera',
-  ),
-  ModeloTutorial(
-    id: '5',
-    titulo: 'Tejido de bolsas tradicionales',
-    nombreArtesano: 'Elena García',
-    avatarArtesano: 'assets/avatars/elena.jpg',
-    miniatura: 'assets/tutoriales/bolsas.jpg',
-    duracion: '20:18',
-    vistas: 11300,
-    publicadoHace: 'Hace 1 semana',
-    categoria: 'Textiles',
-  ),
-  ModeloTutorial(
-    id: '6',
-    titulo: "Joyería Emberá: Collares",
-    nombreArtesano: 'Miguel Torres',
-    avatarArtesano: 'assets/avatars/miguel.jpg',
-    miniatura: 'assets/tutoriales/collares.jpg',
-    duracion: '14:22',
-    vistas: 7800,
-    publicadoHace: 'Hace 3 semanas',
-    categoria: 'Joyería',
-  ),
-  ModeloTutorial(
-    id: '7',
-    titulo: 'Pintura en máscaras tradicionales',
-    nombreArtesano: 'José Morales',
-    avatarArtesano: 'assets/avatars/jose.jpg',
-    miniatura: 'assets/tutoriales/mascaras.jpg',
-    duracion: '19:07',
-    vistas: 6200,
-    publicadoHace: 'Hace 1 mes',
-    categoria: 'Pintura',
-  ),
-  ModeloTutorial(
-    id: '8',
-    titulo: 'Telar de cintura Ngäbe',
-    nombreArtesano: 'Lucía Pérez',
-    avatarArtesano: 'assets/avatars/lucia.jpg',
-    miniatura: 'assets/tutoriales/telar.jpg',
-    duracion: '17:45',
-    vistas: 5400,
-    publicadoHace: 'Hace 1 mes',
-    categoria: 'Textiles',
-  ),
-];
-
-// Mis videos del artesano autenticado (mock)
-// 🔌 GET /api/tutoriales/mis-videos → solo visible para rol vendedor/artesano
-final List<ModeloTutorial> _misVideosMock = [
-  ModeloTutorial(
-    id: 'mv1',
-    titulo: 'Técnica de flores en mostacilla',
-    nombreArtesano: 'Yo',
-    avatarArtesano: 'assets/avatars/yo.jpg',
-    miniatura: 'assets/tutoriales/flores.jpg',
-    duracion: '21:34',
-    vistas: 1200,
-    publicadoHace: 'Publicado hace 5 días',
-    categoria: 'Joyería',
-  ),
-  ModeloTutorial(
-    id: 'mv2',
-    titulo: 'Cerámica: vasijas decorativas',
-    nombreArtesano: 'Yo',
-    avatarArtesano: 'assets/avatars/yo.jpg',
-    miniatura: 'assets/tutoriales/vasijas.jpg',
-    duracion: '18:10',
-    vistas: 2400,
-    publicadoHace: 'Publicado hace 2 semanas',
-    categoria: 'Cerámica',
-  ),
-  ModeloTutorial(
-    id: 'mv3',
-    titulo: 'Bolso tejido tradicional',
-    nombreArtesano: 'Yo',
-    avatarArtesano: 'assets/avatars/yo.jpg',
-    miniatura: 'assets/tutoriales/bolso.jpg',
-    duracion: '15:45',
-    vistas: 1700,
-    publicadoHace: 'Publicado hace 3 semanas',
-    categoria: 'Textiles',
-  ),
-  ModeloTutorial(
-    id: 'mv4',
-    titulo: 'Tallado en madera: técnicas',
-    nombreArtesano: 'Yo',
-    avatarArtesano: 'assets/avatars/yo.jpg',
-    miniatura: 'assets/tutoriales/tallado2.jpg',
-    duracion: '19:22',
-    vistas: 1100,
-    publicadoHace: 'Publicado hace 1 mes',
-    categoria: 'Madera',
-  ),
-  ModeloTutorial(
-    id: 'mv5',
-    titulo: 'Bordado Mola avanzado',
-    nombreArtesano: 'Yo',
-    avatarArtesano: 'assets/avatars/yo.jpg',
-    miniatura: 'assets/tutoriales/mola2.jpg',
-    duracion: '16:05',
-    vistas: 1500,
-    publicadoHace: 'Publicado hace 1 mes',
-    categoria: 'Textiles',
-  ),
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Categorías con íconos
+// Categorías con íconos (esto se queda igual, son solo etiquetas de filtro)
 // ─────────────────────────────────────────────────────────────────────────────
 const List<Map<String, dynamic>> _categoriasDisponibles = [
   {'etiqueta': 'Joyería', 'icono': Icons.diamond_outlined},
@@ -177,10 +22,18 @@ const List<Map<String, dynamic>> _categoriasDisponibles = [
 ];
 
 /// Pantalla de tutoriales artesanales.
-/// Entregar únicamente como panel de contenido a [HomeComprador._obtenerPantallaActual].
+/// Entregar únicamente como panel de contenido a [HomeVendedor._obtenerPantallaActual].
 /// NO incluye Scaffold, TopBar ni Sidebar.
+///
+/// 🔌 Conectada a:
+///   GET /api/tutoriales?categoria=          → tutoriales oficiales de CraftHub
+///   GET /api/tutoriales/mis-videos?creador_id= → videos subidos por este vendedor
 class PantallaTutoriales extends StatefulWidget {
-  const PantallaTutoriales({super.key});
+  /// userId (UUID) del vendedor autenticado. Necesario para cargar "Mis videos"
+  /// y para asociar los videos que suba. Viene desde PantallaLogin → HomeVendedor.
+  final String userId;
+
+  const PantallaTutoriales({super.key, required this.userId});
 
   @override
   State<PantallaTutoriales> createState() => _PantallaTutorialesState();
@@ -188,40 +41,65 @@ class PantallaTutoriales extends StatefulWidget {
 
 class _PantallaTutorialesState extends State<PantallaTutoriales> {
   String _categoriaActiva = 'Todas';
-  bool _cargando = false; // 🔌 Poner en true mientras se espera la respuesta del backend
 
-  List<ModeloTutorial> get _tutorialesFiltrados {
-    if (_categoriaActiva == 'Todas') return _tutorialesMock;
-    return _tutorialesMock
-        .where((t) => t.categoria == _categoriaActiva)
-        .toList();
+  List<ModeloTutorial> _tutoriales = [];
+  bool _cargando = true;
+  String? _error;
+
+  List<ModeloTutorial> _misVideos = [];
+  bool _cargandoMisVideos = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarTutoriales();
+    _cargarMisVideos();
   }
 
   Future<void> _cargarTutoriales() async {
-    setState(() => _cargando = true);
-    // 🔌 INTEGRACIÓN API:
-    // final response = await http.get(
-    //   Uri.parse('https://TU_BACKEND/api/tutoriales'
-    //     '?categoria=${_categoriaActiva == "Todas" ? "" : _categoriaActiva}'
-    //     '&pagina=1&limite=8'),
-    //   headers: {'Authorization': 'Bearer $tokenDelUsuario'},
-    // );
-    // if (response.statusCode == 200) {
-    //   final List data = jsonDecode(response.body)['tutoriales'];
-    //   setState(() {
-    //     _tutorialesMock.clear();
-    //     _tutorialesMock.addAll(data.map(ModeloTutorial.fromJson));
-    //   });
-    // }
-    await Future.delayed(const Duration(milliseconds: 300)); // simulación
-    setState(() => _cargando = false);
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+    try {
+      final tutoriales = await ApiService.getTutoriales(
+        categoria: _categoriaActiva,
+      );
+      if (mounted) setState(() => _tutoriales = tutoriales);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  Future<void> _cargarMisVideos() async {
+    if (widget.userId.isEmpty) {
+      // No hay userId (ej. login viejo sin actualizar): no truena, solo no muestra nada.
+      setState(() => _cargandoMisVideos = false);
+      return;
+    }
+    setState(() => _cargandoMisVideos = true);
+    try {
+      final videos = await ApiService.getMisVideos(widget.userId);
+      if (mounted) setState(() => _misVideos = videos);
+    } catch (e) {
+      debugPrint('Error cargando mis videos: $e');
+    } finally {
+      if (mounted) setState(() => _cargandoMisVideos = false);
+    }
   }
 
   void _abrirDialogoSubirVideo() {
     showDialog(
       context: context,
       builder: (_) => const DialogoSubirVideo(),
-    );
+    ).then((_) {
+      // Si el diálogo llegó a subir un video, recargamos "Mis videos".
+      _cargarMisVideos();
+    });
   }
 
   @override
@@ -300,10 +178,12 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                         ),
                       ),
                     )
-                  else if (_tutorialesFiltrados.isEmpty)
+                  else if (_error != null)
+                    _EstadoError(colorSec: colorSec, mensaje: _error!)
+                  else if (_tutoriales.isEmpty)
                     _EstadoVacio(colorSec: colorSec)
                   else
-                    _GridTutoriales(tutoriales: _tutorialesFiltrados),
+                    _GridTutoriales(tutoriales: _tutoriales),
                 ],
               ),
             ),
@@ -350,24 +230,43 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                 ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
-                    itemCount: _misVideosMock.length,
-                    itemBuilder: (_, i) => TarjetaMiVideo(
-                      tutorial: _misVideosMock[i],
-                      alPresionar: () {
-                        // 🔌 Navegar al detalle del video
-                        // GET /api/tutoriales/{id}/estadisticas
-                      },
-                      alPresionarOpciones: () {
-                        // 🔌 Abrir menú: editar, eliminar, ver estadísticas
-                        // DELETE /api/tutoriales/{id}
-                        // PATCH /api/tutoriales/{id}
-                        _mostrarMenuOpciones(context, _misVideosMock[i]);
-                      },
-                    ),
-                  ),
+                  child: _cargandoMisVideos
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: CircularProgressIndicator(
+                              color: CraftHubColors.vinoTinto,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : _misVideos.isEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 24),
+                              child: Text(
+                                'Aún no has subido ningún video.',
+                                style: TextStyle(
+                                  color: colorSec,
+                                  fontSize: 12,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              itemCount: _misVideos.length,
+                              itemBuilder: (_, i) => TarjetaMiVideo(
+                                tutorial: _misVideos[i],
+                                alPresionar: () {
+                                  // 🔌 Navegar al detalle/reproducción del video
+                                },
+                                alPresionarOpciones: () {
+                                  _mostrarMenuOpciones(context, _misVideos[i]);
+                                },
+                              ),
+                            ),
                 ),
               ],
             ),
@@ -399,8 +298,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                       fontFamily: 'Poppins')),
               onTap: () {
                 Navigator.pop(context);
-                // 🔌 PATCH /api/tutoriales/{tutorial.id}
-                // Abrir formulario de edición con los datos precargados
+                // 🔌 PATCH /api/tutoriales/{tutorial.id} (pendiente si lo necesitas)
               },
             ),
             ListTile(
@@ -412,7 +310,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                       fontFamily: 'Poppins')),
               onTap: () {
                 Navigator.pop(context);
-                // 🔌 GET /api/tutoriales/{tutorial.id}/estadisticas
+                // 🔌 Pendiente: endpoint de estadísticas por video
               },
             ),
             ListTile(
@@ -421,10 +319,39 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
               title: const Text('Eliminar video',
                   style: TextStyle(
                       color: CraftHubColors.error, fontFamily: 'Poppins')),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                // 🔌 DELETE /api/tutoriales/{tutorial.id}
-                // Mostrar confirmación antes de eliminar
+                final confirmar = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Eliminar video'),
+                    content: Text(
+                        '¿Seguro que quieres eliminar "${tutorial.titulo}"? Esta acción no se puede deshacer.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Eliminar',
+                            style: TextStyle(color: CraftHubColors.error)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmar == true) {
+                  try {
+                    await ApiService.eliminarTutorial(tutorial.id);
+                    _cargarMisVideos();
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('No se pudo eliminar: $e')),
+                      );
+                    }
+                  }
+                }
               },
             ),
           ],
@@ -580,9 +507,9 @@ class _GridTutoriales extends StatelessWidget {
           itemBuilder: (_, i) => TarjetaTutorial(
             tutorial: tutoriales[i],
             alPresionar: () {
-              // 🔌 Navegar a pantalla de reproducción del tutorial
-              // GET /api/tutoriales/{tutoriales[i].id}
-              // Luego abrir PantallaReproductorVideo pasando el modelo
+              // 🔌 Abrir el video. Como son links de YouTube, lo más simple es
+              // abrirlo en el navegador con url_launcher:
+              //   launchUrl(Uri.parse(tutoriales[i].youtubeUrl));
             },
           ),
         );
@@ -620,6 +547,48 @@ class _EstadoVacio extends StatelessWidget {
               style: TextStyle(
                 color: colorSec,
                 fontSize: 12,
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Estado de error cuando falla la carga desde el backend.
+class _EstadoError extends StatelessWidget {
+  final Color colorSec;
+  final String mensaje;
+
+  const _EstadoError({required this.colorSec, required this.mensaje});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        child: Column(
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 56, color: CraftHubColors.error),
+            const SizedBox(height: 16),
+            Text(
+              'No se pudieron cargar los tutoriales.',
+              style: TextStyle(
+                color: colorSec,
+                fontSize: 14,
+                fontFamily: 'Poppins',
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              mensaje,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colorSec,
+                fontSize: 11,
                 fontFamily: 'Poppins',
               ),
             ),

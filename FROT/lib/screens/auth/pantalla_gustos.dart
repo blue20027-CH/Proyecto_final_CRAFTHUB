@@ -316,7 +316,7 @@ class _Encabezado extends StatelessWidget {
                 '✦',
                 style: TextStyle(
                   fontSize: 24,
-                  color: const Color(0xFF821515).withOpacity(0.7),
+                  color: const Color(0xFF821515).withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -546,7 +546,7 @@ class _SeccionTarjeta extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(esModoOscuro ? 0.3 : 0.05),
+            color: Colors.black.withValues(alpha: esModoOscuro ? 0.3 : 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -765,7 +765,7 @@ class _Nota extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(icono, size: 15, color: const Color(0xFF821515).withOpacity(0.7)),
+        Icon(icono, size: 15, color: const Color(0xFF821515).withValues(alpha: 0.7)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -830,7 +830,7 @@ class _ChipRegionInlineState extends State<_ChipRegionInline> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -859,7 +859,7 @@ class _ChipRegionInlineState extends State<_ChipRegionInline> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withOpacity(0.75),
+                          Colors.black.withValues(alpha: 0.75),
                         ],
                       ),
                     ),
@@ -945,7 +945,7 @@ class _ChipCategoriaInlineState extends State<_ChipCategoriaInline> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 12,
                   offset: const Offset(0, 5),
                 ),
@@ -962,7 +962,7 @@ class _ChipCategoriaInlineState extends State<_ChipCategoriaInline> {
                           widget.rutaImagen,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             width: double.infinity,
                             color: const Color(0xFFF4EDE5),
                             child: const Icon(

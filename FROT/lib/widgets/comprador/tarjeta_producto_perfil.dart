@@ -43,7 +43,7 @@ class _TarjetaProductoPerfilState extends State<TarjetaProductoPerfil> {
               Image.network(
                 widget.imagenUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   color: CraftHubColors.bordeClaro,
                   child: const Icon(Icons.image_outlined,
                       color: CraftHubColors.textoSecClaro, size: 36),
@@ -65,7 +65,7 @@ class _TarjetaProductoPerfilState extends State<TarjetaProductoPerfil> {
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.75),
+                        Colors.black.withValues(alpha: 0.75),
                         Colors.transparent,
                       ],
                     ),
@@ -109,11 +109,11 @@ class _TarjetaProductoPerfilState extends State<TarjetaProductoPerfil> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.90),
+                      color: Colors.white.withValues(alpha: 0.90),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
+                          color: Colors.black.withValues(alpha: 0.15),
                           blurRadius: 6,
                         ),
                       ],

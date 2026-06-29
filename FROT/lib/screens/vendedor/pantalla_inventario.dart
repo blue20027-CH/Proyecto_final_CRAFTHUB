@@ -595,7 +595,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(esModoOscuro ? 0.2 : 0.04),
+            color: Colors.black.withValues(alpha: esModoOscuro ? 0.2 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -718,7 +718,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
                     color: esPar
                         ? Colors.transparent
                         : (esModoOscuro
-                              ? Colors.white.withOpacity(0.02)
+                              ? Colors.white.withValues(alpha: 0.02)
                               : const Color(0xFFFAF8F5)),
                     child: FilaProducto(
                       producto: producto,

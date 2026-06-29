@@ -94,7 +94,7 @@ class _CarruselHeroState extends State<CarruselHero> {
                     width: _paginaActual == i ? 20 : 6,
                     decoration: BoxDecoration(
                       color: _paginaActual == i
-                          ? Colors.white : Colors.white.withOpacity(0.4),
+                          ? Colors.white : Colors.white.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -118,7 +118,7 @@ class _Slide extends StatelessWidget {
     return Stack(fit: StackFit.expand, children: [
       Image.network(banner.imagenUrl, // 🔌 URL desde backend
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: const Color(0xFF2d1111))),
+        errorBuilder: (_, _, _) => Container(color: const Color(0xFF2d1111))),
       Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -138,7 +138,7 @@ class _Slide extends StatelessWidget {
           const SizedBox(height: 8),
           Text(banner.descripcion,
             style: GoogleFonts.poppins(fontSize: 13,
-                color: Colors.white.withOpacity(0.82)),
+                color: Colors.white.withValues(alpha: 0.82)),
             maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 18),
           ElevatedButton(
@@ -180,9 +180,9 @@ class _FlechaState extends State<_Flecha> {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _hover ? Colors.white.withOpacity(0.35) : Colors.white.withOpacity(0.18),
+            color: _hover ? Colors.white.withValues(alpha: 0.35) : Colors.white.withValues(alpha: 0.18),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withOpacity(0.3), width: 0.8),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.8),
           ),
           child: Icon(widget.icono, size: 22, color: Colors.white),
         ),

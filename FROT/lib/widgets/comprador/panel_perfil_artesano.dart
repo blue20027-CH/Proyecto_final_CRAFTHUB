@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/artesano_modelo_prueba.dart';
+import '../../models/artesano_modelo.dart';
 
 /// Panel lateral derecho con el perfil del artesano seleccionado
 class PanelPerfilArtesano extends StatelessWidget {
@@ -32,33 +32,46 @@ class PanelPerfilArtesano extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-          // ── Foto portada ──
-          // 🔌 artesano.fotoPortadaUrl viene del backend
+          // â”€â”€ Foto portada â”€â”€
+          // ðŸ”Œ artesano.fotoPortadaUrl viene del backend
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              artesano.fotoPortadaUrl,
-              height: 158,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                height: 158,
-                color: CraftHubColors.vinoTintoSuave,
-                child: const Icon(Icons.image_outlined, size: 40,
-                    color: CraftHubColors.vinoTinto),
-              ),
-            ),
+            child:artesano.bannerEfectivo.isEmpty
+                ? _BloqueIniciales(nombre: artesano.nombre, altura: 158)
+             : Image.network(
+                      artesano.bannerEfectivo,
+                    height: 158,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _BloqueIniciales(
+                      nombre: artesano.nombre,
+                      altura: 158,
+                    ),
+                  ),
           ),
           const SizedBox(height: 14),
 
-          // ── Avatar + nombre ──
+          // â”€â”€ Avatar + nombre â”€â”€
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Stack(children: [
               CircleAvatar(
                 radius: 27,
-                backgroundColor: CraftHubColors.bordeClaro,
-                backgroundImage: NetworkImage(artesano.fotoUrl), // 🔌
-                onBackgroundImageError: (_, __) {},
+                backgroundColor: CraftHubColors.vinoTintoSuave,
+                backgroundImage: artesano.fotoUrl.isEmpty
+                    ? null
+                    : NetworkImage(artesano.fotoUrl),
+                onBackgroundImageError:
+                    artesano.fotoUrl.isEmpty ? null : (_, _) {},
+                child: artesano.fotoUrl.isEmpty
+                    ? Text(
+                        _inicialesArtesano(artesano.nombre),
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: CraftHubColors.vinoTinto,
+                        ),
+                      )
+                    : null,
               ),
               if (artesano.estaVerificado)
                 Positioned(
@@ -109,12 +122,12 @@ class PanelPerfilArtesano extends StatelessWidget {
           _Separador(),
           const SizedBox(height: 4),
 
-          // ── Ubicación y rating ──
+          // â”€â”€ UbicaciÃ³n y rating â”€â”€
           Row(children: [
             const Icon(Icons.location_on_outlined, size: 13,
                 color: CraftHubColors.vinoTinto),
             const SizedBox(width: 4),
-            Expanded(child: Text('${artesano.provincia}, Panamá',
+            Expanded(child: Text('${artesano.provincia}, PanamÃ¡',
               style: GoogleFonts.poppins(fontSize: 11,
                   color: CraftHubColors.textoSecundario(oscuro)))),
             const Icon(Icons.star_rounded, size: 13, color: Color(0xFFC9A84C)),
@@ -123,19 +136,19 @@ class PanelPerfilArtesano extends StatelessWidget {
               style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
                   color: CraftHubColors.textoPrincipal(oscuro))),
             const SizedBox(width: 2),
-            Text('(${artesano.totalResenas} reseñas)',
+            Text('(${artesano.totalResenas} reseÃ±as)',
               style: GoogleFonts.poppins(fontSize: 10,
                   color: CraftHubColors.textoSecundario(oscuro))),
           ]),
           const SizedBox(height: 10),
 
-          // ── Descripción ──
+          // â”€â”€ DescripciÃ³n â”€â”€
           Text(artesano.descripcion,
             style: GoogleFonts.poppins(fontSize: 11, height: 1.65,
                 color: CraftHubColors.textoSecundario(oscuro))),
           const SizedBox(height: 14),
 
-          // ── Especialidades ──
+          // â”€â”€ Especialidades â”€â”€
           Text('Especialidades',
             style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
                 color: CraftHubColors.textoPrincipal(oscuro))),
@@ -156,12 +169,12 @@ class PanelPerfilArtesano extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // ── Stats: reseñas, ventas, experiencia ──
+          // â”€â”€ Stats: reseÃ±as, ventas, experiencia â”€â”€
           Row(children: [
             _StatItem(
               icono: Icons.star_outline_rounded,
               valor: '${artesano.totalResenas}',
-              etiqueta: 'Reseñas',
+              etiqueta: 'ReseÃ±as',
             ),
             const SizedBox(width: 8),
             _StatItem(
@@ -173,17 +186,17 @@ class PanelPerfilArtesano extends StatelessWidget {
             _StatItem(
               icono: Icons.emoji_events_outlined,
               valor: '${artesano.anosExperiencia}+',
-              etiqueta: 'Años de exp.',
+              etiqueta: 'AÃ±os de exp.',
             ),
           ]),
           const SizedBox(height: 16),
 
-          // ── Botón Ver productos ──
+          // â”€â”€ BotÃ³n Ver productos â”€â”€
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: alVerProductos,
-              // 🔌 navegar a CatálogoArtesano(artesanoId: artesano.id)
+              // ðŸ”Œ navegar a CatÃ¡logoArtesano(artesanoId: artesano.id)
               icon: const SizedBox.shrink(),
               label: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('Ver productos',
@@ -202,12 +215,12 @@ class PanelPerfilArtesano extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // ── Botón Enviar mensaje ──
+          // â”€â”€ BotÃ³n Enviar mensaje â”€â”€
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: alEnviarMensaje,
-              // 🔌 navegar a ChatPrivado(artesanoId: artesano.id)
+              // ðŸ”Œ navegar a ChatPrivado(artesanoId: artesano.id)
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14,
                   color: CraftHubColors.vinoTinto),
               label: Text('Enviar mensaje',
@@ -226,7 +239,7 @@ class PanelPerfilArtesano extends StatelessWidget {
   }
 }
 
-// ── Widgets internos del panel ──────────────────────────────────────────
+// â”€â”€ Widgets internos del panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _Separador extends StatelessWidget {
   @override
@@ -271,6 +284,37 @@ class _StatItem extends StatelessWidget {
                 color: CraftHubColors.textoSecundario(oscuro)),
             textAlign: TextAlign.center),
         ]),
+      ),
+    );
+  }
+}
+
+String _inicialesArtesano(String nombre) {
+  final partes = nombre.trim().split(RegExp(r'\s+'));
+  if (partes.isEmpty || partes.first.isEmpty) return 'A';
+  return partes.take(2).map((p) => p[0].toUpperCase()).join();
+}
+
+class _BloqueIniciales extends StatelessWidget {
+  final String nombre;
+  final double altura;
+
+  const _BloqueIniciales({required this.nombre, required this.altura});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: altura,
+      width: double.infinity,
+      color: CraftHubColors.vinoTintoSuave,
+      alignment: Alignment.center,
+      child: Text(
+        _inicialesArtesano(nombre),
+        style: GoogleFonts.poppins(
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
+          color: CraftHubColors.vinoTinto,
+        ),
       ),
     );
   }

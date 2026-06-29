@@ -33,7 +33,7 @@ class ResumenRapido extends StatelessWidget {
         border: Border.all(color: CraftHubColors.bordeClaro),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -103,7 +103,7 @@ class ResumenRapido extends StatelessWidget {
                 child: _ItemResumen(
                   icono: Icons.storefront_outlined,
                   titulo: 'Visitas a tu tienda',
-                  valor: '${visitasTienda.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                  valor: visitasTienda.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},'),
                   variacion: variacionVisitas,
                   positivo: true,
                 ),

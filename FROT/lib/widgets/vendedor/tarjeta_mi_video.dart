@@ -40,8 +40,8 @@ class _TarjetaMiVideoState extends State<TarjetaMiVideo> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
             color: _hovering
-                ? CraftHubColors.vinoTintoSuave.withOpacity(
-                    esOscuro ? 0.1 : 0.6)
+                ? CraftHubColors.vinoTintoSuave.withValues(
+                    alpha: esOscuro ? 0.1 : 0.6)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -56,40 +56,48 @@ class _TarjetaMiVideoState extends State<TarjetaMiVideo> {
                     SizedBox(
                       width: 88,
                       height: 56,
-                      child: Image.asset(
-                        widget.tutorial.miniatura,
-                        fit: BoxFit.cover,
-                        // 🔌 Reemplazar con Image.network para URLs del backend
-                        errorBuilder: (_, __, ___) => Container(
-                          color: CraftHubColors.vinoTintoOscuro,
-                          child: const Center(
-                            child: Icon(Icons.video_library,
-                                color: Colors.white54, size: 20),
+                      child: widget.tutorial.miniatura.isEmpty
+                          ? Container(
+                              color: CraftHubColors.vinoTintoOscuro,
+                              child: const Center(
+                                child: Icon(Icons.video_library,
+                                    color: Colors.white54, size: 20),
+                              ),
+                            )
+                          : Image.network(
+                              widget.tutorial.miniatura,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                color: CraftHubColors.vinoTintoOscuro,
+                                child: const Center(
+                                  child: Icon(Icons.video_library,
+                                      color: Colors.white54, size: 20),
+                                ),
+                              ),
+                            ),
+                    ),
+                    if (widget.tutorial.duracion.isNotEmpty)
+                      Positioned(
+                        bottom: 3,
+                        right: 3,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            widget.tutorial.duracion,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: 3,
-                      right: 3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.75),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: Text(
-                          widget.tutorial.duracion,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

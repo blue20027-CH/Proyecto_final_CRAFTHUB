@@ -27,8 +27,8 @@ class _PantallaSeleccionRolState extends State<PantallaSeleccionRol> {
             duration: const Duration(milliseconds: 400),
             decoration: BoxDecoration(
               color: esOscuro
-                  ? Colors.black.withOpacity(0.72)
-                  : CraftHubColors.fondoClaro.withOpacity(0.88),
+                  ? Colors.black.withValues(alpha: 0.72)
+                  : CraftHubColors.fondoClaro.withValues(alpha: 0.88),
             ),
           ),
           Column(
@@ -119,8 +119,8 @@ class _BotonVolverState extends State<_BotonVolver> {
           decoration: BoxDecoration(
             color: _sobreEl
                 ? (widget.esOscuro
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.05))
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -229,7 +229,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const HomeComprador(),
+                          builder: (_) => const HomeComprador(userId: ''),  // ✅ CAMBIO: Pasar userId
                         ),
                       ),
                     ),
@@ -319,21 +319,21 @@ class _TarjetaRolState extends State<_TarjetaRol> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _sobreEl
-                ? CraftHubColors.vinoTinto.withOpacity(0.4)
+                ? CraftHubColors.vinoTinto.withValues(alpha: 0.4)
                 : colorBorde,
             width: 1.5,
           ),
           boxShadow: _sobreEl
               ? [
                   BoxShadow(
-                    color: CraftHubColors.vinoTinto.withOpacity(0.10),
+                    color: CraftHubColors.vinoTinto.withValues(alpha: 0.10),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -405,7 +405,7 @@ class _CirculoIcono extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: esOscuro
-            ? CraftHubColors.vinoTinto.withOpacity(0.15)
+            ? CraftHubColors.vinoTinto.withValues(alpha: 0.15)
             : CraftHubColors.vinoTintoSuave,
       ),
       child: Icon(icono, size: 40, color: CraftHubColors.vinoTinto),
@@ -426,7 +426,7 @@ class _SeparadorDiamante extends StatelessWidget {
         Container(
           width: 40,
           height: 1,
-          color: CraftHubColors.vinoTinto.withOpacity(0.5),
+          color: CraftHubColors.vinoTinto.withValues(alpha: 0.5),
         ),
         const SizedBox(width: 6),
         Transform.rotate(
@@ -443,7 +443,7 @@ class _SeparadorDiamante extends StatelessWidget {
         Container(
           width: 40,
           height: 1,
-          color: CraftHubColors.vinoTinto.withOpacity(0.5),
+          color: CraftHubColors.vinoTinto.withValues(alpha: 0.5),
         ),
       ],
     );
@@ -508,7 +508,7 @@ class _BotonTarjetaState extends State<_BotonTarjeta> {
           boxShadow: widget.esPrimario && _sobreEl
               ? [
                   BoxShadow(
-                    color: CraftHubColors.vinoTinto.withOpacity(0.35),
+                    color: CraftHubColors.vinoTinto.withValues(alpha: 0.35),
                     blurRadius: 14,
                     offset: const Offset(0, 5),
                   ),

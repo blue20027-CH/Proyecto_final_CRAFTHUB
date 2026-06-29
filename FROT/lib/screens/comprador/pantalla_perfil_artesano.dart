@@ -169,7 +169,7 @@ class _SeccionBanner extends StatelessWidget {
             child: Image.network(
               artesano.bannerUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 color: CraftHubColors.vinoTinto.withValues(alpha: 0.15),
               ),
             ),
@@ -244,7 +244,7 @@ class _SeccionBanner extends StatelessWidget {
                               child: Image.network(
                                 artesano.fotoUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                errorBuilder: (_, _, _) => Container(
                                   color: CraftHubColors.bordeClaro,
                                   child: const Icon(
                                     Icons.person, 

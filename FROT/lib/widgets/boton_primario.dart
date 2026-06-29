@@ -38,7 +38,7 @@ class _BotonPrimarioState extends State<BotonPrimario> {
           boxShadow: _sobreEl
               ? [
                   BoxShadow(
-                    color: CraftHubColors.vinoTinto.withOpacity(0.45),
+                    color: CraftHubColors.vinoTinto.withValues(alpha: 0.45),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   )

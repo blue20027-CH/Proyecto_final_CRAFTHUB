@@ -45,7 +45,7 @@ class SidebarVendedor extends StatelessWidget {
           _buildAvatar(),
 
           Divider(
-            color: Colors.white.withOpacity(0.12),
+            color: Colors.white.withValues(alpha: 0.12),
             indent: 10,
             endIndent: 10,
             height: 1,
@@ -68,7 +68,7 @@ class SidebarVendedor extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Icon(Icons.diamond_outlined,
-                size: 18, color: Colors.white.withOpacity(0.4)),
+                size: 18, color: Colors.white.withValues(alpha: 0.4)),
           ),
 
           Padding(
@@ -110,7 +110,7 @@ class SidebarVendedor extends StatelessWidget {
               ? Image.network(
                   fotoUrl,
                   width: 40, height: 40, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _AvatarIniciales(texto: _iniciales(nombre)),
+                  errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
                 )
               : _AvatarIniciales(texto: _iniciales(nombre)),
         ),
@@ -192,20 +192,20 @@ class _ItemNavState extends State<_ItemNav> {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
               color: resaltado
-                  ? Colors.white.withOpacity(widget.activo ? 0.18 : 0.09)
+                  ? Colors.white.withValues(alpha: widget.activo ? 0.18 : 0.09)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(11),
               border: widget.esLogout
-                  ? Border.all(color: Colors.white.withOpacity(0.14), width: 0.8)
+                  ? Border.all(color: Colors.white.withValues(alpha: 0.14), width: 0.8)
                   : (widget.activo
-                      ? Border.all(color: Colors.white.withOpacity(0.2), width: 0.8)
+                      ? Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.8)
                       : null),
             ),
             child: Center(
               child: Icon(
                 widget.icono,
                 size: 19,
-                color: resaltado ? Colors.white : Colors.white.withOpacity(0.6),
+                color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
               ),
             ),
           ),

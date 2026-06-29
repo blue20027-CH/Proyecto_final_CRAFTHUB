@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/artesano_modelo_prueba.dart';
+import '../../models/artesano_modelo.dart';
 
 class TarjetaArtesano extends StatefulWidget {
   final ArtesanoModelo artesano;
@@ -56,24 +56,24 @@ class _TarjetaArtesanoState extends State<TarjetaArtesano> {
           ),
           child: Stack(children: [
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // ── Imagen ──
+              // â”€â”€ Imagen â”€â”€
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
-                child: Image.network(
-                  widget.artesano.fotoUrl, // 🔌 URL desde backend
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 150,
-                    color: CraftHubColors.vinoTintoSuave,
-                    child: const Icon(Icons.person_outline, size: 40,
-                        color: CraftHubColors.vinoTinto),
-                  ),
-                ),
+                child: widget.artesano.fotoUrl.isEmpty
+                    ? _InicialesArtesano(nombre: widget.artesano.nombre, altura: 150)
+                    : Image.network(
+                        widget.artesano.fotoUrl,
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _InicialesArtesano(
+                          nombre: widget.artesano.nombre,
+                          altura: 150,
+                        ),
+                      ),
               ),
 
-              // ── Info ──
+              // â”€â”€ Info â”€â”€
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -109,15 +109,15 @@ class _TarjetaArtesanoState extends State<TarjetaArtesano> {
               ),
             ]),
 
-            // ── Favorito flotante ──
+            // â”€â”€ Favorito flotante â”€â”€
             Positioned(
               top: 8, right: 8,
               child: GestureDetector(
                 onTap: () {
                   setState(() => _favorito = !_favorito);
                   widget.alCambiarFavorito(_favorito);
-                  // 🔌 POST /api/favoritos/artesanos { artesano_id }
-                  // 🔌 DELETE /api/favoritos/artesanos/{id}
+                  // ðŸ”Œ POST /api/favoritos/artesanos { artesano_id }
+                  // ðŸ”Œ DELETE /api/favoritos/artesanos/{id}
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -125,9 +125,9 @@ class _TarjetaArtesanoState extends State<TarjetaArtesano> {
                   decoration: BoxDecoration(
                     color: _favorito
                         ? CraftHubColors.vinoTinto
-                        : Colors.white.withOpacity(0.9),
+                        : Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
                         blurRadius: 4, offset: const Offset(0, 1))],
                   ),
                   child: Icon(
@@ -139,6 +139,37 @@ class _TarjetaArtesanoState extends State<TarjetaArtesano> {
               ),
             ),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _InicialesArtesano extends StatelessWidget {
+  final String nombre;
+  final double altura;
+
+  const _InicialesArtesano({required this.nombre, required this.altura});
+
+  String get iniciales {
+    final partes = nombre.trim().split(RegExp(r'\s+'));
+    if (partes.isEmpty || partes.first.isEmpty) return 'A';
+    return partes.take(2).map((p) => p[0].toUpperCase()).join();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: altura,
+      width: double.infinity,
+      color: CraftHubColors.vinoTintoSuave,
+      alignment: Alignment.center,
+      child: Text(
+        iniciales,
+        style: GoogleFonts.poppins(
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          color: CraftHubColors.vinoTinto,
         ),
       ),
     );

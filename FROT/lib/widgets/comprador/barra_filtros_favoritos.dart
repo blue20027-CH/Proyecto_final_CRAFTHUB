@@ -142,7 +142,7 @@ class _DropdownFiltro extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(esTemaOscuro ? 0.2 : 0.04),
+            color: Colors.black.withValues(alpha: esTemaOscuro ? 0.2 : 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),

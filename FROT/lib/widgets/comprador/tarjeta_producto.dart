@@ -99,7 +99,7 @@ class _TarjetaProductoState extends State<TarjetaProducto>
                 child: Image.network(
                   widget.producto.imagenUrl, // 🔌 URL desde backend
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     color: CraftHubColors.fondoClaro,
                     child: const Icon(Icons.image_outlined, size: 40, color: CraftHubColors.vinoTinto),
                   ),
@@ -121,8 +121,8 @@ class _TarjetaProductoState extends State<TarjetaProducto>
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: oscuro
-                          ? [Colors.black.withOpacity(0.92), Colors.transparent]
-                          : [const Color.fromARGB(255, 33, 33, 33).withOpacity(0.97), Colors.transparent],
+                          ? [Colors.black.withValues(alpha: 0.92), Colors.transparent]
+                          : [const Color.fromARGB(255, 33, 33, 33).withValues(alpha: 0.97), Colors.transparent],
                     ),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -138,7 +138,7 @@ class _TarjetaProductoState extends State<TarjetaProducto>
                       widget.producto.nombre,
                       style: GoogleFonts.poppins(
                         fontSize: 12, fontWeight: FontWeight.w500,
-                        color: oscuro ? Colors.white.withOpacity(0.88) : Colors.white.withOpacity(0.88),
+                        color: oscuro ? Colors.white.withValues(alpha: 0.88) : Colors.white.withValues(alpha: 0.88),
                       ),
                       maxLines: 2, overflow: TextOverflow.ellipsis,
                     ),
@@ -167,9 +167,9 @@ class _TarjetaProductoState extends State<TarjetaProducto>
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: _favorito ? CraftHubColors.vinoTinto : Colors.white.withOpacity(0.9),
+                      color: _favorito ? CraftHubColors.vinoTinto : Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
                           blurRadius: 6, offset: const Offset(0, 2))],
                     ),
                     child: Icon(

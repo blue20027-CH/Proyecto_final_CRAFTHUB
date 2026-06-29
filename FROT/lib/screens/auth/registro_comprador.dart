@@ -501,7 +501,7 @@ class _BotonVolverState extends State<_BotonVolver> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: _sobreEl
-                ? Colors.black.withOpacity(0.05)
+                ? Colors.black.withValues(alpha: 0.05)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -561,7 +561,7 @@ class _Separador extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Divider(color: Colors.black.withOpacity(0.10), thickness: 1),
+          child: Divider(color: Colors.black.withValues(alpha: 0.10), thickness: 1),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 14),
@@ -575,7 +575,7 @@ class _Separador extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Divider(color: Colors.black.withOpacity(0.10), thickness: 1),
+          child: Divider(color: Colors.black.withValues(alpha: 0.10), thickness: 1),
         ),
       ],
     );

@@ -35,13 +35,13 @@ class CraftHubColors {
 
   // ─── OVERLAY / SOMBRAS ─────────────────────────────────────────────────────
   static Color sombra(double opacidad) =>
-      Colors.black.withOpacity(opacidad);
+      Colors.black.withValues(alpha: opacidad);
 
   static Color veloClaro(double opacidad) =>
-      const Color(0xFFF5EDE3).withOpacity(opacidad);
+      const Color(0xFFF5EDE3).withValues(alpha: opacidad);
 
   static Color veloOscuro(double opacidad) =>
-      const Color(0xFF0D0D0D).withOpacity(opacidad);
+      const Color(0xFF0D0D0D).withValues(alpha: opacidad);
 
   /// Devuelve el color de texto principal según el tema activo
   static Color textoPrincipal(bool esOscuro) =>

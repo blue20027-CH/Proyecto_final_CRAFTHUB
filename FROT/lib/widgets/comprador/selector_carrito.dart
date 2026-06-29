@@ -169,9 +169,10 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CarritoProvider>();
-    final carrito = provider.carritoActivo;
-    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+   final provider = context.watch<CarritoProvider>();
+   final carrito = provider.carritoActivo;
+   if (carrito == null) return const SizedBox();
+   final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       key: _key,
@@ -187,7 +188,7 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: AppColors.vinoTinto.withOpacity(0.1),
+                color: AppColors.vinoTinto.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.shopping_bag_outlined, color: AppColors.vinoTinto, size: 20),
@@ -265,12 +266,12 @@ class _MenuCarritos extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: esModoOscuro
-              ? Colors.white.withOpacity(0.07)
-              : Colors.black.withOpacity(0.06),
+              ? Colors.white.withValues(alpha: 0.07)
+              : Colors.black.withValues(alpha: 0.06),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.14),
+            color: Colors.black.withValues(alpha: 0.14),
             blurRadius: 28,
             offset: const Offset(0, 10),
           ),
@@ -300,7 +301,7 @@ class _MenuCarritos extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.vinoTinto.withOpacity(0.1),
+                      color: AppColors.vinoTinto.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -379,10 +380,10 @@ class _ItemCarritoMenuState extends State<_ItemCarritoMenu> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: widget.esActivo
-                ? AppColors.vinoTinto.withOpacity(0.1)
+                ? AppColors.vinoTinto.withValues(alpha: 0.1)
                 : _hover
                     ? (esModoOscuro
-                        ? Colors.white.withOpacity(0.04)
+                        ? Colors.white.withValues(alpha: 0.04)
                         : const Color(0xFFF9F6F0))
                     : Colors.transparent,
           ),
@@ -465,7 +466,7 @@ class _BotonCrearCarritoState extends State<_BotonCrearCarrito> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 14),
           color: _hover
-              ? AppColors.vinoTinto.withOpacity(0.06)
+              ? AppColors.vinoTinto.withValues(alpha: 0.06)
               : Colors.transparent,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

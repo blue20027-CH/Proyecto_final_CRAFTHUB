@@ -43,7 +43,7 @@ class SeccionSugerencias extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: sugerencias.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
+            separatorBuilder: (_, _) => const SizedBox(width: 14),
             itemBuilder: (context, index) {
               return _TarjetaSugerencia(datos: sugerencias[index]);
             },
@@ -109,7 +109,7 @@ class _TarjetaSugerenciaState extends State<_TarjetaSugerencia>
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(_estaHover ? 0.15 : 0.07),
+              color: Colors.black.withValues(alpha: _estaHover ? 0.15 : 0.07),
               blurRadius: _estaHover ? 18 : 8,
               offset: const Offset(0, 3),
             ),
@@ -128,7 +128,7 @@ class _TarjetaSugerenciaState extends State<_TarjetaSugerencia>
                 child: Image.network(
                   widget.datos['imagen'] as String,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                       Container(color: const Color(0xFFF0EBE3)),
                 ),
               ),
@@ -146,7 +146,7 @@ class _TarjetaSugerenciaState extends State<_TarjetaSugerencia>
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.72),
+                        Colors.black.withValues(alpha: 0.72),
                       ],
                     ),
                   ),
@@ -188,10 +188,10 @@ class _TarjetaSugerenciaState extends State<_TarjetaSugerencia>
                     height: 30,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
+                          color: Colors.black.withValues(alpha: 0.12),
                           blurRadius: 6,
                         ),
                       ],
