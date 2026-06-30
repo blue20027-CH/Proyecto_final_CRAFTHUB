@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SidebarComprador extends StatelessWidget {
+  final String nombre;
+  final String fotoUrl;
   final int indiceActivo;
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
 
   const SidebarComprador({
     super.key,
+    this.nombre = 'Usuario CraftHub',
+    this.fotoUrl = '',
     required this.indiceActivo,
     required this.alSeleccionar,
     required this.alCerrarSesion,
@@ -24,6 +28,12 @@ class SidebarComprador extends StatelessWidget {
     {'icono': Icons.history_rounded,        'label': 'Historial'},
   ];
 
+  String _iniciales(String valor) {
+    final partes = valor.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).take(2);
+    final texto = partes.map((p) => p[0].toUpperCase()).join();
+    return texto.isEmpty ? 'UC' : texto;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -37,7 +47,6 @@ class SidebarComprador extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Perfil
           _buildAvatar(),
 
           Divider(
@@ -48,7 +57,6 @@ class SidebarComprador extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Navegación
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -62,21 +70,18 @@ class SidebarComprador extends StatelessWidget {
             ),
           ),
 
-          // Logo reducido
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Icon(Icons.diamond_outlined,
                 size: 18, color: Colors.white.withValues(alpha: 0.4)),
           ),
 
-          // Cerrar sesión
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
             child: _ItemNav(
               icono:    Icons.logout_rounded,
               label:    'Cerrar sesión',
               activo:   false,
-              // 🔌 POST /api/auth/logout → limpiar token
               onTap:    alCerrarSesion,
               esLogout: true,
             ),
@@ -87,11 +92,10 @@ class SidebarComprador extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    // 🔌 GET /api/usuario/perfil → fotoUrl
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: 'María López', // 🔌 usuario.nombre
+        message: nombre,
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
@@ -99,21 +103,41 @@ class SidebarComprador extends StatelessWidget {
         ),
         textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
         child: ClipOval(
-          child: Image.network(
-            'https://i.pravatar.cc/150?img=47', // 🔌 usuario.fotoUrl
-            width: 40, height: 40, fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              width: 40, height: 40, color: Colors.white24,
-              child: const Icon(Icons.person, size: 22, color: Colors.white54),
-            ),
-          ),
+          child: fotoUrl.isNotEmpty
+              ? Image.network(
+                  fotoUrl,
+                  width: 40, height: 40, fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
+                )
+              : _AvatarIniciales(texto: _iniciales(nombre)),
         ),
       ),
     );
   }
 }
 
-// ── Ítem de navegación (solo icono + tooltip) ─────────────────────────────
+class _AvatarIniciales extends StatelessWidget {
+  final String texto;
+  const _AvatarIniciales({required this.texto});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      color: Colors.white24,
+      alignment: Alignment.center,
+      child: Text(
+        texto,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
 
 class _ItemNav extends StatefulWidget {
   final IconData icono;

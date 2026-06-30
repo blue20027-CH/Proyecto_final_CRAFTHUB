@@ -56,68 +56,63 @@ class _TarjetaArtesanoState extends State<TarjetaArtesano> {
           ),
           child: Stack(children: [
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // â”€â”€ Imagen â”€â”€
+              // ── Imagen ──
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
                 child: widget.artesano.fotoUrl.isEmpty
-                    ? _InicialesArtesano(nombre: widget.artesano.nombre, altura: 150)
+                    ? _InicialesArtesano(nombre: widget.artesano.nombre, altura: 210)
                     : Image.network(
                         widget.artesano.fotoUrl,
-                        height: 150,
+                        height: 210,
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (_, _, _) => _InicialesArtesano(
                           nombre: widget.artesano.nombre,
-                          altura: 150,
+                          altura: 210,
                         ),
                       ),
               ),
 
-              // â”€â”€ Info â”€â”€
+              // ── Info ──
               Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(widget.artesano.nombre,
-                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600,
+                    style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700,
                         color: CraftHubColors.textoPrincipal(oscuro))),
-                  const SizedBox(height: 1),
                   Text(widget.artesano.especialidad,
-                    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500,
+                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500,
                         color: CraftHubColors.vinoTinto)),
-                  const SizedBox(height: 5),
-                  Row(children: [
-                    Icon(Icons.location_on_outlined, size: 11,
-                        color: CraftHubColors.textoSecundario(oscuro)),
-                    const SizedBox(width: 2),
-                    Text(widget.artesano.provincia,
-                      style: GoogleFonts.poppins(fontSize: 10,
-                          color: CraftHubColors.textoSecundario(oscuro))),
-                  ]),
                   const SizedBox(height: 4),
                   Row(children: [
-                    const Icon(Icons.star_rounded, size: 13, color: Color(0xFFC9A84C)),
+                    Icon(Icons.location_on_outlined, size: 14,
+                        color: CraftHubColors.textoSecundario(oscuro)),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(widget.artesano.provincia,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(fontSize: 13,
+                            color: CraftHubColors.textoSecundario(oscuro))),
+                    ),
+                    const Icon(Icons.star_rounded, size: 16, color: Color(0xFFC9A84C)),
                     const SizedBox(width: 3),
                     Text(widget.artesano.rating.toStringAsFixed(1),
-                      style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
+                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700,
                           color: CraftHubColors.textoPrincipal(oscuro))),
-                    const SizedBox(width: 2),
-                    Text('(${widget.artesano.totalResenas})',
-                      style: GoogleFonts.poppins(fontSize: 10,
-                          color: CraftHubColors.textoSecundario(oscuro))),
                   ]),
                 ]),
               ),
             ]),
 
-            // â”€â”€ Favorito flotante â”€â”€
+            // ── Favorito flotante ──
             Positioned(
               top: 8, right: 8,
               child: GestureDetector(
                 onTap: () {
                   setState(() => _favorito = !_favorito);
                   widget.alCambiarFavorito(_favorito);
-                  // ðŸ”Œ POST /api/favoritos/artesanos { artesano_id }
-                  // ðŸ”Œ DELETE /api/favoritos/artesanos/{id}
+                  // 🔌 POST /api/favoritos/artesanos { artesano_id }
+                  // 🔌 DELETE /api/favoritos/artesanos/{id}
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -167,7 +162,7 @@ class _InicialesArtesano extends StatelessWidget {
       child: Text(
         iniciales,
         style: GoogleFonts.poppins(
-          fontSize: 32,
+          fontSize: 28,
           fontWeight: FontWeight.w700,
           color: CraftHubColors.vinoTinto,
         ),

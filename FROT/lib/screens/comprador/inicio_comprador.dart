@@ -25,43 +25,22 @@ final List<BannerModelo> mockBanners = [
     productoId: '001'),
   BannerModelo(titulo: 'Cerámica\nNgäbe-Buglé',
     descripcion: 'Piezas únicas de la comarca Ngäbe-Buglé.',
-    imagenUrl: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=900',
+    imagenUrl: 'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jun%2030,%202026,%2004_01_52%20PM.png',
     productoId: '002'),
   BannerModelo(titulo: 'Molas\noriginales',
     descripcion: 'Arte textil de la comarca Guna Yala.',
-    imagenUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=900',
+    imagenUrl: 'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/Jun%2030,%202026,%2004_02_06%20PM.png',
     productoId: '003'),
-];
-
-final List<Map<String,String>> mockArtesanos = [
-  {'nombre': 'Ana Santos',    'foto': 'https://i.pravatar.cc/150?img=1'},
-  {'nombre': 'Carlos Ruiz',   'foto': 'https://i.pravatar.cc/150?img=3'},
-  {'nombre': 'Rosa Martínez', 'foto': 'https://i.pravatar.cc/150?img=5'},
-  {'nombre': 'Juan Pérez',    'foto': 'https://i.pravatar.cc/150?img=8'},
-  {'nombre': 'Elena García',  'foto': 'https://i.pravatar.cc/150?img=9'},
-  {'nombre': 'Miguel Torres', 'foto': 'https://i.pravatar.cc/150?img=12'},
-  {'nombre': 'Pedro Díaz',    'foto': 'https://i.pravatar.cc/150?img=15'},
+    BannerModelo(titulo: 'Fibras\nNaturales',
+    descripcion: 'Belleza artesanal en cada tejido.',
+    imagenUrl: 'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jun%2030,%202026,%2004_07_25%20PM.png',
+    productoId: '003'),
 ];
 
 final List<ProductoModelo> mockProductos = [
   ProductoModelo(id:'p1', nombre:'Pollera panameña', precio:45.00,
     imagenUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
     artesano:'Ana Santos', provincia:'Herrera', categoria:'Textiles'),
-  ProductoModelo(id:'p2', nombre:'Cesta tejida', precio:28.00,
-    imagenUrl:'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=400',
-    artesano:'Rosa Martínez', provincia:'Coclé', categoria:'Textiles'),
-  ProductoModelo(id:'p3', nombre:'Vasija cerámica', precio:62.00,
-    imagenUrl:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400',
-    artesano:'Carlos Ruiz', provincia:'Los Santos', categoria:'Cerámica'),
-  ProductoModelo(id:'p4', nombre:'Tapete artesanal', precio:38.00,
-    imagenUrl:'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    artesano:'Elena García', provincia:'Guna Yala', categoria:'Textiles'),
-  ProductoModelo(id:'p5', nombre:'Bolso cuero', precio:95.00,
-    imagenUrl:'https://images.unsplash.com/photo-1603912699214-92627f304eb6?w=400',
-    artesano:'Juan Pérez', provincia:'Panamá', categoria:'Accesorios'),
-  ProductoModelo(id:'p6', nombre:'Set de tazas', precio:22.00,
-    imagenUrl:'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=400',
-    artesano:'Miguel Torres', provincia:'Chiriquí', categoria:'Cerámica'),
 ];
 
 // Provincias y comarcas de Panamá
@@ -79,11 +58,11 @@ const List<String> categorias = [
 // ──────────────────────────────────────────────────────────────────────────────
 
 class HomeComprador extends StatefulWidget {
-  final String userId;  // ✅ CAMBIO #1: AGREGADO
+  final String userId;
 
   const HomeComprador({
     super.key,
-    required this.userId,  // ✅ CAMBIO #1: AGREGADO
+    required this.userId,
   });
 
   @override
@@ -103,21 +82,42 @@ class _HomeCompradorState extends State<HomeComprador> {
   String? _error;
   List<ArtesanoModelo> _artesanos = [];
 
+  // ✅ NUEVO: datos del usuario logueado
+  String _nombreUsuario = 'Usuario CraftHub';
+  String _fotoUsuario = '';
+
   @override
   void initState() {
     super.initState();
-    _inicializarCarrito();  // ✅ CAMBIO #2: AGREGADO
+    _inicializarCarrito();
     _cargarProductos();
     _cargarArtesanos();
+    _cargarPerfilUsuario(); // ✅ NUEVO
   }
 
-  // ✅ CAMBIO #3: NUEVO MÉTODO - Inicializar Carrito con userId
   Future<void> _inicializarCarrito() async {
     try {
       await context.read<CarritoProvider>().inicializar(widget.userId);
       debugPrint('✅ Carrito inicializado para usuario: ${widget.userId}');
     } catch (e) {
       debugPrint('❌ Error inicializando carrito: $e');
+    }
+  }
+
+  // ✅ NUEVO: carga nombre y foto reales del perfil. Si no hay userId
+  // o falla la llamada, se queda con "Usuario CraftHub" / sin foto (UC).
+  Future<void> _cargarPerfilUsuario() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final perfil = await ApiService.getPerfil(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        final nombre = (perfil['nombre'] ?? '').toString().trim();
+        _nombreUsuario = nombre.isEmpty ? 'Usuario CraftHub' : nombre;
+        _fotoUsuario = (perfil['foto'] ?? '').toString();
+      });
+    } catch (e) {
+      debugPrint('Error cargando perfil: $e');
     }
   }
 
@@ -137,11 +137,11 @@ class _HomeCompradorState extends State<HomeComprador> {
   }
 
   Future<void> _cargarArtesanos() async {
-    try {
-      final artesanos = await ApiService.getArtesanos();
+         try {
+    final artesanos = await ApiService.getArtesanos(limite: 30);
       setState(() => _artesanos = artesanos);
     } catch (e) {
-      print('Error cargando artesanos: $e');
+      debugPrint('Error cargando artesanos: $e');
     }
   }
 
@@ -157,7 +157,10 @@ class _HomeCompradorState extends State<HomeComprador> {
       backgroundColor: colorFondo,
       body: Row(
         children: [
+          // ✅ ACTUALIZADO: ahora pasa nombre y fotoUrl reales
           SidebarComprador(
+            nombre: _nombreUsuario,
+            fotoUrl: _fotoUsuario,
             indiceActivo: _navIndice,
             alSeleccionar: (i) => setState(() => _navIndice = i),
             alCerrarSesion: () {
@@ -170,7 +173,7 @@ class _HomeCompradorState extends State<HomeComprador> {
               children: [
                 _buildTopBar(esModoOscuro),
                 Expanded(
-                  child: _obtenerPantallaActual(_navIndice, esModoOscuro), 
+                  child: _obtenerPantallaActual(_navIndice, esModoOscuro),
                 ),
               ],
             ),
@@ -194,7 +197,7 @@ class _HomeCompradorState extends State<HomeComprador> {
         return _buildContenido(oscuro);
     }
   }
-  
+
   Widget _buildTopBar(bool oscuro) {
     final border = oscuro ? CraftHubColors.bordeOscuro : CraftHubColors.bordeClaro;
     final fondo  = oscuro ? CraftHubColors.fondoOscuro : CraftHubColors.fondoClaro;
@@ -457,8 +460,8 @@ class _TarjetaArtesanoState extends State<_TarjetaArtesano> {
         CircleAvatar(
           radius: 28,
          backgroundColor: const Color.fromARGB(255, 251, 175, 175),
-         backgroundImage: widget.fotoUrl.isNotEmpty 
-        ? NetworkImage(widget.fotoUrl) 
+         backgroundImage: widget.fotoUrl.isNotEmpty
+        ? NetworkImage(widget.fotoUrl)
         : null,
             child: widget.fotoUrl.isEmpty
         ? Text(
