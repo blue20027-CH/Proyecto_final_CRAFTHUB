@@ -6,6 +6,7 @@ import 'pantalla_carrito.dart';
 import 'artesanos_screen.dart';
 import 'pantalla_favoritos.dart';
 import 'pantalla_mapa.dart';
+import 'pantalla_tutoriales_comprador.dart';
 import '../../core/theme/app_theme.dart';
 import '../../main.dart';
 import '../../core/carrito_provider.dart';
@@ -14,6 +15,7 @@ import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/comprador/carrusel_hero.dart';
 import '../../services/api_service.dart';
 import '../../models/artesano_modelo.dart';
+
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 🔌 DATOS MOCK – reemplazar con llamadas a FastAPI
@@ -35,6 +37,11 @@ final List<BannerModelo> mockBanners = [
     descripcion: 'Belleza artesanal en cada tejido.',
     imagenUrl: 'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jun%2030,%202026,%2004_07_25%20PM.png',
     productoId: '003'),
+     BannerModelo(titulo: 'Hecho en\nPanamá,',
+    descripcion: 'Inspirado por nuentra cultura.',
+    imagenUrl: 'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jul%202,%202026,%2001_12_57%20PM.png',
+    productoId: '003'),
+    
 ];
 
 final List<ProductoModelo> mockProductos = [
@@ -184,19 +191,21 @@ class _HomeCompradorState extends State<HomeComprador> {
   }
 
   Widget _obtenerPantallaActual(int indice, bool oscuro) {
-    switch (indice) {
-      case 0:
-        return _buildContenido(oscuro);
-      case 1:
-        return const PantallaCarrito();
-      case 2:
-        return const ArtesanosScreen();
-      case 3:
-        return const PantallaFavoritos();
-      default:
-        return _buildContenido(oscuro);
-    }
+  switch (indice) {
+    case 0:
+      return _buildContenido(oscuro);
+    case 1:
+      return const PantallaCarrito();
+    case 2:
+      return const ArtesanosScreen();
+    case 3:
+      return PantallaFavoritos(userId: widget.userId); 
+    case 4:
+      return PantallaTutorialesComprador(userId: widget.userId);
+    default:
+      return _buildContenido(oscuro);
   }
+}
 
   Widget _buildTopBar(bool oscuro) {
     final border = oscuro ? CraftHubColors.bordeOscuro : CraftHubColors.bordeClaro;

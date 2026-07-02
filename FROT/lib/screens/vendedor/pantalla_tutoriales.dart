@@ -7,9 +7,6 @@ import '../../widgets/vendedor/tarjeta_mi_video.dart';
 import '../../widgets/vendedor/chip_categoria_tutorial.dart';
 import '../../widgets/vendedor/dialogo_subir_video.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Categorías con íconos (esto se queda igual, son solo etiquetas de filtro)
-// ─────────────────────────────────────────────────────────────────────────────
 const List<Map<String, dynamic>> _categoriasDisponibles = [
   {'etiqueta': 'Joyería', 'icono': Icons.diamond_outlined},
   {'etiqueta': 'Cerámica', 'icono': Icons.water_drop_outlined},
@@ -21,19 +18,15 @@ const List<Map<String, dynamic>> _categoriasDisponibles = [
   {'etiqueta': 'Todas', 'icono': Icons.apps_rounded},
 ];
 
-/// Pantalla de tutoriales artesanales.
-/// Entregar únicamente como panel de contenido a [HomeVendedor._obtenerPantallaActual].
-/// NO incluye Scaffold, TopBar ni Sidebar.
-///
-/// 🔌 Conectada a:
-///   GET /api/tutoriales?categoria=          → tutoriales oficiales de CraftHub
-///   GET /api/tutoriales/mis-videos?creador_id= → videos subidos por este vendedor
 class PantallaTutoriales extends StatefulWidget {
-  /// userId (UUID) del vendedor autenticado. Necesario para cargar "Mis videos"
-  /// y para asociar los videos que suba. Viene desde PantallaLogin → HomeVendedor.
   final String userId;
+  final bool esVendedor; // true = vendedor (puede subir y ver "Mis videos"), false = comprador
 
-  const PantallaTutoriales({super.key, required this.userId});
+  const PantallaTutoriales({
+    super.key,
+    required this.userId,
+    this.esVendedor = true,
+  });
 
   @override
   State<PantallaTutoriales> createState() => _PantallaTutorialesState();
@@ -53,7 +46,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
   void initState() {
     super.initState();
     _cargarTutoriales();
-    _cargarMisVideos();
+    if (widget.esVendedor) _cargarMisVideos();
   }
 
   Future<void> _cargarTutoriales() async {
@@ -77,7 +70,6 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
 
   Future<void> _cargarMisVideos() async {
     if (widget.userId.isEmpty) {
-      // No hay userId (ej. login viejo sin actualizar): no truena, solo no muestra nada.
       setState(() => _cargandoMisVideos = false);
       return;
     }
@@ -96,10 +88,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
     showDialog(
       context: context,
       builder: (_) => const DialogoSubirVideo(),
-    ).then((_) {
-      // Si el diálogo llegó a subir un video, recargamos "Mis videos".
-      _cargarMisVideos();
-    });
+    ).then((_) => _cargarMisVideos());
   }
 
   @override
@@ -123,12 +112,13 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Banner de bienvenida
+                  // Banner — solo muestra botón subir si es vendedor
                   _BannerTutoriales(
                     colorPanel: colorPanel,
                     colorBorde: colorBorde,
                     colorTexto: colorTexto,
                     colorSec: colorSec,
+                    esVendedor: widget.esVendedor,
                     alPresionarSubir: _abrirDialogoSubirVideo,
                   ),
                   const SizedBox(height: 24),
@@ -156,7 +146,6 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Título sección
                   Text(
                     'Tutoriales destacados',
                     style: TextStyle(
@@ -168,7 +157,6 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Grid de tutoriales
                   if (_cargando)
                     const Center(
                       child: Padding(
@@ -189,88 +177,87 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
             ),
           ),
 
-          // ── Panel lateral "Mis videos" ───────────────────────────────────────
-          Container(
-            width: 280,
-            decoration: BoxDecoration(
-              color: colorPanel,
-              border: Border(
-                left: BorderSide(color: colorBorde),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mis videos',
-                        style: TextStyle(
-                          color: colorTexto,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'Poppins',
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Administra y revisa el rendimiento\nde tus tutoriales publicados.',
-                        style: TextStyle(
-                          color: colorSec,
-                          fontSize: 11,
-                          fontFamily: 'Poppins',
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
+          // ── Panel lateral "Mis videos" — solo para vendedor ─────────────────
+          if (widget.esVendedor)
+            Container(
+              width: 280,
+              decoration: BoxDecoration(
+                color: colorPanel,
+                border: Border(
+                  left: BorderSide(color: colorBorde),
                 ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: _cargandoMisVideos
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: CircularProgressIndicator(
-                              color: CraftHubColors.vinoTinto,
-                              strokeWidth: 2,
-                            ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mis videos',
+                          style: TextStyle(
+                            color: colorTexto,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Poppins',
                           ),
-                        )
-                      : _misVideos.isEmpty
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 24),
-                              child: Text(
-                                'Aún no has subido ningún video.',
-                                style: TextStyle(
-                                  color: colorSec,
-                                  fontSize: 12,
-                                  fontFamily: 'Poppins',
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Administra y revisa el rendimiento\nde tus tutoriales publicados.',
+                          style: TextStyle(
+                            color: colorSec,
+                            fontSize: 11,
+                            fontFamily: 'Poppins',
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: _cargandoMisVideos
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24),
+                              child: CircularProgressIndicator(
+                                color: CraftHubColors.vinoTinto,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          )
+                        : _misVideos.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 24),
+                                child: Text(
+                                  'Aún no has subido ningún video.',
+                                  style: TextStyle(
+                                    color: colorSec,
+                                    fontSize: 12,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                itemCount: _misVideos.length,
+                                itemBuilder: (_, i) => TarjetaMiVideo(
+                                  tutorial: _misVideos[i],
+                                  alPresionar: () {},
+                                  alPresionarOpciones: () {
+                                    _mostrarMenuOpciones(context, _misVideos[i]);
+                                  },
                                 ),
                               ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
-                              itemCount: _misVideos.length,
-                              itemBuilder: (_, i) => TarjetaMiVideo(
-                                tutorial: _misVideos[i],
-                                alPresionar: () {
-                                  // 🔌 Navegar al detalle/reproducción del video
-                                },
-                                alPresionarOpciones: () {
-                                  _mostrarMenuOpciones(context, _misVideos[i]);
-                                },
-                              ),
-                            ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 400.ms),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 400.ms),
         ],
       ),
     );
@@ -290,43 +277,32 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.edit_outlined,
-                  color: CraftHubColors.vinoTinto),
+              leading: const Icon(Icons.edit_outlined, color: CraftHubColors.vinoTinto),
               title: Text('Editar video',
                   style: TextStyle(
                       color: CraftHubColors.textoPrincipal(esOscuro),
                       fontFamily: 'Poppins')),
-              onTap: () {
-                Navigator.pop(context);
-                // 🔌 PATCH /api/tutoriales/{tutorial.id} (pendiente si lo necesitas)
-              },
+              onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.bar_chart_rounded,
-                  color: CraftHubColors.vinoTinto),
+              leading: const Icon(Icons.bar_chart_rounded, color: CraftHubColors.vinoTinto),
               title: Text('Ver estadísticas',
                   style: TextStyle(
                       color: CraftHubColors.textoPrincipal(esOscuro),
                       fontFamily: 'Poppins')),
-              onTap: () {
-                Navigator.pop(context);
-                // 🔌 Pendiente: endpoint de estadísticas por video
-              },
+              onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline,
-                  color: CraftHubColors.error),
+              leading: const Icon(Icons.delete_outline, color: CraftHubColors.error),
               title: const Text('Eliminar video',
-                  style: TextStyle(
-                      color: CraftHubColors.error, fontFamily: 'Poppins')),
+                  style: TextStyle(color: CraftHubColors.error, fontFamily: 'Poppins')),
               onTap: () async {
                 Navigator.pop(context);
                 final confirmar = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text('Eliminar video'),
-                    content: Text(
-                        '¿Seguro que quieres eliminar "${tutorial.titulo}"? Esta acción no se puede deshacer.'),
+                    content: Text('¿Seguro que quieres eliminar "${tutorial.titulo}"?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
@@ -362,15 +338,15 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Subwidgets internos
+// Subwidgets
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Banner de bienvenida con acceso rápido a subir video.
 class _BannerTutoriales extends StatelessWidget {
   final Color colorPanel;
   final Color colorBorde;
   final Color colorTexto;
   final Color colorSec;
+  final bool esVendedor;
   final VoidCallback alPresionarSubir;
 
   const _BannerTutoriales({
@@ -378,6 +354,7 @@ class _BannerTutoriales extends StatelessWidget {
     required this.colorBorde,
     required this.colorTexto,
     required this.colorSec,
+    required this.esVendedor,
     required this.alPresionarSubir,
   });
 
@@ -433,66 +410,47 @@ class _BannerTutoriales extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 20),
-          // Botón "Subir mi video"
-          Column(
-            children: [
-              GestureDetector(
-                onTap: alPresionarSubir,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    color: CraftHubColors.vinoTinto,
-                    shape: BoxShape.circle,
+          if (esVendedor) ...[
+            const SizedBox(width: 20),
+            Column(
+              children: [
+                GestureDetector(
+                  onTap: alPresionarSubir,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      color: CraftHubColors.vinoTinto,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
                   ),
-                  child: const Icon(Icons.add_rounded,
-                      color: Colors.white, size: 28),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Subir mi video',
-                style: TextStyle(
-                  color: colorSec,
-                  fontSize: 11,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                'Comparte tu conocimiento',
-                style: TextStyle(
-                  color: colorSec,
-                  fontSize: 10,
-                  fontFamily: 'Poppins',
-                ),
-              ),
-            ],
-          ),
+                const SizedBox(height: 6),
+                Text('Subir mi video',
+                    style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
+                Text('Comparte tu conocimiento',
+                    style: TextStyle(color: colorSec, fontSize: 10, fontFamily: 'Poppins')),
+              ],
+            ),
+          ],
         ],
       ),
     ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.03, end: 0);
   }
 }
 
-/// Grid responsivo de tarjetas de tutorial.
 class _GridTutoriales extends StatelessWidget {
   final List<ModeloTutorial> tutoriales;
-
   const _GridTutoriales({required this.tutoriales});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Columnas adaptativas según el ancho disponible
         int columnas = 2;
-        if (constraints.maxWidth >= 900) {
-          columnas = 4;
-        } else if (constraints.maxWidth >= 600) {
-          columnas = 3;
-        }
+        if (constraints.maxWidth >= 900) columnas = 4;
+        else if (constraints.maxWidth >= 600) columnas = 3;
 
         return GridView.builder(
           shrinkWrap: true,
@@ -506,11 +464,7 @@ class _GridTutoriales extends StatelessWidget {
           itemCount: tutoriales.length,
           itemBuilder: (_, i) => TarjetaTutorial(
             tutorial: tutoriales[i],
-            alPresionar: () {
-              // 🔌 Abrir el video. Como son links de YouTube, lo más simple es
-              // abrirlo en el navegador con url_launcher:
-              //   launchUrl(Uri.parse(tutoriales[i].youtubeUrl));
-            },
+            alPresionar: () {},
           ),
         );
       },
@@ -518,10 +472,8 @@ class _GridTutoriales extends StatelessWidget {
   }
 }
 
-/// Estado vacío cuando no hay tutoriales para la categoría seleccionada.
 class _EstadoVacio extends StatelessWidget {
   final Color colorSec;
-
   const _EstadoVacio({required this.colorSec});
 
   @override
@@ -533,23 +485,11 @@ class _EstadoVacio extends StatelessWidget {
           children: [
             Icon(Icons.video_library_outlined, size: 56, color: colorSec),
             const SizedBox(height: 16),
-            Text(
-              'No hay tutoriales en esta categoría.',
-              style: TextStyle(
-                color: colorSec,
-                fontSize: 14,
-                fontFamily: 'Poppins',
-              ),
-            ),
+            Text('No hay tutoriales en esta categoría.',
+                style: TextStyle(color: colorSec, fontSize: 14, fontFamily: 'Poppins')),
             const SizedBox(height: 6),
-            Text(
-              '¡Sé el primero en publicar uno!',
-              style: TextStyle(
-                color: colorSec,
-                fontSize: 12,
-                fontFamily: 'Poppins',
-              ),
-            ),
+            Text('¡Sé el primero en publicar uno!',
+                style: TextStyle(color: colorSec, fontSize: 12, fontFamily: 'Poppins')),
           ],
         ),
       ),
@@ -557,11 +497,9 @@ class _EstadoVacio extends StatelessWidget {
   }
 }
 
-/// Estado de error cuando falla la carga desde el backend.
 class _EstadoError extends StatelessWidget {
   final Color colorSec;
   final String mensaje;
-
   const _EstadoError({required this.colorSec, required this.mensaje});
 
   @override
@@ -571,27 +509,14 @@ class _EstadoError extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 60),
         child: Column(
           children: [
-            const Icon(Icons.wifi_off_rounded,
-                size: 56, color: CraftHubColors.error),
+            const Icon(Icons.wifi_off_rounded, size: 56, color: CraftHubColors.error),
             const SizedBox(height: 16),
-            Text(
-              'No se pudieron cargar los tutoriales.',
-              style: TextStyle(
-                color: colorSec,
-                fontSize: 14,
-                fontFamily: 'Poppins',
-              ),
-            ),
+            Text('No se pudieron cargar los tutoriales.',
+                style: TextStyle(color: colorSec, fontSize: 14, fontFamily: 'Poppins')),
             const SizedBox(height: 6),
-            Text(
-              mensaje,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: colorSec,
-                fontSize: 11,
-                fontFamily: 'Poppins',
-              ),
-            ),
+            Text(mensaje,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins')),
           ],
         ),
       ),
