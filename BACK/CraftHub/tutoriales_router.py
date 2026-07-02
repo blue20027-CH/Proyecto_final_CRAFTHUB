@@ -9,7 +9,6 @@ router = APIRouter(prefix="/api/tutoriales", tags=["Tutoriales"])
 
 
 def _id_youtube(url: str) -> str:
-    """Extrae el ID de un link de YouTube, soporta youtu.be y youtube.com."""
     if not url:
         return ""
     if "youtu.be/" in url:
@@ -20,14 +19,12 @@ def _id_youtube(url: str) -> str:
 
 
 def _publicado_hace(fecha_iso: Optional[str]) -> str:
-    """Convierte un timestamp ISO de Supabase a texto relativo. Si no hay fecha, regresa cadena vacia."""
     if not fecha_iso:
         return ""
     try:
         fecha = datetime.fromisoformat(fecha_iso.replace("Z", "+00:00"))
         ahora = datetime.now(timezone.utc)
         dias = (ahora - fecha).days
-
         if dias <= 0:
             return "Hoy"
         if dias == 1:
@@ -48,7 +45,6 @@ def _tutorial_a_dict(t: dict, nombre_artesano: str = "CraftHub", foto_artesano: 
     thumbnail = t.get("thumbnail_url") or (
         f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg" if video_id else ""
     )
-
     return {
         "id": str(t.get("id", "")),
         "titulo": t.get("titulo") or "Tutorial",
@@ -57,7 +53,7 @@ def _tutorial_a_dict(t: dict, nombre_artesano: str = "CraftHub", foto_artesano: 
         "miniatura": thumbnail,
         "categoria": t.get("categoria") or "General",
         "duracion": t.get("duracion") or "",
-        "vistas": 0,
+        "vistas": t.get("vistas") or 0,
         "creador_id": t.get("creador_id"),
         "nombre_artesano": nombre_artesano,
         "avatar_artesano": foto_artesano,
@@ -68,20 +64,18 @@ def _tutorial_a_dict(t: dict, nombre_artesano: str = "CraftHub", foto_artesano: 
 @router.get("")
 def listar_tutoriales(categoria: Optional[str] = None):
     """
-    Tutoriales oficiales de CraftHub (creador_id es NULL/vacio).
-    Usado en el grid principal 'Tutoriales destacados'.
-
-    NOTA: filtramos en Python en vez de usar .is_("creador_id", "null")
-    de supabase-py, porque ese filtro no estaba devolviendo resultados
-    correctos en este proyecto.
+    Tutoriales oficiales de CraftHub (creador_id es NULL).
+    🔗 FLUTTER: GET /api/tutoriales?categoria=X
     """
     try:
         query = supabase.table("tutoriales").select("*")
-        if categoria and categoria.lower() != "todas":
+        if categoria and categoria.lower() not in ("todas", "all"):
             query = query.eq("categoria", categoria)
 
         data = query.execute().data or []
-        data_oficiales = [t for t in data if not t.get("creador_id")]
+        print(f"[tutoriales] Total en BD: {len(data)}")
+        data_oficiales = [t for t in data if t.get("creador_id") is None]
+        print(f"[tutoriales] Oficiales (creador_id=NULL): {len(data_oficiales)}")
         tutoriales = [_tutorial_a_dict(t, "CraftHub", "") for t in data_oficiales]
         return {"tutoriales": tutoriales}
     except Exception as ex:
@@ -91,8 +85,8 @@ def listar_tutoriales(categoria: Optional[str] = None):
 @router.get("/mis-videos")
 def mis_videos(creador_id: str):
     """
-    Videos subidos por un vendedor/artesano especifico.
-    Usado en el panel lateral 'Mis videos'.
+    Videos subidos por un vendedor específico.
+    🔗 FLUTTER: GET /api/tutoriales/mis-videos?creador_id=UUID
     """
     try:
         data = (
@@ -100,13 +94,8 @@ def mis_videos(creador_id: str):
             .select("*")
             .eq("creador_id", creador_id)
             .execute()
-            .data
-            or []
+            .data or []
         )
-
-        # IMPORTANTE: perfiles.id es un bigint interno (1, 2, 3...),
-        # el UUID real del usuario logueado esta en perfiles.user_id.
-        # Por eso buscamos por user_id, NO por id.
         perfil = (
             supabase.table("perfiles")
             .select("nombre, foto")
@@ -116,7 +105,6 @@ def mis_videos(creador_id: str):
         )
         nombre = perfil[0]["nombre"] if perfil else "Yo"
         foto = (perfil[0].get("foto") or "") if perfil else ""
-
         tutoriales = [_tutorial_a_dict(t, nombre, foto) for t in data]
         return {"tutoriales": tutoriales}
     except Exception as ex:
@@ -136,7 +124,10 @@ class TutorialNuevo(BaseModel):
 
 @router.post("")
 def crear_tutorial(payload: TutorialNuevo):
-    """Sube un nuevo video. Usado desde el dialogo 'Subir video' del vendedor."""
+    """
+    Sube un nuevo tutorial del vendedor.
+    🔗 FLUTTER: POST /api/tutoriales
+    """
     try:
         nuevo = {
             "titulo": payload.titulo,
@@ -155,6 +146,10 @@ def crear_tutorial(payload: TutorialNuevo):
 
 @router.delete("/{tutorial_id}")
 def eliminar_tutorial(tutorial_id: str):
+    """
+    Elimina un tutorial.
+    🔗 FLUTTER: DELETE /api/tutoriales/{id}
+    """
     try:
         supabase.table("tutoriales").delete().eq("id", tutorial_id).execute()
         return {"status": "ok"}
