@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
+import 'pantalla_detalle_producto.dart';
 
 class PantallaFavoritos extends StatefulWidget {
   final String userId;
@@ -152,7 +153,14 @@ class _PantallaFavoritosState extends State<PantallaFavoritos> {
                                 TarjetaProducto(
                                   producto: _favoritos[i],
                                   altura: alturas[i % alturas.length],
-                                  alPresionar: () {},
+                                  alPresionar: () {
+                                    PantallaDetalleProducto.mostrar(
+                                      context,
+                                      productoId: _favoritos[i].id,
+                                      productoPrevisualizado: _favoritos[i],
+                                      userId: widget.userId,
+                                    );
+                                  },
                                 ),
                                 Positioned(
                                   top: 8, right: 8,

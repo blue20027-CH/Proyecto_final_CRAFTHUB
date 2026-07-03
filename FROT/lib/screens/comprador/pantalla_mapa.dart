@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui' as ui;
@@ -7,6 +10,44 @@ import '../../core/theme/app_theme.dart';
 import '../../widgets/comprador/tarjeta_artesano_mapa.dart';
 import '../../widgets/comprador/popup_artesano_mapa.dart';
 import '../../widgets/comprador/chip_categoria_mapa.dart';
+
+// 🔌 Ruteo dentro de la app usando OSRM (Open Source Routing Machine), el
+// mismo ecosistema de OpenStreetMap que ya usamos para los tiles del mapa.
+// El servidor demo público es gratuito y no requiere API key, pero tiene
+// límites de uso: para producción real se recomienda auto-hospedar OSRM
+// o migrar a un servicio con SLA (Mapbox, GraphHopper, Google Directions).
+class _ServicioRuta {
+  static const String _baseUrl = 'https://router.project-osrm.org';
+
+  /// Devuelve los puntos de la ruta y su distancia/duración estimada.
+  static Future<({List<LatLng> puntos, double distanciaKm, int duracionMin})> obtenerRuta(
+    LatLng origen,
+    LatLng destino,
+  ) async {
+    final uri = Uri.parse(
+      '$_baseUrl/route/v1/driving/'
+      '${origen.longitude},${origen.latitude};${destino.longitude},${destino.latitude}'
+      '?overview=full&geometries=geojson',
+    );
+    final respuesta = await http.get(uri).timeout(const Duration(seconds: 10));
+    if (respuesta.statusCode != 200) {
+      throw Exception('No se pudo calcular la ruta (${respuesta.statusCode})');
+    }
+    final data = jsonDecode(respuesta.body) as Map<String, dynamic>;
+    if (data['code'] != 'Ok' || (data['routes'] as List).isEmpty) {
+      throw Exception('No se encontró una ruta hacia ese destino');
+    }
+    final ruta = (data['routes'] as List).first as Map<String, dynamic>;
+    final coordenadas = (ruta['geometry']['coordinates'] as List)
+        .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+        .toList();
+    return (
+      puntos: coordenadas,
+      distanciaKm: (ruta['distance'] as num) / 1000,
+      duracionMin: ((ruta['duration'] as num) / 60).round(),
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // MODELOS MOCK
@@ -137,6 +178,10 @@ class _PantallaMapaState extends State<PantallaMapa> {
   final TextEditingController _ctrlBusqueda = TextEditingController();
   String _textoBusqueda = '';
 
+  LatLng? _miUbicacion;
+  List<LatLng> _rutaPuntos = [];
+  bool _calculandoRuta = false;
+
   List<_ModeloArtesanoMapa> get _artesanosFiltrados {
     var lista = _artesanosMock;
     if (_categoriaSeleccionada != null) {
@@ -170,6 +215,64 @@ class _PantallaMapaState extends State<PantallaMapa> {
       _idArtesanoSeleccionado = null;
     });
   }
+
+  Future<LatLng> _obtenerUbicacionActual() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      throw Exception('Activa el GPS/ubicación de tu dispositivo para calcular la ruta.');
+    }
+    var permiso = await Geolocator.checkPermission();
+    if (permiso == LocationPermission.denied) {
+      permiso = await Geolocator.requestPermission();
+      if (permiso == LocationPermission.denied) {
+        throw Exception('Necesitamos permiso de ubicación para trazar la ruta.');
+      }
+    }
+    if (permiso == LocationPermission.deniedForever) {
+      throw Exception('El permiso de ubicación está bloqueado. Actívalo en los ajustes del dispositivo.');
+    }
+    final posicion = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    );
+    return LatLng(posicion.latitude, posicion.longitude);
+  }
+
+  // Traza la ruta hacia [artesano] dentro del propio mapa (sin salir a apps
+  // externas), usando la ubicación real del usuario como origen.
+  Future<void> _calcularRutaHacia(_ModeloArtesanoMapa artesano) async {
+    setState(() => _calculandoRuta = true);
+    try {
+      final origen = _miUbicacion ?? await _obtenerUbicacionActual();
+      final resultado = await _ServicioRuta.obtenerRuta(origen, artesano.posicion);
+      if (!mounted) return;
+      setState(() {
+        _miUbicacion = origen;
+        _rutaPuntos = resultado.puntos;
+        _calculandoRuta = false;
+      });
+      final bounds = LatLngBounds.fromPoints([origen, artesano.posicion, ...resultado.puntos]);
+      _mapController.fitCamera(
+        CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(64)),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Ruta a ${artesano.nombre}: ${resultado.distanciaKm.toStringAsFixed(1)} km · ${resultado.duracionMin} min en auto',
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _calculandoRuta = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    }
+  }
+
+  void _cerrarRuta() => setState(() => _rutaPuntos = []);
 
   @override
   Widget build(BuildContext context) {
@@ -289,25 +392,45 @@ class _PantallaMapaState extends State<PantallaMapa> {
                                 userAgentPackageName:
                                     'com.crafthub.app',
                               ),
+                              // Ruta trazada dentro del propio mapa (OSRM)
+                              if (_rutaPuntos.isNotEmpty)
+                                PolylineLayer(polylines: [
+                                  Polyline(
+                                    points: _rutaPuntos,
+                                    strokeWidth: 5,
+                                    color: CraftHubColors.vinoTinto,
+                                    borderStrokeWidth: 2,
+                                    borderColor: Colors.white,
+                                  ),
+                                ]),
                               // Marcadores
                               MarkerLayer(
-                                markers: _artesanosFiltrados.map((a) {
-                                  final seleccionado =
-                                      _idArtesanoSeleccionado == a.id;
-                                  return Marker(
-                                    point: a.posicion,
-                                    width: seleccionado ? 80 : 68,
-                                    height: seleccionado ? 90 : 76,
-                                    child: GestureDetector(
-                                      onTap: () => _seleccionarArtesano(a),
-                                      child: _PinArtesano(
-                                        fotoUrl: a.fotoUrl,
-                                        distanciaKm: a.distanciaKm,
-                                        seleccionado: seleccionado,
+                                markers: [
+                                  ..._artesanosFiltrados.map((a) {
+                                    final seleccionado =
+                                        _idArtesanoSeleccionado == a.id;
+                                    return Marker(
+                                      point: a.posicion,
+                                      width: seleccionado ? 80 : 68,
+                                      height: seleccionado ? 90 : 76,
+                                      child: GestureDetector(
+                                        onTap: () => _seleccionarArtesano(a),
+                                        child: _PinArtesano(
+                                          fotoUrl: a.fotoUrl,
+                                          distanciaKm: a.distanciaKm,
+                                          seleccionado: seleccionado,
+                                        ),
                                       ),
+                                    );
+                                  }),
+                                  if (_miUbicacion != null)
+                                    Marker(
+                                      point: _miUbicacion!,
+                                      width: 22,
+                                      height: 22,
+                                      child: const _PinMiUbicacion(),
                                     ),
-                                  );
-                                }).toList(),
+                                ],
                               ),
                             ],
                           ),
@@ -324,7 +447,10 @@ class _PantallaMapaState extends State<PantallaMapa> {
                                 latitud: _artesanoPopup!.posicion.latitude,
                                 longitud: _artesanoPopup!.posicion.longitude,
                                 distanciaKm: _artesanoPopup!.distanciaKm,
+                                calculandoRuta: _calculandoRuta,
                                 alCerrar: _cerrarPopup,
+                                alComoLlegar: () =>
+                                    _calcularRutaHacia(_artesanoPopup!),
                                 alVerPerfil: () {
                                   // TODO: navegar a PantallaPerfilArtesano
                                 },
@@ -333,6 +459,14 @@ class _PantallaMapaState extends State<PantallaMapa> {
                                     end: 0,
                                     duration: 200.ms,
                                   ),
+                            ),
+
+                          // Chip para quitar la ruta trazada
+                          if (_rutaPuntos.isNotEmpty)
+                            Positioned(
+                              top: 16,
+                              left: 16,
+                              child: _ChipCerrarRuta(onTap: _cerrarRuta),
                             ),
 
                           // Controles zoom
@@ -391,6 +525,10 @@ class _HeaderMapa extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Row(
         children: [
+          // Volver
+          _BotonVolverMapa(esOscuro: esOscuro),
+          const SizedBox(width: 14),
+
           // Ícono + título
           Icon(Icons.map_outlined,
               size: 28, color: CraftHubColors.vinoTinto),
@@ -432,6 +570,58 @@ class _HeaderMapa extends StatelessWidget {
           // Usar mi ubicación
           _BotonUbicacion(esOscuro: esOscuro),
         ],
+      ),
+    );
+  }
+}
+
+class _BotonVolverMapa extends StatefulWidget {
+  final bool esOscuro;
+  const _BotonVolverMapa({required this.esOscuro});
+
+  @override
+  State<_BotonVolverMapa> createState() => _BotonVolverMapaState();
+}
+
+class _BotonVolverMapaState extends State<_BotonVolverMapa> {
+  bool _sobre = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _sobre = true),
+      onExit: (_) => setState(() => _sobre = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => Navigator.maybePop(context),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: _sobre
+                ? CraftHubColors.panel(widget.esOscuro)
+                : CraftHubColors.fondo(widget.esOscuro),
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(color: CraftHubColors.borde(widget.esOscuro)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.arrow_back_rounded,
+                  size: 16, color: CraftHubColors.vinoTinto),
+              const SizedBox(width: 6),
+              Text(
+                'Volver',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: CraftHubColors.textoPrincipal(widget.esOscuro),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -650,6 +840,68 @@ class _PintaPunta extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter old) => false;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PUNTO DE "MI UBICACIÓN" (origen de la ruta)
+// ─────────────────────────────────────────────────────────────
+class _PinMiUbicacion extends StatelessWidget {
+  const _PinMiUbicacion();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: CraftHubColors.info,
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// CHIP PARA QUITAR LA RUTA TRAZADA
+// ─────────────────────────────────────────────────────────────
+class _ChipCerrarRuta extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ChipCerrarRuta({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.close_rounded, size: 15, color: CraftHubColors.vinoTinto),
+            SizedBox(width: 6),
+            Text(
+              'Quitar ruta',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: CraftHubColors.textoClaro,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────

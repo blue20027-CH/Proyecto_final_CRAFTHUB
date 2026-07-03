@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 
 class PopupArtesanoMapa extends StatelessWidget {
@@ -9,8 +8,10 @@ class PopupArtesanoMapa extends StatelessWidget {
   final double latitud;
   final double longitud;
   final double distanciaKm;
+  final bool calculandoRuta;
   final VoidCallback alCerrar;
   final VoidCallback alVerPerfil;
+  final VoidCallback alComoLlegar;
 
   const PopupArtesanoMapa({
     super.key,
@@ -22,6 +23,8 @@ class PopupArtesanoMapa extends StatelessWidget {
     required this.distanciaKm,
     required this.alCerrar,
     required this.alVerPerfil,
+    required this.alComoLlegar,
+    this.calculandoRuta = false,
   });
 
   // Tiempos estimados de viaje por tipo
@@ -36,13 +39,6 @@ class PopupArtesanoMapa extends StatelessWidget {
     final h = minutos ~/ 60;
     final m = minutos % 60;
     return m == 0 ? '${h}h' : '${h}h ${m}m';
-  }
-
-  Future<void> _abrirGoogleMaps() async {
-    final uri = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=$latitud,$longitud&travelmode=driving',
-    );
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
   @override
@@ -208,8 +204,8 @@ class PopupArtesanoMapa extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               children: [
-                // Botón direcciones (estilo Google Maps)
-                _BotonDireccion(alPresionar: _abrirGoogleMaps),
+                // Botón direcciones: traza la ruta dentro del propio mapa
+                _BotonDireccion(alPresionar: alComoLlegar, cargando: calculandoRuta),
                 const SizedBox(height: 8),
                 // Ver perfil
                 _BotonVerPerfil(alPresionar: alVerPerfil),
@@ -272,7 +268,8 @@ class _ChipTiempo extends StatelessWidget {
 
 class _BotonDireccion extends StatefulWidget {
   final VoidCallback alPresionar;
-  const _BotonDireccion({required this.alPresionar});
+  final bool cargando;
+  const _BotonDireccion({required this.alPresionar, this.cargando = false});
 
   @override
   State<_BotonDireccion> createState() => _BotonDireccionState();
@@ -288,7 +285,7 @@ class _BotonDireccionState extends State<_BotonDireccion> {
       onExit: (_) => setState(() => _sobre = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: widget.alPresionar,
+        onTap: widget.cargando ? null : widget.alPresionar,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           width: double.infinity,
@@ -306,21 +303,29 @@ class _BotonDireccionState extends State<_BotonDireccion> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.navigation_rounded, color: Colors.white, size: 16),
-              SizedBox(width: 8),
-              Text(
-                'Cómo llegar',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+            children: widget.cargando
+                ? const [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    ),
+                  ]
+                : const [
+                    Icon(Icons.navigation_rounded, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Cómo llegar',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
           ),
         ),
       ),

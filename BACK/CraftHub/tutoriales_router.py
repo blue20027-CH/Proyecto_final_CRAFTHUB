@@ -113,6 +113,64 @@ def mis_videos(creador_id: str):
         raise HTTPException(status_code=500, detail=f"Error cargando mis videos: {repr(ex)}")
 
 
+@router.get("/{tutorial_id}")
+def obtener_tutorial(tutorial_id: str):
+    """
+    Detalle de un tutorial puntual (para la pantalla de reproducción).
+    🔗 FLUTTER: GET /api/tutoriales/{id}
+    """
+    try:
+        data = supabase.table("tutoriales").select("*").eq("id", tutorial_id).execute().data
+        if not data:
+            raise HTTPException(status_code=404, detail="Tutorial no encontrado")
+        t = data[0]
+        nombre_artesano, foto_artesano = "CraftHub", ""
+        if t.get("creador_id"):
+            perfil = (
+                supabase.table("perfiles")
+                .select("nombre, foto")
+                .eq("user_id", t["creador_id"])
+                .execute()
+                .data
+            )
+            if perfil:
+                nombre_artesano = perfil[0].get("nombre") or "CraftHub"
+                foto_artesano = perfil[0].get("foto") or ""
+        return _tutorial_a_dict(t, nombre_artesano, foto_artesano)
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error cargando tutorial: {ex}")
+
+
+@router.post("/{tutorial_id}/vista")
+def registrar_vista(tutorial_id: str):
+    """
+    Suma 1 a las vistas del tutorial. Se llama una vez cada vez que un
+    comprador/vendedor abre la pantalla de detalle del video.
+    🔗 FLUTTER: POST /api/tutoriales/{id}/vista
+    """
+    try:
+        actual = (
+            supabase.table("tutoriales")
+            .select("vistas")
+            .eq("id", tutorial_id)
+            .execute()
+            .data
+        )
+        if not actual:
+            raise HTTPException(status_code=404, detail="Tutorial no encontrado")
+        nuevas_vistas = (actual[0].get("vistas") or 0) + 1
+        supabase.table("tutoriales").update({"vistas": nuevas_vistas}).eq(
+            "id", tutorial_id
+        ).execute()
+        return {"status": "ok", "vistas": nuevas_vistas}
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error registrando vista: {ex}")
+
+
 class TutorialNuevo(BaseModel):
     titulo: str
     descripcion: Optional[str] = None

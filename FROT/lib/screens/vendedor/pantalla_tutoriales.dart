@@ -6,6 +6,7 @@ import '../../widgets/vendedor/tarjeta_tutorial.dart';
 import '../../widgets/vendedor/tarjeta_mi_video.dart';
 import '../../widgets/vendedor/chip_categoria_tutorial.dart';
 import '../../widgets/vendedor/dialogo_subir_video.dart';
+import '../comprador/pantalla_detalle_video.dart';
 
 const List<Map<String, dynamic>> _categoriasDisponibles = [
   {'etiqueta': 'Joyería', 'icono': Icons.diamond_outlined},
@@ -91,6 +92,16 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
     ).then((_) => _cargarMisVideos());
   }
 
+  // Punto único de navegación al detalle del video: usado tanto desde la
+  // grilla principal como desde el panel "Mis videos", para que la
+  // información se vea igual (lineal) sin importar de dónde se abra.
+  void _abrirDetalleVideo(ModeloTutorial tutorial) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PantallaDetalleVideo(tutorial: tutorial)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final esOscuro = Theme.of(context).brightness == Brightness.dark;
@@ -171,7 +182,10 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                   else if (_tutoriales.isEmpty)
                     _EstadoVacio(colorSec: colorSec)
                   else
-                    _GridTutoriales(tutoriales: _tutoriales),
+                    _GridTutoriales(
+                      tutoriales: _tutoriales,
+                      alPresionarVideo: _abrirDetalleVideo,
+                    ),
                 ],
               ),
             ),
@@ -248,7 +262,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                                 itemCount: _misVideos.length,
                                 itemBuilder: (_, i) => TarjetaMiVideo(
                                   tutorial: _misVideos[i],
-                                  alPresionar: () {},
+                                  alPresionar: () => _abrirDetalleVideo(_misVideos[i]),
                                   alPresionarOpciones: () {
                                     _mostrarMenuOpciones(context, _misVideos[i]);
                                   },
@@ -442,29 +456,51 @@ class _BannerTutoriales extends StatelessWidget {
 
 class _GridTutoriales extends StatelessWidget {
   final List<ModeloTutorial> tutoriales;
-  const _GridTutoriales({required this.tutoriales});
+  final ValueChanged<ModeloTutorial> alPresionarVideo;
+  const _GridTutoriales({required this.tutoriales, required this.alPresionarVideo});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        int columnas = 2;
-        if (constraints.maxWidth >= 900) columnas = 4;
-        else if (constraints.maxWidth >= 600) columnas = 3;
+        // Antes eran hasta 4 columnas; ahora un máximo de 3 para que cada
+        // miniatura de video se note más grande. Sigue siendo responsive
+        // para tablets y móviles.
+        int columnas;
+        if (constraints.maxWidth >= 900) {
+          columnas = 3;
+        } else if (constraints.maxWidth >= 560) {
+          columnas = 2;
+        } else {
+          columnas = 1;
+        }
+
+        const espaciado = 18.0;
+        // Alto fijo aproximado del bloque de texto bajo el video (título +
+        // artesano + vistas/tiempo, con el padding un poco más grande).
+        const alturaInfo = 136.0;
+
+        final anchoColumna =
+            (constraints.maxWidth - espaciado * (columnas - 1)) / columnas;
+        final altoMiniatura = anchoColumna * 9 / 16;
+        // La proporción de la tarjeta se calcula a partir del video (16:9)
+        // + el bloque de información real que tiene debajo, en vez de un
+        // childAspectRatio fijo que dejaba espacio de más o de menos.
+        final proporcionTarjeta = anchoColumna / (altoMiniatura + alturaInfo);
 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columnas,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.75,
+            crossAxisSpacing: espaciado,
+            mainAxisSpacing: espaciado,
+            childAspectRatio: proporcionTarjeta,
           ),
           itemCount: tutoriales.length,
           itemBuilder: (_, i) => TarjetaTutorial(
             tutorial: tutoriales[i],
-            alPresionar: () {},
+            alPresionar: () => alPresionarVideo(tutoriales[i]),
           ),
         );
       },

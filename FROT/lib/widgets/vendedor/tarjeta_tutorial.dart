@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 class ModeloTutorial {
   final String id;
   final String titulo;
+  final String descripcion;
   final String nombreArtesano;
   final String avatarArtesano; // URL de red (perfiles.ft) o vacío
   final String miniatura; // URL del thumbnail de YouTube
@@ -20,6 +21,7 @@ class ModeloTutorial {
   const ModeloTutorial({
     required this.id,
     required this.titulo,
+    this.descripcion = '',
     required this.nombreArtesano,
     this.avatarArtesano = '',
     required this.miniatura,
@@ -31,11 +33,13 @@ class ModeloTutorial {
     this.creadorId,
   });
 
-  /// 🔌 mapea la respuesta JSON de FastAPI (/api/tutoriales, /api/tutoriales/mis-videos)
+  /// 🔌 mapea la respuesta JSON de FastAPI (/api/tutoriales, /api/tutoriales/mis-videos,
+  /// /api/tutoriales/{id})
   factory ModeloTutorial.fromJson(Map<String, dynamic> json) {
     return ModeloTutorial(
       id: json['id']?.toString() ?? '',
       titulo: json['titulo'] as String? ?? 'Tutorial',
+      descripcion: json['descripcion'] as String? ?? '',
       nombreArtesano: json['nombre_artesano'] as String? ?? 'CraftHub',
       avatarArtesano: json['avatar_artesano'] as String? ?? '',
       miniatura: json['miniatura'] as String? ?? '',
@@ -45,6 +49,23 @@ class ModeloTutorial {
       categoria: json['categoria'] as String? ?? 'General',
       youtubeUrl: json['youtube_url'] as String? ?? '',
       creadorId: json['creador_id'] as String?,
+    );
+  }
+
+  ModeloTutorial copiarCon({int? vistas}) {
+    return ModeloTutorial(
+      id: id,
+      titulo: titulo,
+      descripcion: descripcion,
+      nombreArtesano: nombreArtesano,
+      avatarArtesano: avatarArtesano,
+      miniatura: miniatura,
+      duracion: duracion,
+      vistas: vistas ?? this.vistas,
+      publicadoHace: publicadoHace,
+      categoria: categoria,
+      youtubeUrl: youtubeUrl,
+      creadorId: creadorId,
     );
   }
 }
@@ -153,14 +174,14 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
                           opacity: _hovering ? 1.0 : 0.75,
                           duration: const Duration(milliseconds: 180),
                           child: Container(
-                            width: 44,
-                            height: 44,
+                            width: 52,
+                            height: 52,
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.55),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.play_arrow_rounded,
-                                color: Colors.white, size: 28),
+                                color: Colors.white, size: 32),
                           ),
                         ),
                       ),
@@ -172,7 +193,7 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
                         right: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                              horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.75),
                             borderRadius: BorderRadius.circular(4),
@@ -181,7 +202,7 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
                             widget.tutorial.duracion,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               fontFamily: 'Poppins',
                             ),
@@ -193,7 +214,7 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
               ),
               // ── Información ───────────────────────────────────────────────
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -203,17 +224,17 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: colorTexto,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'Poppins',
                         height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 9),
                     Row(
                       children: [
                         CircleAvatar(
-                          radius: 12,
+                          radius: 13,
                           backgroundColor: CraftHubColors.vinoTintoSuave,
                           backgroundImage:
                               widget.tutorial.avatarArtesano.isNotEmpty
@@ -229,50 +250,50 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
                                       ? widget.tutorial.nombreArtesano[0]
                                       : '?',
                                   style: const TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     color: CraftHubColors.vinoTinto,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 )
                               : null,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 7),
                         Expanded(
                           child: Text(
                             widget.tutorial.nombreArtesano,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: colorSec,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontFamily: 'Poppins',
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 7),
                     Row(
                       children: [
                         Icon(Icons.visibility_outlined,
-                            size: 13, color: colorSec),
+                            size: 14, color: colorSec),
                         const SizedBox(width: 3),
                         Text(
                           _formatearVistas(widget.tutorial.vistas),
                           style: TextStyle(
                               color: colorSec,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontFamily: 'Poppins'),
                         ),
                         if (widget.tutorial.publicadoHace.isNotEmpty) ...[
                           const SizedBox(width: 10),
                           Icon(Icons.schedule_outlined,
-                              size: 13, color: colorSec),
+                              size: 14, color: colorSec),
                           const SizedBox(width: 3),
                           Text(
                             widget.tutorial.publicadoHace,
                             style: TextStyle(
                                 color: colorSec,
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontFamily: 'Poppins'),
                           ),
                         ],

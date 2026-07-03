@@ -186,6 +186,32 @@ class ApiService {
     return data.map((json) => ModeloTutorial.fromJson(json)).toList();
   }
 
+  // 🔌 GET /api/tutoriales/{id} → detalle actualizado del video (incluye
+  // descripción completa y el conteo de vistas más reciente).
+  static Future<ModeloTutorial> getTutorial(String id) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/api/tutoriales/$id'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar el video: ${response.statusCode}');
+    }
+    return ModeloTutorial.fromJson(jsonDecode(response.body));
+  }
+
+  // 🔌 POST /api/tutoriales/{id}/vista → registra una vista real en el
+  // backend y devuelve el nuevo total (fuente de verdad, evita duplicar
+  // el conteo si el usuario reabre la pantalla varias veces en el cliente).
+  static Future<int> registrarVistaTutorial(String id) async {
+    final response = await http
+        .post(Uri.parse('$baseUrl/api/tutoriales/$id/vista'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al registrar la vista: ${response.statusCode}');
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return (data['vistas'] as num?)?.toInt() ?? 0;
+  }
+
   static Future<Map<String, dynamic>> getDetalleArtesano(String nombre) async {
     final response = await http.get(
       Uri.parse('$baseUrl/artesanos/${Uri.encodeComponent(nombre)}'),
@@ -268,5 +294,97 @@ class ApiService {
 
   static Future<void> eliminarTutorial(String tutorialId) async {
     await http.delete(Uri.parse('$baseUrl/api/tutoriales/$tutorialId'));
+  }
+
+  // ── DETALLE DE PRODUCTO ──────────────────────────────────────
+  // 🔌 GET /productos/{id} → ficha completa (descripción, materiales,
+  // técnica, dimensiones, calificación, etc.)
+  static Future<Map<String, dynamic>> getDetalleProducto(String productoId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/productos/$productoId'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar el producto: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  // 🔌 GET /productos/{id}/similares?limite=N → recomendaciones relacionadas
+  static Future<List<Map<String, dynamic>>> getProductosSimilares(
+    String productoId, {
+    int limite = 8,
+  }) async {
+    final uri = Uri.parse('$baseUrl/productos/$productoId/similares')
+        .replace(queryParameters: {'limite': '$limite'});
+    final response = await http.get(uri).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar productos similares: ${response.statusCode}');
+    }
+    final decoded = jsonDecode(response.body);
+    final List<dynamic> data = decoded is Map<String, dynamic>
+        ? (decoded['productos'] as List<dynamic>? ?? [])
+        : (decoded as List<dynamic>);
+    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  // 🔌 GET /productos/{id}/comentarios → reseñas de compradores
+  static Future<List<Map<String, dynamic>>> getComentariosProducto(String productoId) async {
+    final uri = Uri.parse('$baseUrl/productos/$productoId/comentarios');
+    final response = await http.get(uri).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar comentarios: ${response.statusCode}');
+    }
+    final decoded = jsonDecode(response.body);
+    final List<dynamic> data = decoded is Map<String, dynamic>
+        ? (decoded['comentarios'] as List<dynamic>? ?? [])
+        : (decoded as List<dynamic>);
+    return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  // POST /productos/comentarios (ya expuesto en productos_router.py).
+  // 🔌 'calificacion' y 'foto_url' viajan como campos extra: el backend los
+  // ignora hasta que se agreguen esas columnas a la tabla `comentarios`.
+  static Future<Map<String, dynamic>> publicarComentario({
+    required String productoId,
+    required String texto,
+    required double calificacion,
+    String? nombreUsuario,
+    String? userId,
+    String? fotoUrl,
+  }) async {
+    final uri = Uri.parse('$baseUrl/productos/comentarios').replace(
+      queryParameters: (userId != null && userId.isNotEmpty) ? {'user_id': userId} : null,
+    );
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'producto_id': int.tryParse(productoId) ?? 0,
+        'nombre': (nombreUsuario == null || nombreUsuario.isEmpty) ? 'Comprador CraftHub' : nombreUsuario,
+        'comentario': texto,
+        'calificacion': calificacion,
+        if (fotoUrl != null && fotoUrl.isNotEmpty) 'foto_url': fotoUrl,
+      }),
+    ).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error al publicar comentario: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  // 🔌 POST /productos/comentarios/subir-foto (pendiente en el backend).
+  // Sigue el mismo patrón multipart que subirFotoPerfil para devolver la URL
+  // pública de la imagen adjunta a un comentario.
+  static Future<String> subirFotoComentario(List<int> bytes, String nombreArchivo) async {
+    final uri = Uri.parse('$baseUrl/productos/comentarios/subir-foto');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombreArchivo));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('No se pudo subir la foto del comentario: ${response.statusCode}');
+    }
+    final data = jsonDecode(body);
+    return (data['url'] ?? '').toString();
   }
 }
