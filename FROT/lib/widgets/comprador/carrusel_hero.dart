@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
@@ -35,15 +36,21 @@ class CarruselHero extends StatefulWidget {
 class _CarruselHeroState extends State<CarruselHero> {
   final PageController _ctrl = PageController();
   int _paginaActual = 0;
-  late final _timer = Stream.periodic(const Duration(seconds: 4)).listen((_) {
-    if (!mounted) return;
-    final siguiente = (_paginaActual + 1) % widget.banners.length;
-    _ctrl.animateToPage(siguiente,
-        duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-  });
+  Timer? _timer;
 
   @override
-  void dispose() { _timer.cancel(); _ctrl.dispose(); super.dispose(); }
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || widget.banners.length < 2) return;
+      final siguiente = (_paginaActual + 1) % widget.banners.length;
+      _ctrl.animateToPage(siguiente,
+          duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    });
+  }
+
+  @override
+  void dispose() { _timer?.cancel(); _ctrl.dispose(); super.dispose(); }
 
   void _irA(int indice) => _ctrl.animateToPage(indice,
       duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
