@@ -38,22 +38,6 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
     });
   }
 
-  void _navegar(int index) {
-    if (index == _indiceActivo) return;
-    setState(() => _indiceActivo = index);
-    // TODO: mapear indices a rutas
-    // 0=Inicio, 1=Carrito, 2=Artesanos, 3=Favoritos, 4=Mensajes, 5=Historial
-    final rutas = {
-      0: '/comprador',
-      1: '/carrito',
-      2: '/artesanos',
-      3: '/favoritos',
-    };
-    if (rutas.containsKey(index)) {
-      Navigator.pushReplacementNamed(context, rutas[index]!);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -61,12 +45,6 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
       backgroundColor: CraftHubColors.fondo(isDark),
       body: Row(
         children: [
-          SidebarComprador(
-            indiceActivo: _indiceActivo,
-            alSeleccionar: _navegar,
-            alCerrarSesion: () =>
-                Navigator.pushReplacementNamed(context, '/login'),
-          ),
           PanelConversaciones(
             conversaciones: _conversaciones,
             idSeleccionado: _conversacionActiva?.id,

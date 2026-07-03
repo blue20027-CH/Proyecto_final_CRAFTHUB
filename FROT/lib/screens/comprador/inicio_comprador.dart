@@ -6,9 +6,12 @@ import 'pantalla_carrito.dart';
 import 'artesanos_screen.dart';
 import 'pantalla_favoritos.dart';
 import 'pantalla_mapa.dart';
+import 'pantalla_eventos_comprador.dart';
 import 'pantalla_tutoriales_comprador.dart';
 import 'pantalla_mensajes_comprador.dart';
+import 'pantalla_detalle_producto.dart';
 import '../../core/theme/app_theme.dart';
+import '../../main.dart';
 import '../../core/carrito_provider.dart';
 import '../../widgets/comprador/sidebar_comprador.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
@@ -16,8 +19,6 @@ import '../../widgets/comprador/carrusel_hero.dart';
 import '../../widgets/topbar_flotante.dart';
 import '../../services/api_service.dart';
 import '../../models/artesano_modelo.dart';
-import 'pantalla_detalle_producto.dart';
-import 'pantalla_perfil_artesano.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 🔌 DATOS MOCK – reemplazar con llamadas a FastAPI
@@ -192,42 +193,14 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
+  void _abrirPerfilArtesano(ArtesanoModelo artesano) {
+    // TODO: Navigator.push a PantallaPerfilArtesano(artesanoId: artesano.id)
+  }
+
   @override
   void dispose() {
     _busquedaCtrl.dispose();
     super.dispose();
-  }
-
-  // Conecta la tarjeta de "Artesanos destacados" con su perfil completo.
-  // 🔌 GET /artesanos/{id} aún no trae colecciones/productos del perfil:
-  // se aproximan con datos ya disponibles del listado general mientras tanto.
-  void _abrirPerfilArtesano(ArtesanoModelo a) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PantallaPerfilArtesano(
-          artesano: ModeloArtesano(
-            nombre: a.nombre,
-            specialty: a.especialidad,
-            especialidad: a.especialidad,
-            ubicacion: a.provincia,
-            fotoUrl: a.fotoUrl,
-            bannerUrl: a.bannerEfectivo,
-            calificacion: a.rating,
-            totalResenas: a.totalResenas,
-            verificado: a.estaVerificado,
-            totalProductos: a.totalVentas,
-            anosEnCraftHub: a.anosExperiencia,
-            valoracionesPositivas: (a.rating / 5 * 100).round(),
-            ventasRealizadas: a.totalVentas,
-            descripcion: a.descripcion,
-            etiquetas: a.especialidades,
-            colecciones: const [],
-            productos: const [],
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -279,66 +252,112 @@ class _HomeCompradorState extends State<HomeComprador> {
         return PantallaFavoritos(userId: widget.userId);
       case 4:
         return PantallaTutorialesComprador(userId: widget.userId);
+      case 5:
+        return PantallaMensajesComprador();
       default:
         return _buildContenido(oscuro);
     }
   }
 
   Widget _buildTopBar(bool oscuro) {
-    void abrirMapa() => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (ctx) =>
-            PantallaMapa(esOscuro: Theme.of(ctx).brightness == Brightness.dark),
+    final border = oscuro
+        ? CraftHubColors.bordeOscuro
+        : CraftHubColors.bordeClaro;
+    final fondo = oscuro
+        ? CraftHubColors.fondoOscuro
+        : CraftHubColors.fondoClaro;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      decoration: BoxDecoration(color: fondo),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: TextField(
+                controller: _busquedaCtrl,
+                onChanged: (q) => _cargarProductos(),
+                style: GoogleFonts.poppins(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Buscar productos, artesanos, provincias...',
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.grey,
+                  ),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  filled: true,
+                  fillColor: oscuro ? CraftHubColors.panelOscuro : Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: border, width: 0.8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: const BorderSide(
+                      color: CraftHubColors.vinoTinto,
+                      width: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          _IconTopBar(
+            icono: Icons.chat_bubble_outline_rounded,
+            tooltip: 'Mensajes',
+            onTap: () {},
+          ),
+          _IconTopBar(
+            icono: Icons.calendar_month_outlined,
+            tooltip: 'Eventos',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      PantallaEventosComprador(userId: widget.userId),
+                ),
+              );
+            },
+          ),
+          _IconTopBar(
+            icono: Icons.notifications_none_rounded,
+            tooltip: 'Notificaciones',
+            tieneNotif: true,
+            onTap: () {},
+          ),
+          _IconTopBar(
+            icono: Icons.location_on_outlined,
+            tooltip: 'Mapa artesanos',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (ctx) => PantallaMapa(
+                    esOscuro: Theme.of(ctx).brightness == Brightness.dark,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          _IconTopBar(
+            icono: Theme.of(context).brightness == Brightness.dark
+                ? Icons.light_mode_outlined
+                : Icons.dark_mode_outlined,
+            tooltip: 'Cambiar tema',
+            onTap: () => context.read<GestorTema>().alternarTema(),
+          ),
+        ],
       ),
-    );
-
-    void abrirMensaje() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (ctx) => const PantallaMensajesComprador()),
-      );
-    }
-
-    return TopbarFlotante(
-      controladorBusqueda: _busquedaCtrl,
-      alBuscar: (q) => _cargarProductos(),
-      tieneNotificaciones: true,
-      alPresionarUbicacion: abrirMapa,
-      alPresionarMensajes: abrirMensaje,
-      alPresionarLogo: () => setState(() => _navIndice = 0),
-      itemsExplorar: [
-        ItemExplorar(
-          icono: Icons.home_outlined,
-          etiqueta: 'Inicio',
-          onTap: () => setState(() => _navIndice = 0),
-        ),
-        ItemExplorar(
-          icono: Icons.shopping_bag_outlined,
-          etiqueta: 'Carrito',
-          onTap: () => setState(() => _navIndice = 1),
-        ),
-        ItemExplorar(
-          icono: Icons.storefront_outlined,
-          etiqueta: 'Artesanos',
-          onTap: () => setState(() => _navIndice = 2),
-        ),
-        ItemExplorar(
-          icono: Icons.favorite_border_rounded,
-          etiqueta: 'Favoritos',
-          onTap: () => setState(() => _navIndice = 3),
-        ),
-        ItemExplorar(
-          icono: Icons.play_circle_outline_rounded,
-          etiqueta: 'Tutoriales',
-          onTap: () => setState(() => _navIndice = 4),
-        ),
-        ItemExplorar(
-          icono: Icons.map_outlined,
-          etiqueta: 'Mapa de artesanos',
-          onTap: abrirMapa,
-        ),
-      ],
     );
   }
 
@@ -492,6 +511,91 @@ class _HomeCompradorState extends State<HomeComprador> {
 
 // ── Widgets auxiliares ──────────────────────────────────────────────────────────────────────────
 
+class _IconTopBar extends StatefulWidget {
+  final IconData icono;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool tieneNotif;
+
+  const _IconTopBar({
+    required this.icono,
+    required this.tooltip,
+    required this.onTap,
+    this.tieneNotif = false,
+  });
+
+  @override
+  State<_IconTopBar> createState() => _IconTopBarState();
+}
+
+class _IconTopBarState extends State<_IconTopBar> {
+  bool _hover = false;
+  @override
+  Widget build(BuildContext context) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: Tooltip(
+        message: widget.tooltip,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
+            margin: const EdgeInsets.only(left: 8),
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _hover
+                  ? (oscuro
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05))
+                  : (oscuro ? CraftHubColors.panelOscuro : Colors.white),
+              border: Border.all(
+                color: oscuro
+                    ? CraftHubColors.bordeOscuro
+                    : CraftHubColors.bordeClaro,
+                width: 0.8,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  widget.icono,
+                  size: 19,
+                  color: oscuro
+                      ? CraftHubColors.textoOscuro
+                      : const Color(0xFF5A4A42),
+                ),
+                if (widget.tieneNotif)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: CraftHubColors.vinoTinto,
+                        border: Border.all(
+                          color: oscuro
+                              ? CraftHubColors.fondoOscuro
+                              : CraftHubColors.fondoClaro,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TarjetaArtesano extends StatefulWidget {
   final String nombre, fotoUrl;
   final VoidCallback onTap;
@@ -509,7 +613,6 @@ class _TarjetaArtesanoState extends State<_TarjetaArtesano> {
   bool _hover = false;
   @override
   Widget build(BuildContext context) {
-    final oscuro = Theme.of(context).brightness == Brightness.dark;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -578,7 +681,9 @@ class _TarjetaArtesanoState extends State<_TarjetaArtesano> {
                 style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-                  color: CraftHubColors.textoPrincipal(oscuro),
+                  color: CraftHubColors.textoPrincipal(
+                    Theme.of(context).brightness == Brightness.dark,
+                  ),
                 ),
               ),
             ],

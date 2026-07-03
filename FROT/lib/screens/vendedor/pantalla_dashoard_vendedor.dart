@@ -11,6 +11,7 @@ import '../../widgets/vendedor/grafico_evaluaciones.dart';
 import '../../widgets/vendedor/resumen_rapido.dart';
 import '../../services/vendedor_api_service.dart';
 import '../../widgets/topbar_flotante.dart';
+import 'pantalla_eventos_vendedor.dart';
 
 class HomeVendedor extends StatefulWidget {
   final bool esOscuro;
@@ -97,6 +98,15 @@ class _HomeVendedorState extends State<HomeVendedor> {
       controladorBusqueda: _busquedaCtrl,
       tieneNotificaciones: true,
       alPresionarLogo: () => setState(() => _navIndice = 0),
+      alPresionarEventos: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PantallaEventosVendedor(
+            userId: widget.userId,
+            nombreVendedor: widget.nombreVendedor,
+          ),
+        ),
+      ),
       itemsExplorar: [
         ItemExplorar(icono: Icons.dashboard_outlined, etiqueta: 'Dashboard',
             onTap: () => setState(() => _navIndice = 0)),
