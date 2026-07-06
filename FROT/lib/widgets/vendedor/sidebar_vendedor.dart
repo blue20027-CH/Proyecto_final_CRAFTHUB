@@ -19,14 +19,14 @@ class SidebarVendedor extends StatelessWidget {
 
   static const double _ancho = 68.0;
 
+  // Solo se listan las secciones que realmente existen (mismo orden que el
+  // menú "Explorar" del topbar y que el switch de _obtenerPantallaActual en
+  // pantalla_dashoard_vendedor.dart) — así ningún ítem lleva a un callejón
+  // sin salida.
   static const _items = [
-    {'icono': Icons.dashboard_outlined,    'label': 'Dashboard'},
-    {'icono': Icons.inventory_2_outlined,  'label': 'Productos'},
-    {'icono': Icons.receipt_long_outlined, 'label': 'Pedidos'},
-    {'icono': Icons.people_outline,        'label': 'Clientes'},
-    {'icono': Icons.chat_bubble_outline,   'label': 'Mensajes'},
-    {'icono': Icons.bar_chart_rounded,     'label': 'Reportes'},
-    {'icono': Icons.settings_outlined,     'label': 'ConfiguraciÃ³n'},
+    {'icono': Icons.dashboard_outlined,     'label': 'Dashboard'},
+    {'icono': Icons.inventory_2_outlined,   'label': 'Productos'},
+    {'icono': Icons.video_library_outlined, 'label': 'Tutoriales'},
   ];
 
   @override

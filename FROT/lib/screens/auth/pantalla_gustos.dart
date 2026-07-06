@@ -5,10 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-// API: importa tu servicio HTTP cuando conectes el backend.
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
+import '../../services/api_service.dart';
 
 class _Provincia {
   final String id;
@@ -177,10 +174,16 @@ const List<_Categoria> _categorias = [
 ];
 
 class PantallaIntereses extends StatefulWidget {
+  final String userId;
   final VoidCallback? alGuardar;
   final VoidCallback? alOmitir;
 
-  const PantallaIntereses({super.key, this.alGuardar, this.alOmitir});
+  const PantallaIntereses({
+    super.key,
+    this.userId = '',
+    this.alGuardar,
+    this.alOmitir,
+  });
 
   @override
   State<PantallaIntereses> createState() => _PantallaInteresesState();
@@ -193,16 +196,49 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
 
   bool _guardando = false;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.userId.isNotEmpty) {
+      _cargarPreferenciasExistentes();
+    }
+  }
+
+  Future<void> _cargarPreferenciasExistentes() async {
+    try {
+      final data = await ApiService.getPreferencias(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _provinciasSeleccionadas.addAll(
+          (data['provincias'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        );
+        _comarcasSeleccionadas.addAll(
+          (data['comarcas'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        );
+        _categoriasSeleccionadas.addAll(
+          (data['categorias'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        );
+      });
+    } catch (_) {
+      // Sin preferencias previas o backend no disponible: se queda en blanco.
+    }
+  }
+
   Future<void> _guardarIntereses() async {
     setState(() => _guardando = true);
 
-    // API: POST /api/compradores/{userId}/intereses
-    // Body: {
-    //   "provincias": [...],
-    //   "comarcas": [...],
-    //   "categorias": [...]
-    // }
-    await Future.delayed(const Duration(milliseconds: 600));
+    try {
+      if (widget.userId.isNotEmpty) {
+        await ApiService.guardarPreferencias(
+          userId: widget.userId,
+          provincias: _provinciasSeleccionadas.toList(),
+          comarcas: _comarcasSeleccionadas.toList(),
+          categorias: _categoriasSeleccionadas.toList(),
+        );
+      }
+    } catch (_) {
+      // Si falla el guardado no bloqueamos el flujo: el usuario igual continúa.
+    }
 
     if (!mounted) return;
     setState(() => _guardando = false);
@@ -216,9 +252,13 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
         ? const Color(0xFF121212)
         : const Color(0xFFF9F6F0);
 
-    return Container(
-      color: colorFondoPantalla,
-      child: DefaultTextStyle.merge(
+    // Scaffold propio: permite empujar esta pantalla directamente con
+    // Navigator.push (como hacen role.dart y pantalla_login.dart) sin
+    // perder la posibilidad de embeberla dentro de otro Scaffold (p. ej.
+    // el switch de HomeComprador), ya que un Scaffold anidado es válido.
+    return Scaffold(
+      backgroundColor: colorFondoPantalla,
+      body: DefaultTextStyle.merge(
         style: const TextStyle(decoration: TextDecoration.none),
         child: Column(
           children: [
@@ -842,7 +882,19 @@ class _ChipRegionInlineState extends State<_ChipRegionInline> {
                 fit: StackFit.expand,
                 children: [
                   if (esAsset)
-                    Image.asset(widget.bandera, fit: BoxFit.cover)
+                    Image.asset(
+                      widget.bandera,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        color: const Color(0xFFF4EDE5),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.map_outlined,
+                          color: Color(0xFF9E8E85),
+                          size: 34,
+                        ),
+                      ),
+                    )
                   else
                     Container(
                       color: const Color(0xFFF4EDE5),

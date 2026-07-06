@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../screens/auth/registro_vendedor.dart';
+import '../../screens/auth/registro_comprador.dart';
 import '../../main.dart';
 
 class PantallaSeleccionRol extends StatefulWidget {
@@ -229,7 +230,16 @@ class _CuerpoSeleccion extends StatelessWidget {
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const HomeComprador(userId: ''),  // ✅ CAMBIO: Pasar userId
+                          builder: (_) => PantallaIntereses(
+                            alGuardar: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (_) => const HomeComprador(userId: '')),
+                            ),
+                            alOmitir: () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (_) => const HomeComprador(userId: '')),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -240,7 +250,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const PantallaIntereses(),
+                          builder: (_) => const PantallaRegistroComprador(),
                         ),
                       ),
                     ),

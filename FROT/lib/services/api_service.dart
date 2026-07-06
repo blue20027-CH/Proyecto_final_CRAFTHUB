@@ -387,4 +387,37 @@ class ApiService {
     final data = jsonDecode(body);
     return (data['url'] ?? '').toString();
   }
+
+  // ── PREFERENCIAS (provincias/comarcas/categorías de interés) ──────────
+
+  static Future<Map<String, dynamic>> getPreferencias(String userId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/preferencias/$userId'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar preferencias: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<void> guardarPreferencias({
+    required String userId,
+    required List<String> provincias,
+    required List<String> comarcas,
+    required List<String> categorias,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/preferencias/guardar'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'provincias': provincias,
+        'comarcas': comarcas,
+        'categorias': categorias,
+      }),
+    ).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al guardar preferencias: ${response.statusCode} ${response.body}');
+    }
+  }
 }

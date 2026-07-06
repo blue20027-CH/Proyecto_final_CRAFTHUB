@@ -8,6 +8,7 @@ import '../../widgets/boton_google.dart';
 import '../../services/servicio_auth.dart';
 import '../comprador/inicio_comprador.dart';
 import '../vendedor/pantalla_dashoard_vendedor.dart';
+import 'pantalla_gustos.dart';
 
 class PantallaLogin extends StatefulWidget {
   final String modo;
@@ -71,19 +72,36 @@ class _PantallaLoginState extends State<PantallaLogin> {
         final nombre = (perfil['nombre'] ?? respuesta['email'] ?? '').toString();
         final foto = (perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-           builder: (_) => _modoSeleccionado == 'Vendedor'
-                ? HomeVendedor(
-                    esOscuro: context.read<GestorTema>().esModoOscuro,
-                    nombreVendedor: nombre,
-                    fotoPerfil: foto,
-                   userId: userId,  // ✅ NUEVO: para tutoriales, mis-videos, etc.
-                  )
-                : HomeComprador(userId: userId),
-          ),
-        );
+        if (_modoSeleccionado == 'Vendedor') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomeVendedor(
+                esOscuro: context.read<GestorTema>().esModoOscuro,
+                nombreVendedor: nombre,
+                fotoPerfil: foto,
+                userId: userId,  // ✅ NUEVO: para tutoriales, mis-videos, etc.
+              ),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PantallaIntereses(
+                userId: userId,
+                alGuardar: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => HomeComprador(userId: userId)),
+                ),
+                alOmitir: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => HomeComprador(userId: userId)),
+                ),
+              ),
+            ),
+          );
+        }
       }
 
     } catch (e) {

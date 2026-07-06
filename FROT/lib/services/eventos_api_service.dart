@@ -121,4 +121,24 @@ class EventosApiService {
       debugPrint('EventosApiService.alternarFavorito → modo demo ($e)');
     }
   }
+
+  static Future<List<EventoArtesanal>> getFavoritos(String userId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl/api/eventos/favoritos/$userId'))
+          .timeout(const Duration(seconds: 6));
+      if (response.statusCode != 200) {
+        throw Exception('status ${response.statusCode}');
+      }
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = decoded['eventos'] as List<dynamic>? ?? [];
+      return data
+          .map((json) => EventoArtesanal.fromJson(json as Map<String, dynamic>)
+            ..esFavorito = true)
+          .toList();
+    } catch (e) {
+      debugPrint('EventosApiService.getFavoritos → sin datos ($e)');
+      return [];
+    }
+  }
 }

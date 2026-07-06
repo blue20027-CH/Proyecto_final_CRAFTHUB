@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/carrito_provider.dart';
+import '../../core/favoritos_provider.dart';
 import '../../models/carrito_model.dart';
 import '../../core/theme/app_theme.dart';
+import 'tarjeta_producto.dart';
 
 // ============================================================
 // TARJETA DE ÍTEM DEL CARRITO
@@ -24,6 +26,9 @@ class _TarjetaItemCarritoState extends State<TarjetaItemCarrito> {
   Widget build(BuildContext context) {
     final provider = context.read<CarritoProvider>();
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    final favorito = context
+        .watch<FavoritosProvider>()
+        .esProductoFavorito(widget.item.productoId.toString());
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -54,22 +59,64 @@ class _TarjetaItemCarritoState extends State<TarjetaItemCarrito> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // ── Imagen del producto ───────────────────────
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  width: 110,
-                  height: 90,
-                  child: Image.network(
-                    widget.item.imagenUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: const Color(0xFFF0EBE3),
-                      child: const Icon(Icons.image_outlined,
-                          color: Colors.grey, size: 32),
+              // ── Imagen del producto (con botón de favorito) ─
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 110,
+                      height: 90,
+                      child: Image.network(
+                        widget.item.imagenUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          color: const Color(0xFFF0EBE3),
+                          child: const Icon(Icons.image_outlined,
+                              color: Colors.grey, size: 32),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: GestureDetector(
+                      onTap: () => context.read<FavoritosProvider>().alternarProducto(
+                            ProductoModelo(
+                              id: widget.item.productoId.toString(),
+                              nombre: widget.item.nombreProducto,
+                              precio: widget.item.precioUnitario,
+                              imagenUrl: widget.item.imagenUrl,
+                              artesano: widget.item.artesanoNombre,
+                              provincia: widget.item.provincia,
+                              categoria: '',
+                            ),
+                          ),
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: favorito
+                              ? AppColors.vinoTinto
+                              : Colors.white.withValues(alpha: 0.9),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          favorito ? Icons.favorite : Icons.favorite_border_rounded,
+                          size: 14,
+                          color: favorito ? Colors.white : AppColors.vinoTinto,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(width: 16),
               // ── Info del producto ─────────────────────────

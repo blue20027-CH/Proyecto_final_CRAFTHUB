@@ -4,7 +4,8 @@ Traducción de screens/login.py (Flet) → FastAPI
 """
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from supabase_client import supabase
@@ -19,6 +20,16 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
     modo: str = "Comprador"  # "Comprador" | "Vendedor"
+
+
+class RegistroRequest(BaseModel):
+    nombre: str = Field(..., min_length=1)
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    telefono: Optional[str] = None
+    provincia: Optional[str] = None
+    ubicacion: Optional[str] = None  # detalle: ciudad/corregimiento
+    rol: str = "Comprador"  # "Comprador" | "Vendedor"
 
 # ---------------------------------------------------------------------------
 # ENDPOINTS
@@ -72,6 +83,59 @@ def login(req: LoginRequest):
         "email":   user.email,
         "modo":    req.modo,
         "perfil":  perfil,
+    }
+
+
+@router.post("/registro", status_code=status.HTTP_201_CREATED)
+def registro(req: RegistroRequest):
+    """
+    Crea el usuario en Supabase Auth y su fila en 'perfiles'.
+    🔗 FLUTTER: POST /api/auth/registro
+    Body: { "nombre", "email", "password", "telefono", "provincia", "ubicacion", "rol" }
+    Responde con la misma forma que /login para reusar la navegación post-login.
+    """
+    if req.rol not in ("Vendedor", "Comprador"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Rol inválido.")
+
+    try:
+        response = supabase.auth.sign_up({"email": req.email, "password": req.password})
+        user = response.user
+    except Exception as ex:
+        msg = str(ex)
+        if "already registered" in msg or "already been registered" in msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Este correo ya tiene una cuenta activa. Inicia sesión.",
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error al crear la cuenta: {msg}")
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No se pudo crear la cuenta. Intenta de nuevo.")
+
+    perfil_data = {
+        "user_id": user.id,
+        "nombre": req.nombre.strip(),
+        "email": req.email,
+        "telefono": req.telefono.strip() if req.telefono else None,
+        "provincia": req.provincia,
+        "ubicacion": req.ubicacion.strip() if req.ubicacion else None,
+        "rol": req.rol,
+    }
+
+    try:
+        supabase.table("perfiles").insert(perfil_data).execute()
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cuenta creada pero no se pudo guardar el perfil: {str(ex)}",
+        )
+
+    return {
+        "success": True,
+        "user_id": user.id,
+        "email": user.email,
+        "modo": req.rol,
+        "perfil": perfil_data,
     }
 
 

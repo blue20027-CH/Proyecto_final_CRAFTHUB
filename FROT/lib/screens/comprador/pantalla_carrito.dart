@@ -31,6 +31,7 @@ class _ContenidoCarrito extends StatelessWidget {
     // ✅ Lee del provider global
     final provider = context.watch<CarritoProvider>();
     final carrito = provider.carritoActivo;
+    final userId = provider.userId;
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -76,7 +77,7 @@ class _ContenidoCarrito extends StatelessWidget {
 
                         // Sección de sugerencias
                         if (carrito != null && carrito.items.isNotEmpty)
-                          SeccionSugerencias(sugerencias: sugerenciasMock),
+                          SeccionSugerencias(userId: userId),
 
                         const SizedBox(height: 24),
                       ],

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/carrito_provider.dart';
+import '../../core/favoritos_provider.dart';
 import '../../models/detalle_producto_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
@@ -82,7 +83,6 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
 
   bool _cargando = true;
   String? _error;
-  bool _favorito = false;
   bool _agregandoAlCarrito = false;
   String _ordenComentarios = 'Más recientes';
   String? _mensajeToast;
@@ -97,7 +97,6 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
     final previa = widget.productoPrevisualizado;
     if (previa != null) {
       _detalle = ProductoDetalleModelo.previsualizacion(previa);
-      _favorito = previa.esFavorito;
       _cargando = false;
       _resolverProporcionImagen(previa.imagenUrl);
     }
@@ -131,7 +130,6 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
       if (!mounted) return;
       setState(() {
         _detalle = detalle;
-        _favorito = detalle.esFavorito;
         _cargando = false;
         _error = null;
       });
@@ -153,7 +151,6 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
             if (!mounted) return;
             setState(() {
               _detalle = ProductoDetalleModelo.previsualizacion(encontrado);
-              _favorito = encontrado.esFavorito;
               _cargando = false;
             });
             _resolverProporcionImagen(encontrado.imagenUrl);
@@ -254,25 +251,28 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
     }
   }
 
-  Future<void> _alternarFavorito() async {
-    if (_detalle == null) return;
-    setState(() => _favorito = !_favorito);
-    if (widget.userId.isEmpty) return; // sin sesión: solo estado visual local
-    try {
-      final id = int.tryParse(_detalle!.id);
-      if (id == null) return;
-      if (_favorito) {
-        await ApiService.agregarFavorito(widget.userId, id);
-      } else {
-        await ApiService.quitarFavorito(widget.userId, id);
-      }
-    } catch (e) {
-      debugPrint('Error actualizando favorito: $e');
-    }
+  void _alternarFavorito() {
+    final detalle = _detalle;
+    if (detalle == null) return;
+    context.read<FavoritosProvider>().alternarProducto(
+          ProductoModelo(
+            id: detalle.id,
+            nombre: detalle.nombre,
+            precio: detalle.precio,
+            imagenUrl: detalle.imagenUrl,
+            artesano: detalle.creador,
+            provincia: detalle.ubicacion,
+            categoria: detalle.categoria,
+          ),
+        );
   }
 
   Future<void> _agregarAlCarrito() async {
     if (_detalle == null || _agregandoAlCarrito) return;
+    if (widget.userId.isEmpty) {
+      _mostrarToast('Inicia sesión para añadir productos al carrito');
+      return;
+    }
     setState(() => _agregandoAlCarrito = true);
     try {
       await context.read<CarritoProvider>().agregarItem(
@@ -354,21 +354,22 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
     }
 
     final detalle = _detalle!;
+    final favorito = context.watch<FavoritosProvider>().esProductoFavorito(detalle.id);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 64, 24, 20),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compacto = constraints.maxWidth < 880;
           return compacto
-              ? _layoutCompacto(oscuro, detalle)
-              : _layoutAmplio(oscuro, detalle);
+              ? _layoutCompacto(oscuro, detalle, favorito)
+              : _layoutAmplio(oscuro, detalle, favorito);
         },
       ),
     );
   }
 
   // ── LAYOUT ESCRITORIO / TABLET GRANDE (imagen + info | panel similares) ──
-  Widget _layoutAmplio(bool oscuro, ProductoDetalleModelo detalle) {
+  Widget _layoutAmplio(bool oscuro, ProductoDetalleModelo detalle, bool favorito) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -387,7 +388,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
                       flex: _imagenEsAncha == true ? 7 : 6,
                       child: _SeccionImagen(
                         imagenUrl: detalle.imagenUrl,
-                        favorito: _favorito,
+                        favorito: favorito,
                         onToggleFavorito: _alternarFavorito,
                         altura: _imagenEsAncha == false ? 620 : 560,
                       ),
@@ -399,7 +400,8 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
                         detalle: detalle,
                         oscuro: oscuro,
                         agregandoAlCarrito: _agregandoAlCarrito,
-                        favorito: _favorito,
+                        favorito: favorito,
+                        estaLogueado: widget.userId.isNotEmpty,
                         onAgregarAlCarrito: _agregarAlCarrito,
                         onToggleFavorito: _alternarFavorito,
                       ),
@@ -422,21 +424,21 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
         const SizedBox(width: 24),
         SizedBox(
           width: 300,
-          child: _PanelSimilares(oscuro: oscuro, similares: _similares),
+          child: _PanelSimilares(oscuro: oscuro, similares: _similares, userId: widget.userId),
         ),
       ],
     );
   }
 
   // ── LAYOUT MÓVIL / TABLET ANGOSTO (todo apilado, similares en fila) ──
-  Widget _layoutCompacto(bool oscuro, ProductoDetalleModelo detalle) {
+  Widget _layoutCompacto(bool oscuro, ProductoDetalleModelo detalle, bool favorito) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SeccionImagen(
             imagenUrl: detalle.imagenUrl,
-            favorito: _favorito,
+            favorito: favorito,
             onToggleFavorito: _alternarFavorito,
             altura: _imagenEsAncha == false ? 340 : 260,
           ),
@@ -445,7 +447,8 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
             detalle: detalle,
             oscuro: oscuro,
             agregandoAlCarrito: _agregandoAlCarrito,
-            favorito: _favorito,
+            favorito: favorito,
+            estaLogueado: widget.userId.isNotEmpty,
             onAgregarAlCarrito: _agregarAlCarrito,
             onToggleFavorito: _alternarFavorito,
           ),
@@ -471,7 +474,11 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
                       width: 170,
                       child: Padding(
                         padding: const EdgeInsets.only(right: 12),
-                        child: _TarjetaSimilar(oscuro: oscuro, producto: _similares[i]),
+                        child: _TarjetaSimilar(
+                          oscuro: oscuro,
+                          producto: _similares[i],
+                          userId: widget.userId,
+                        ),
                       ),
                     ),
                   ),
@@ -704,6 +711,7 @@ class _PanelInformacion extends StatelessWidget {
   final bool oscuro;
   final bool agregandoAlCarrito;
   final bool favorito;
+  final bool estaLogueado;
   final VoidCallback onAgregarAlCarrito;
   final VoidCallback onToggleFavorito;
 
@@ -712,6 +720,7 @@ class _PanelInformacion extends StatelessWidget {
     required this.oscuro,
     required this.agregandoAlCarrito,
     required this.favorito,
+    required this.estaLogueado,
     required this.onAgregarAlCarrito,
     required this.onToggleFavorito,
   });
@@ -788,11 +797,33 @@ class _PanelInformacion extends StatelessWidget {
         const SizedBox(height: 10),
         _FilaSpec(icono: Icons.straighten_rounded, etiqueta: 'Dimensiones', valor: detalle.dimensiones, oscuro: oscuro),
         const SizedBox(height: 22),
+        if (!estaLogueado)
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: CraftHubColors.advertencia.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: CraftHubColors.advertencia.withValues(alpha: 0.4)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.lock_outline_rounded, size: 16, color: CraftHubColors.advertencia),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Inicia sesión para añadir este producto al carrito.',
+                    style: GoogleFonts.poppins(fontSize: 12, color: textoPrincipal)),
+              ),
+            ]),
+          ),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            _BotonAgregarCarrito(cargando: agregandoAlCarrito, onTap: onAgregarAlCarrito),
+            _BotonAgregarCarrito(
+              cargando: agregandoAlCarrito,
+              estaLogueado: estaLogueado,
+              onTap: onAgregarAlCarrito,
+            ),
             _BotonMeGusta(activo: favorito, onTap: onToggleFavorito),
           ],
         ),
@@ -832,8 +863,13 @@ class _FilaSpec extends StatelessWidget {
 
 class _BotonAgregarCarrito extends StatefulWidget {
   final bool cargando;
+  final bool estaLogueado;
   final VoidCallback onTap;
-  const _BotonAgregarCarrito({required this.cargando, required this.onTap});
+  const _BotonAgregarCarrito({
+    required this.cargando,
+    required this.estaLogueado,
+    required this.onTap,
+  });
 
   @override
   State<_BotonAgregarCarrito> createState() => _BotonAgregarCarritoState();
@@ -844,6 +880,7 @@ class _BotonAgregarCarritoState extends State<_BotonAgregarCarrito> {
 
   @override
   Widget build(BuildContext context) {
+    final bloqueado = !widget.estaLogueado;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -854,7 +891,9 @@ class _BotonAgregarCarritoState extends State<_BotonAgregarCarrito> {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
           decoration: BoxDecoration(
-            color: _hover ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto,
+            color: bloqueado
+                ? Colors.grey.withValues(alpha: _hover ? 0.55 : 0.45)
+                : (_hover ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto),
             borderRadius: BorderRadius.circular(50),
           ),
           child: Row(
@@ -867,9 +906,10 @@ class _BotonAgregarCarritoState extends State<_BotonAgregarCarrito> {
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 )
               else
-                const Icon(Icons.shopping_bag_outlined, size: 17, color: Colors.white),
+                Icon(bloqueado ? Icons.lock_outline_rounded : Icons.shopping_bag_outlined,
+                    size: 17, color: Colors.white),
               const SizedBox(width: 8),
-              Text('Añadir al carrito',
+              Text(bloqueado ? 'Inicia sesión para comprar' : 'Añadir al carrito',
                   style: GoogleFonts.poppins(
                       fontSize: 13.5, fontWeight: FontWeight.w600, color: Colors.white)),
             ],
@@ -922,7 +962,12 @@ class _BotonMeGustaState extends State<_BotonMeGusta> {
                   style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
-                      color: CraftHubColors.textoPrincipal(oscuro))),
+                      // El fondo "activo" (vinoTintoSuave) es un rosa claro fijo,
+                      // sin importar el tema — el texto tiene que ser siempre
+                      // oscuro ahí, o se vuelve ilegible en modo oscuro.
+                      color: widget.activo
+                          ? CraftHubColors.vinoTintoOscuro
+                          : CraftHubColors.textoPrincipal(oscuro))),
             ],
           ),
         ),
@@ -1437,7 +1482,8 @@ class _TarjetaComentario extends StatelessWidget {
 class _PanelSimilares extends StatefulWidget {
   final bool oscuro;
   final List<ProductoSimilarModelo> similares;
-  const _PanelSimilares({required this.oscuro, required this.similares});
+  final String userId;
+  const _PanelSimilares({required this.oscuro, required this.similares, required this.userId});
 
   @override
   State<_PanelSimilares> createState() => _PanelSimilaresState();
@@ -1480,7 +1526,11 @@ class _PanelSimilaresState extends State<_PanelSimilares> {
                     itemCount: similares.length,
                     itemBuilder: (_, i) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _TarjetaSimilar(oscuro: oscuro, producto: similares[i]),
+                      child: _TarjetaSimilar(
+                        oscuro: oscuro,
+                        producto: similares[i],
+                        userId: widget.userId,
+                      ),
                     ),
                   ),
                 ),
@@ -1493,7 +1543,8 @@ class _PanelSimilaresState extends State<_PanelSimilares> {
 class _TarjetaSimilar extends StatefulWidget {
   final bool oscuro;
   final ProductoSimilarModelo producto;
-  const _TarjetaSimilar({required this.oscuro, required this.producto});
+  final String userId;
+  const _TarjetaSimilar({required this.oscuro, required this.producto, required this.userId});
 
   @override
   State<_TarjetaSimilar> createState() => _TarjetaSimilarState();
@@ -1501,19 +1552,20 @@ class _TarjetaSimilar extends StatefulWidget {
 
 class _TarjetaSimilarState extends State<_TarjetaSimilar> {
   bool _hover = false;
-  bool _favorito = false;
 
   @override
   Widget build(BuildContext context) {
     final p = widget.producto;
+    final favorito = context.watch<FavoritosProvider>().esProductoFavorito(p.id);
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          // 🔌 abrir el detalle del producto similar seleccionado
-          PantallaDetalleProducto.mostrar(context, productoId: p.id);
+          // Abre el detalle del producto similar seleccionado, conservando
+          // la sesión del usuario (antes se abría siempre como invitado).
+          PantallaDetalleProducto.mostrar(context, productoId: p.id, userId: widget.userId);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -1582,12 +1634,19 @@ class _TarjetaSimilarState extends State<_TarjetaSimilar> {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  setState(() => _favorito = !_favorito);
-                  // 🔌 POST/DELETE /productos/favoritos { producto_id: p.id }
-                },
+                onTap: () => context.read<FavoritosProvider>().alternarProducto(
+                      ProductoModelo(
+                        id: p.id,
+                        nombre: p.nombre,
+                        precio: p.precio,
+                        imagenUrl: p.imagenUrl,
+                        artesano: p.autor,
+                        provincia: '',
+                        categoria: '',
+                      ),
+                    ),
                 child: Icon(
-                  _favorito ? Icons.favorite : Icons.favorite_border_rounded,
+                  favorito ? Icons.favorite : Icons.favorite_border_rounded,
                   size: 16,
                   color: CraftHubColors.vinoTinto,
                 ),

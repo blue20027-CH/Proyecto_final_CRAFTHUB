@@ -392,7 +392,7 @@ class _BannerTutoriales extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
-              Icons.play_circle_outline_rounded,
+              Icons.video_library_outlined,
               color: CraftHubColors.vinoTinto,
               size: 28,
             ),

@@ -12,10 +12,21 @@ class CarritoProvider extends ChangeNotifier {
   List<CarritoModel> get carritos => _carritos;
   CarritoModel? get carritoActivo => _carritos.isEmpty ? null : _carritos[_indiceCarritoActivo];
   bool get cargando => _cargando;
+  String get userId => _userId ?? '';
 
   Future<void> inicializar(String userId) async {
     _userId = userId;
     Future.microtask(() => cargarCarritos());
+  }
+
+  /// Limpia el estado del carrito al cerrar sesión, para que no quede
+  /// visible para la siguiente sesión (invitado u otro usuario).
+  void cerrarSesion() {
+    _userId = null;
+    _carritos = [];
+    _indiceCarritoActivo = 0;
+    _cargando = false;
+    notifyListeners();
   }
 
   Future<void> cargarCarritos() async {

@@ -19,13 +19,16 @@ class SidebarComprador extends StatelessWidget {
 
   static const double _ancho = 68.0;
 
+  // El orden y las etiquetas deben coincidir exactamente con el switch de
+  // _obtenerPantallaActual en inicio_comprador.dart (mismo índice = misma
+  // pantalla real que se muestra al seleccionarlo).
   static const _items = [
-    {'icono': Icons.home_outlined,          'label': 'Inicio'},
-    {'icono': Icons.shopping_cart_outlined, 'label': 'Mi carrito'},
-    {'icono': Icons.people_outline,         'label': 'Artesanos'},
-    {'icono': Icons.favorite_outline,       'label': 'Favoritos'},
-    {'icono': Icons.chat_bubble_outline,    'label': 'Mensajes'},
-    {'icono': Icons.history_rounded,        'label': 'Historial'},
+    {'icono': Icons.home_outlined,           'label': 'Inicio'},
+    {'icono': Icons.shopping_cart_outlined,  'label': 'Mi carrito'},
+    {'icono': Icons.people_outline,          'label': 'Artesanos'},
+    {'icono': Icons.favorite_outline,        'label': 'Favoritos'},
+    {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
+    {'icono': Icons.chat_bubble_outline,     'label': 'Mensajes'},
   ];
 
   String _iniciales(String valor) {

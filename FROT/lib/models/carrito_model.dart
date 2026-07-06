@@ -68,12 +68,3 @@ class CarritoModel {
     );
   }
 }
-
-final List<Map<String, dynamic>> sugerenciasMock = [
-  {'nombre': 'Mola Guna Yala',        'precio': 85.00, 'imagen': 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=300'},
-  {'nombre': 'Collar Emberá',         'precio': 28.00, 'imagen': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300'},
-  {'nombre': 'Camino de mesa tejido', 'precio': 42.00, 'imagen': 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300'},
-  {'nombre': 'Máscara tradicional',   'precio': 75.00, 'imagen': 'https://images.unsplash.com/photo-1566734904496-9309bb1798ae?w=300'},
-  {'nombre': 'Canasta artesanal',     'precio': 36.00, 'imagen': 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=300'},
-  {'nombre': 'Jarrón decorativo',     'precio': 48.00, 'imagen': 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300'},
-];

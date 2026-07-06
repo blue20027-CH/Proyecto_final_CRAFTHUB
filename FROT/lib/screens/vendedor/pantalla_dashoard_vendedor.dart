@@ -3,7 +3,10 @@
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_inventario.dart';
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_tutoriales.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/carrito_provider.dart';
+import '../../core/favoritos_provider.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
 import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
@@ -11,6 +14,7 @@ import '../../widgets/vendedor/grafico_evaluaciones.dart';
 import '../../widgets/vendedor/resumen_rapido.dart';
 import '../../services/vendedor_api_service.dart';
 import '../../widgets/topbar_flotante.dart';
+import '../auth/inicio_screen.dart';
 import 'pantalla_eventos_vendedor.dart';
 
 class HomeVendedor extends StatefulWidget {
@@ -41,6 +45,16 @@ class _HomeVendedorState extends State<HomeVendedor> {
     super.dispose();
   }
 
+  void _cerrarSesion(BuildContext context) {
+    // 🔌 POST /api/auth/logout (invalidar token en el backend cuando exista)
+    context.read<CarritoProvider>().cerrarSesion();
+    context.read<FavoritosProvider>().cerrarSesion();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const PantallaInicio()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
@@ -55,7 +69,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
             fotoUrl: widget.fotoPerfil,
             indiceActivo: _navIndice,
             alSeleccionar: (i) => setState(() => _navIndice = i),
-            alCerrarSesion: () {},
+            alCerrarSesion: () => _cerrarSesion(context),
           ),
           Expanded(
             child: Column(
@@ -82,7 +96,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
         );
       case 1:
         return PantallaInventario(nombreVendedor: widget.nombreVendedor);
-      case 4:
+      case 2:
         return PantallaTutoriales(userId: widget.userId);
       default:
         return _ContenidoDashboard(
@@ -112,8 +126,8 @@ class _HomeVendedorState extends State<HomeVendedor> {
             onTap: () => setState(() => _navIndice = 0)),
         ItemExplorar(icono: Icons.inventory_2_outlined, etiqueta: 'Productos',
             onTap: () => setState(() => _navIndice = 1)),
-        ItemExplorar(icono: Icons.play_circle_outline_rounded, etiqueta: 'Tutoriales',
-            onTap: () => setState(() => _navIndice = 4)),
+        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: 'Tutoriales',
+            onTap: () => setState(() => _navIndice = 2)),
       ],
     );
   }
