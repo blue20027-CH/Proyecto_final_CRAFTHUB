@@ -12,6 +12,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../models/modelo_producto_inventario.dart';
 import '../../../widgets/vendedor/widgets_inventario.dart';
 import '../../services/vendedor_api_service.dart';
+import '../../services/api_service.dart';
+import '../../services/exportador_inventario.dart';
+import '../comprador/pantalla_detalle_producto.dart';
 
 class PantallaInventario extends StatefulWidget {
   final String nombreVendedor;
@@ -162,22 +165,101 @@ class _PantallaInventarioState extends State<PantallaInventario> {
     _aplicarFiltros();
   }
 
-  // 🔌 API: DELETE /api/vendedor/{vendedorId}/productos
-  // Body: { "ids": [..._seleccionados] }
-  // ignore: unused_element
-  void _eliminarSeleccionados() {
+  Future<void> _confirmarEliminarProducto(ProductoInventario producto) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Eliminar producto',
+            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text('¿Seguro que quieres eliminar "${producto.nombre}"? Esta acción no se puede deshacer.',
+            style: const TextStyle(fontFamily: 'Poppins', fontSize: 13)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+    try {
+      await ApiService.eliminarProducto(producto.id);
+      setState(() {
+        _productos.removeWhere((p) => p.id == producto.id);
+        _seleccionados.remove(producto.id);
+      });
+      _aplicarFiltros();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo eliminar: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
+  }
+
+  Future<void> _confirmarEliminarSeleccionados() async {
+    final cantidad = _seleccionados.length;
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Eliminar productos',
+            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text('¿Seguro que quieres eliminar $cantidad producto(s)? Esta acción no se puede deshacer.',
+            style: const TextStyle(fontFamily: 'Poppins', fontSize: 13)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmado != true) return;
+    final idsAEliminar = List<String>.from(_seleccionados);
+    for (final id in idsAEliminar) {
+      try {
+        await ApiService.eliminarProducto(id);
+      } catch (_) {
+        // Sigue con el resto aunque uno falle; se refleja al final quién quedó.
+      }
+    }
     setState(() {
-      _productos.removeWhere((p) => _seleccionados.contains(p.id));
+      _productos.removeWhere((p) => idsAEliminar.contains(p.id));
       _seleccionados.clear();
       _todosSeleccionados = false;
     });
     _aplicarFiltros();
   }
 
-  // 🔌 API: POST /api/vendedor/{vendedorId}/productos/exportar
-  // Respuesta: URL de descarga del CSV/Excel
-  void _exportarInventario() {
-    // TODO: Llamar al endpoint de exportación y abrir la URL con url_launcher
+  Future<void> _nuevoProducto() async {
+    final creado = await showDialog<ProductoInventario>(
+      context: context,
+      builder: (_) => DialogoNuevoProducto(nombreVendedor: widget.nombreVendedor),
+    );
+    if (creado == null) return;
+    setState(() => _productos.add(creado));
+    _aplicarFiltros();
+  }
+
+  Future<void> _exportarInventario() async {
+    try {
+      await ExportadorInventario.exportarCsv(_productosFiltrados);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inventario exportado correctamente.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo exportar: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
   }
 
   @override
@@ -241,8 +323,8 @@ class _PantallaInventarioState extends State<PantallaInventario> {
 
                   const SizedBox(height: 16),
 
-                  // ── Tabla ───────────────────────────────────────────────
-                  _construirTabla(
+                  // ── Grilla de productos ─────────────────────────────────
+                  _construirGrid(
                     esModoOscuro,
                   ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
 
@@ -322,10 +404,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         const SizedBox(width: 12),
         // Botón agregar
         ElevatedButton.icon(
-          onPressed: () {
-            // 🔌 API: Navegar al formulario de creación de producto
-            // POST /api/vendedor/{vendedorId}/productos
-          },
+          onPressed: _nuevoProducto,
           icon: const Icon(Icons.add, size: 16),
           label: const Text(
             'Agregar producto',
@@ -579,12 +658,12 @@ class _PantallaInventarioState extends State<PantallaInventario> {
     );
   }
 
-  // ── Tabla ─────────────────────────────────────────────────────────────────────
-  Widget _construirTabla(bool esModoOscuro) {
+  // ── Grilla de productos ──────────────────────────────────────────────────────
+  Widget _construirGrid(bool esModoOscuro) {
     final colorTarjeta = esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white;
-    final colorCabecera = const Color(0xFF821515);
 
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorTarjeta,
         borderRadius: BorderRadius.circular(16),
@@ -603,95 +682,47 @@ class _PantallaInventarioState extends State<PantallaInventario> {
       ),
       child: Column(
         children: [
-          // ── Cabecera de tabla ─────────────────────────────────────────
-          Container(
-            decoration: BoxDecoration(
-              color: colorCabecera,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+          // ── Barra de selección múltiple ──────────────────────────────
+          Row(
+            children: [
+              Checkbox(
+                value: _todosSeleccionados,
+                onChanged: (v) {
+                  setState(() {
+                    _todosSeleccionados = v ?? false;
+                    if (_todosSeleccionados) {
+                      _seleccionados.addAll(_paginaProductos.map((p) => p.id));
+                    } else {
+                      _seleccionados.clear();
+                    }
+                  });
+                },
+                activeColor: const Color(0xFF821515),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               ),
-            ),
-            child: Row(
-              children: [
-                // Checkbox global
-                SizedBox(
-                  width: 52,
-                  child: Checkbox(
-                    value: _todosSeleccionados,
-                    onChanged: (v) {
-                      setState(() {
-                        _todosSeleccionados = v ?? false;
-                        if (_todosSeleccionados) {
-                          _seleccionados.addAll(
-                            _paginaProductos.map((p) => p.id),
-                          );
-                        } else {
-                          _seleccionados.clear();
-                        }
-                      });
-                    },
-                    activeColor: Colors.white,
-                    checkColor: colorCabecera,
-                    side: const BorderSide(color: Colors.white54),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
+              Text(
+                _seleccionados.isEmpty
+                    ? 'Seleccionar todos'
+                    : '${_seleccionados.length} seleccionado(s)',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12.5,
+                  color: esModoOscuro ? Colors.white60 : const Color(0xFF6B5A52),
                 ),
-                _CeldaCabecera(
-                  texto: 'Producto',
-                  flex: 3,
-                  columna: 'nombre',
-                  columnaActual: _columnaOrden,
-                  ascendente: _ordenAscendente,
-                  alOrdenar: _ordenarPor,
+              ),
+              const Spacer(),
+              if (_seleccionados.isNotEmpty)
+                TextButton.icon(
+                  onPressed: _confirmarEliminarSeleccionados,
+                  icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFC62828)),
+                  label: const Text('Eliminar seleccionados',
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: Color(0xFFC62828))),
                 ),
-                _CeldaCabecera(texto: 'Colección', flex: 2),
-                _CeldaCabecera(texto: 'Categoría', flex: 2),
-                _CeldaCabecera(
-                  texto: 'Precio',
-                  flex: 1,
-                  columna: 'precio',
-                  columnaActual: _columnaOrden,
-                  ascendente: _ordenAscendente,
-                  alOrdenar: _ordenarPor,
-                ),
-                _CeldaCabecera(
-                  texto: 'Stock',
-                  flex: 1,
-                  columna: 'stock',
-                  columnaActual: _columnaOrden,
-                  ascendente: _ordenAscendente,
-                  alOrdenar: _ordenarPor,
-                ),
-                _CeldaCabecera(
-                  texto: 'Ventas',
-                  flex: 1,
-                  columna: 'ventas',
-                  columnaActual: _columnaOrden,
-                  ascendente: _ordenAscendente,
-                  alOrdenar: _ordenarPor,
-                ),
-                _CeldaCabecera(texto: 'Estado', flex: 1),
-                const SizedBox(
-                  width: 80,
-                  child: Center(
-                    child: Text(
-                      'Acciones',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
+          const SizedBox(height: 8),
 
-          // ── Filas ─────────────────────────────────────────────────────
+          // ── Productos ─────────────────────────────────────────────────
           if (_paginaProductos.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 48),
@@ -709,197 +740,78 @@ class _PantallaInventarioState extends State<PantallaInventario> {
               ),
             )
           else
-            ...List.generate(_paginaProductos.length, (i) {
-              final producto = _paginaProductos[i];
-              final esPar = i % 2 == 0;
-              return Column(
-                children: [
-                  Container(
-                    color: esPar
-                        ? Colors.transparent
-                        : (esModoOscuro
-                              ? Colors.white.withValues(alpha: 0.02)
-                              : const Color(0xFFFAF8F5)),
-                    child: FilaProducto(
-                      producto: producto,
-                      seleccionado: _seleccionados.contains(producto.id),
-                      alCambiarSeleccion: (v) {
-                        setState(() {
-                          if (v == true) {
-                            _seleccionados.add(producto.id);
-                          } else {
-                            _seleccionados.remove(producto.id);
-                          }
-                        });
-                      },
-                      alEditar: () {
-                        // 🔌 API: GET /api/vendedor/{vendedorId}/productos/{productoId}
-                        // Navegar al formulario de edición con los datos del producto
-                      },
-                      alVerOpciones: () {
-                        _mostrarMenuOpciones(context, producto);
-                      },
-                    ),
-                  ),
-                  if (i < _paginaProductos.length - 1)
-                    Divider(
-                      height: 1,
-                      color: esModoOscuro
-                          ? const Color(0xFF2A2A2A)
-                          : const Color(0xFFF0EBE5),
-                    ),
-                ],
-              );
-            }),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _paginaProductos.length,
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 260,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.72,
+              ),
+              itemBuilder: (_, i) {
+                final producto = _paginaProductos[i];
+                return TarjetaProductoInventario(
+                  producto: producto,
+                  seleccionado: _seleccionados.contains(producto.id),
+                  alCambiarSeleccion: (v) {
+                    setState(() {
+                      if (v == true) {
+                        _seleccionados.add(producto.id);
+                      } else {
+                        _seleccionados.remove(producto.id);
+                      }
+                    });
+                  },
+                  alVer: () => _verProducto(producto),
+                  alEditar: () => _editarProducto(producto),
+                  alEliminar: () => _confirmarEliminarProducto(producto),
+                );
+              },
+            ),
+
+          const SizedBox(height: 12),
 
           // ── Paginador ─────────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: esModoOscuro
-                      ? const Color(0xFF2E2E2E)
-                      : const Color(0xFFEDE8E2),
-                ),
-              ),
-            ),
-            child: PaginadorTabla(
-              paginaActual: _paginaActual,
-              totalPaginas: _totalPaginas,
-              totalRegistros: _totalProductos,
-              registrosPorPagina: _registrosPorPagina,
-              alCambiarPagina: (p) => setState(() => _paginaActual = p),
-              alCambiarRegistrosPorPagina: (n) => setState(() {
-                _registrosPorPagina = n;
-                _paginaActual = 1;
-              }),
-            ),
+          PaginadorTabla(
+            paginaActual: _paginaActual,
+            totalPaginas: _totalPaginas,
+            totalRegistros: _totalProductos,
+            registrosPorPagina: _registrosPorPagina,
+            alCambiarPagina: (p) => setState(() => _paginaActual = p),
+            alCambiarRegistrosPorPagina: (n) => setState(() {
+              _registrosPorPagina = n;
+              _paginaActual = 1;
+            }),
           ),
         ],
       ),
     );
   }
 
-  // ── Menú contextual de opciones ───────────────────────────────────────────
-  void _mostrarMenuOpciones(BuildContext context, ProductoInventario producto) {
-    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
-    showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      builder: (_) => AlertDialog(
-        backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _OpcionMenu(
-              icono: Icons.visibility_outlined,
-              texto: 'Ver producto',
-              alPresionar: () {
-                Navigator.pop(context);
-                // 🔌 API: Navegar a pantalla de detalle del producto
-              },
-            ),
-            _OpcionMenu(
-              icono: Icons.edit_outlined,
-              texto: 'Editar',
-              alPresionar: () {
-                Navigator.pop(context);
-                // 🔌 API: PUT /api/vendedor/{vendedorId}/productos/{productoId}
-              },
-            ),
-            _OpcionMenu(
-              icono: Icons.copy_outlined,
-              texto: 'Duplicar',
-              alPresionar: () {
-                Navigator.pop(context);
-                // 🔌 API: POST /api/vendedor/{vendedorId}/productos/{productoId}/duplicar
-              },
-            ),
-            const Divider(height: 1),
-            _OpcionMenu(
-              icono: Icons.delete_outline,
-              texto: 'Eliminar',
-              esDestructivo: true,
-              alPresionar: () {
-                Navigator.pop(context);
-                // 🔌 API: DELETE /api/vendedor/{vendedorId}/productos/{productoId}
-                setState(() {
-                  _productos.removeWhere((p) => p.id == producto.id);
-                });
-                _aplicarFiltros();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  void _verProducto(ProductoInventario producto) {
+    PantallaDetalleProducto.mostrar(context, productoId: producto.id);
   }
+
+  Future<void> _editarProducto(ProductoInventario producto) async {
+    final resultado = await showDialog<ProductoInventario>(
+      context: context,
+      builder: (_) => DialogoEditarProducto(producto: producto),
+    );
+    if (resultado == null) return;
+    setState(() {
+      final indice = _productos.indexWhere((p) => p.id == producto.id);
+      if (indice != -1) _productos[indice] = resultado;
+    });
+    _aplicarFiltros();
+  }
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Widgets auxiliares privados
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _CeldaCabecera extends StatelessWidget {
-  final String texto;
-  final int flex;
-  final String? columna;
-  final String? columnaActual;
-  final bool ascendente;
-  final void Function(String)? alOrdenar;
-
-  const _CeldaCabecera({
-    required this.texto,
-    required this.flex,
-    this.columna,
-    this.columnaActual,
-    this.ascendente = true,
-    this.alOrdenar,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final esActiva = columna != null && columna == columnaActual;
-    return Expanded(
-      flex: flex,
-      child: GestureDetector(
-        onTap: columna != null && alOrdenar != null
-            ? () => alOrdenar!(columna!)
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                texto,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: esActiva ? Colors.white : Colors.white70,
-                ),
-              ),
-              if (columna != null) ...[
-                const SizedBox(width: 4),
-                Icon(
-                  esActiva
-                      ? (ascendente ? Icons.arrow_upward : Icons.arrow_downward)
-                      : Icons.unfold_more,
-                  size: 13,
-                  color: esActiva ? Colors.white : Colors.white38,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _DropdownFiltro extends StatelessWidget {
   final String valor;
@@ -950,35 +862,344 @@ class _DropdownFiltro extends StatelessWidget {
   }
 }
 
-class _OpcionMenu extends StatelessWidget {
-  final IconData icono;
-  final String texto;
-  final VoidCallback alPresionar;
-  final bool esDestructivo;
+// ── DIÁLOGO: EDITAR PRODUCTO (humilde: solo lo que de verdad se guarda) ──────
+class DialogoEditarProducto extends StatefulWidget {
+  final ProductoInventario producto;
+  const DialogoEditarProducto({super.key, required this.producto});
 
-  const _OpcionMenu({
-    required this.icono,
-    required this.texto,
-    required this.alPresionar,
-    this.esDestructivo = false,
-  });
+  @override
+  State<DialogoEditarProducto> createState() => _DialogoEditarProductoState();
+}
+
+class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
+  static const _categorias = [
+    'Vestir', 'Artesanía', 'Muebles', 'Joyería', 'Alimentos', 'Accesorios', 'Calzado',
+  ];
+
+  late final TextEditingController _ctrlNombre;
+  late final TextEditingController _ctrlPrecio;
+  late final TextEditingController _ctrlStock;
+  late final TextEditingController _ctrlImagen;
+  late String _categoria;
+  bool _guardando = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrlNombre = TextEditingController(text: widget.producto.nombre);
+    _ctrlPrecio = TextEditingController(text: widget.producto.precio.toStringAsFixed(2));
+    _ctrlStock = TextEditingController(text: widget.producto.stock.toString());
+    _ctrlImagen = TextEditingController(text: widget.producto.rutaImagen);
+    _categoria = _categorias.contains(widget.producto.categoria)
+        ? widget.producto.categoria
+        : _categorias.first;
+  }
+
+  @override
+  void dispose() {
+    _ctrlNombre.dispose();
+    _ctrlPrecio.dispose();
+    _ctrlStock.dispose();
+    _ctrlImagen.dispose();
+    super.dispose();
+  }
+
+  Future<void> _guardar() async {
+    final precio = double.tryParse(_ctrlPrecio.text.trim().replaceAll(',', '.'));
+    final stock = int.tryParse(_ctrlStock.text.trim());
+    if (_ctrlNombre.text.trim().isEmpty || precio == null || stock == null) {
+      setState(() => _error = 'Revisa que nombre, precio y stock sean válidos.');
+      return;
+    }
+    setState(() {
+      _guardando = true;
+      _error = null;
+    });
+    try {
+      await ApiService.actualizarProducto(
+        productoId: widget.producto.id,
+        nombre: _ctrlNombre.text.trim(),
+        precio: precio,
+        stock: stock,
+        categoria: _categoria,
+        imagenUrl: _ctrlImagen.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pop(
+        context,
+        ProductoInventario(
+          id: widget.producto.id,
+          sku: widget.producto.sku,
+          nombre: _ctrlNombre.text.trim(),
+          coleccion: widget.producto.coleccion,
+          categoria: _categoria,
+          precio: precio,
+          stock: stock,
+          ventas: widget.producto.ventas,
+          estado: widget.producto.estado,
+          rutaImagen: _ctrlImagen.text.trim().isEmpty
+              ? widget.producto.rutaImagen
+              : _ctrlImagen.text.trim(),
+        ),
+      );
+    } catch (e) {
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final color = esDestructivo
-        ? const Color(0xFFC62828)
-        : (Theme.of(context).brightness == Brightness.dark
-              ? Colors.white70
-              : const Color(0xFF4A4A4A));
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
 
-    return ListTile(
-      dense: true,
-      leading: Icon(icono, size: 18, color: color),
-      title: Text(
-        texto,
-        style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: color),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Editar producto',
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
+                    fontWeight: FontWeight.w700, color: colorTexto),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _ctrlNombre,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ctrlPrecio,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _ctrlStock,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Stock'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _categoria,
+                decoration: const InputDecoration(labelText: 'Categoría'),
+                items: _categorias
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _ctrlImagen,
+                decoration: const InputDecoration(labelText: 'URL de la imagen'),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
+              ],
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _guardando ? null : () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _guardando ? null : _guardar,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF821515),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: _guardando
+                        ? const SizedBox(
+                            width: 16, height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Guardar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      onTap: alPresionar,
+    );
+  }
+}
+
+// ── DIÁLOGO: NUEVO PRODUCTO ───────────────────────────────────────────────────
+class DialogoNuevoProducto extends StatefulWidget {
+  final String nombreVendedor;
+  const DialogoNuevoProducto({super.key, required this.nombreVendedor});
+
+  @override
+  State<DialogoNuevoProducto> createState() => _DialogoNuevoProductoState();
+}
+
+class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
+  static const _categorias = [
+    'Vestir', 'Artesanía', 'Muebles', 'Joyería', 'Alimentos', 'Accesorios', 'Calzado',
+  ];
+
+  final _ctrlNombre = TextEditingController();
+  final _ctrlPrecio = TextEditingController();
+  final _ctrlStock = TextEditingController(text: '0');
+  final _ctrlImagen = TextEditingController();
+  String _categoria = _categorias.first;
+  bool _guardando = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _ctrlNombre.dispose();
+    _ctrlPrecio.dispose();
+    _ctrlStock.dispose();
+    _ctrlImagen.dispose();
+    super.dispose();
+  }
+
+  Future<void> _guardar() async {
+    final precio = double.tryParse(_ctrlPrecio.text.trim().replaceAll(',', '.'));
+    final stock = int.tryParse(_ctrlStock.text.trim());
+    if (_ctrlNombre.text.trim().isEmpty || precio == null || stock == null) {
+      setState(() => _error = 'Revisa que nombre, precio y stock sean válidos.');
+      return;
+    }
+    setState(() {
+      _guardando = true;
+      _error = null;
+    });
+    try {
+      final respuesta = await ApiService.crearProducto(
+        nombre: _ctrlNombre.text.trim(),
+        precio: precio,
+        stock: stock,
+        categoria: _categoria,
+        creador: widget.nombreVendedor,
+        imagenUrl: _ctrlImagen.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pop(context, ProductoInventario.fromJson(respuesta));
+    } catch (e) {
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _guardando = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Nuevo producto',
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
+                    fontWeight: FontWeight.w700, color: colorTexto),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _ctrlNombre,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ctrlPrecio,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _ctrlStock,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Stock'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _categoria,
+                decoration: const InputDecoration(labelText: 'Categoría'),
+                items: _categorias
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _ctrlImagen,
+                decoration: const InputDecoration(labelText: 'URL de la imagen (opcional)'),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
+              ],
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _guardando ? null : () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _guardando ? null : _guardar,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF821515),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: _guardando
+                        ? const SizedBox(
+                            width: 16, height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Crear producto'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

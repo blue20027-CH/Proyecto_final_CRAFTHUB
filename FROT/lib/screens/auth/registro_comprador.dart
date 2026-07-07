@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../comprador/inicio_comprador.dart';
 import 'pantalla_gustos.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/provincias_panama.dart';
@@ -77,17 +76,7 @@ class _PantallaRegistroCompradorState extends State<PantallaRegistroComprador> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => PantallaIntereses(
-            userId: userId,
-            alGuardar: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomeComprador(userId: userId)),
-            ),
-            alOmitir: () => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomeComprador(userId: userId)),
-            ),
-          ),
+          builder: (_) => PantallaIntereses(userId: userId),
         ),
       );
     } catch (e) {

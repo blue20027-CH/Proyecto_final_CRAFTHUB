@@ -17,6 +17,7 @@ from carrito_router import router as carrito_router
 from tutoriales_router import router as tutoriales_router
 from eventos_router import router as eventos_router
 from preferencias_router import router as preferencias_router
+from anuncios_router import router as anuncios_router
 
 
 app = FastAPI(
@@ -50,6 +51,7 @@ app.include_router(carrito_router)
 app.include_router(tutoriales_router)
 app.include_router(eventos_router)
 app.include_router(preferencias_router)
+app.include_router(anuncios_router)
 
 # ---------------------------------------------------------------------------
 # MODELOS

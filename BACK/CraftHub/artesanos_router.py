@@ -11,6 +11,31 @@ from supabase_client import supabase
 router = APIRouter(prefix="/artesanos", tags=["Artesanos"])
 
 
+def _mapa_calificaciones_por_producto():
+    """producto_id -> lista de calificaciones (no nulas) de `comentarios`."""
+    try:
+        resp = supabase.table("comentarios").select("producto_id, calificacion").execute()
+    except Exception:
+        return {}
+    mapa: dict = {}
+    for c in (resp.data or []):
+        cal = c.get("calificacion")
+        if cal is None:
+            continue
+        mapa.setdefault(c.get("producto_id"), []).append(cal)
+    return mapa
+
+
+def _rating_vendedor(productos_vendedor, mapa_calificaciones) -> tuple[float, int]:
+    """Promedio y total de calificaciones reales sobre todos los productos del vendedor."""
+    calificaciones = []
+    for p in productos_vendedor:
+        calificaciones.extend(mapa_calificaciones.get(p.get("id"), []))
+    if not calificaciones:
+        return 0.0, 0
+    return round(sum(calificaciones) / len(calificaciones), 1), len(calificaciones)
+
+
 @router.get("/")
 def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] = None):
     """
@@ -30,6 +55,7 @@ def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] =
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al cargar artesanos: {str(e)}")
 
+    mapa_calificaciones = _mapa_calificaciones_por_producto()
     artesanos = []
     for perfil in perfiles:
         nombre = (perfil.get("nombre") or "").strip()
@@ -61,6 +87,8 @@ def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] =
         if provincia and provincia not in provincias_vendedor:
             continue
 
+        rating, total_resenas = _rating_vendedor(productos_vendedor, mapa_calificaciones)
+
         artesanos.append({
         "id": perfil.get("user_id") or perfil.get("id"),
         "nombre": nombre,
@@ -73,6 +101,8 @@ def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] =
         "especialidad": categorias_vendedor[0] if categorias_vendedor else "Artesanías",
         "total_productos": len(productos_vendedor),
         "descripcion": perfil.get("descripcion") or "",
+        "rating": rating,
+        "total_resenas": total_resenas,
 })
        
 
@@ -100,8 +130,8 @@ def detalle_artesano(nombre: str):
         raise HTTPException(status_code=500, detail=str(e))
 
     categorias = list({(p.get("categoria") or "").strip() for p in productos if p.get("categoria")})
+    rating, total_resenas = _rating_vendedor(productos, _mapa_calificaciones_por_producto())
 
-   
     return {
         "id": perfil.get("user_id") or perfil.get("id"),
         "nombre": perfil.get("nombre"),
@@ -114,4 +144,6 @@ def detalle_artesano(nombre: str):
         "categorias": categorias,
         "total_productos": len(productos),
         "productos": productos,
+        "rating": rating,
+        "total_resenas": total_resenas,
 }

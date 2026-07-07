@@ -7,6 +7,7 @@ class SidebarComprador extends StatelessWidget {
   final int indiceActivo;
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
+  final bool tieneNotificacionMensajes;
 
   const SidebarComprador({
     super.key,
@@ -15,9 +16,11 @@ class SidebarComprador extends StatelessWidget {
     required this.indiceActivo,
     required this.alSeleccionar,
     required this.alCerrarSesion,
+    this.tieneNotificacionMensajes = false,
   });
 
   static const double _ancho = 68.0;
+  static const int _indiceMensajes = 5;
 
   // El orden y las etiquetas deben coincidir exactamente con el switch de
   // _obtenerPantallaActual en inicio_comprador.dart (mismo índice = misma
@@ -69,6 +72,7 @@ class SidebarComprador extends StatelessWidget {
                 label:  _items[i]['label'] as String,
                 activo: indiceActivo == i,
                 onTap:  () => alSeleccionar(i),
+                mostrarPunto: i == _indiceMensajes && tieneNotificacionMensajes,
               ),
             ),
           ),
@@ -148,6 +152,7 @@ class _ItemNav extends StatefulWidget {
   final bool activo;
   final VoidCallback onTap;
   final bool esLogout;
+  final bool mostrarPunto;
 
   const _ItemNav({
     required this.icono,
@@ -155,6 +160,7 @@ class _ItemNav extends StatefulWidget {
     required this.activo,
     required this.onTap,
     this.esLogout = false,
+    this.mostrarPunto = false,
   });
 
   @override
@@ -199,10 +205,29 @@ class _ItemNavState extends State<_ItemNav> {
                       : null),
             ),
             child: Center(
-              child: Icon(
-                widget.icono,
-                size: 19,
-                color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    widget.icono,
+                    size: 19,
+                    color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+                  ),
+                  if (widget.mostrarPunto)
+                    Positioned(
+                      top: -2,
+                      right: -3,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFE53935),
+                          border: Border.all(color: const Color(0xFF821515), width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

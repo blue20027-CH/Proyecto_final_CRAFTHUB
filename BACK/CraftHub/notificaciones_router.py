@@ -183,6 +183,43 @@ def notificaciones_vendedor(nombre_vendedor: str):
     return {"total": len(cards), "notificaciones": cards}
 
 
+@router.get("/usuario/{user_id}")
+def notificaciones_usuario(user_id: str):
+    """
+    Notificaciones reales guardadas para este usuario (p. ej. "a alguien le
+    gustó tu producto"), no derivadas de pedidos. Para el vendedor.
+    🔗 FLUTTER: GET /api/notificaciones/usuario/{user_id}
+    """
+    try:
+        resp = (
+            supabase.table("notificaciones")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(50)
+            .execute()
+        )
+        notifs = resp.data or []
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+    no_leidas = sum(1 for n in notifs if not n.get("leida"))
+    return {"notificaciones": notifs, "no_leidas": no_leidas}
+
+
+@router.post("/usuario/{user_id}/marcar-leidas")
+def marcar_todas_leidas(user_id: str):
+    """
+    Marca como leídas todas las notificaciones reales de este usuario.
+    🔗 FLUTTER: POST /api/notificaciones/usuario/{user_id}/marcar-leidas
+    """
+    try:
+        supabase.table("notificaciones").update({"leida": True}).eq("user_id", user_id).eq("leida", False).execute()
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+
 @router.patch("/{notificacion_id}/leida")
 def marcar_leida(notificacion_id: str):
     """

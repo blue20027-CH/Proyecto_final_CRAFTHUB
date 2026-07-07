@@ -3,22 +3,22 @@ import '../../core/theme/app_theme.dart';
 
 class ResumenRapido extends StatelessWidget {
   final int pedidosTotales;
-  final String variacionPedidos;
+  final String? variacionPedidos;
   final int pendientesEnviar;
   final int productosActivos;
   final int visitasTienda;
-  final String variacionVisitas;
+  final String? variacionVisitas;
   final VoidCallback alVerPedidos;
   final VoidCallback alVerProductos;
 
   const ResumenRapido({
     super.key,
     required this.pedidosTotales,
-    required this.variacionPedidos,
+    this.variacionPedidos,
     required this.pendientesEnviar,
     required this.productosActivos,
     required this.visitasTienda,
-    required this.variacionVisitas,
+    this.variacionVisitas,
     required this.alVerPedidos,
     required this.alVerProductos,
   });
@@ -102,7 +102,7 @@ class ResumenRapido extends StatelessWidget {
               Expanded(
                 child: _ItemResumen(
                   icono: Icons.storefront_outlined,
-                  titulo: 'Visitas a tu tienda',
+                  titulo: 'Visitas a tu perfil',
                   valor: visitasTienda.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},'),
                   variacion: variacionVisitas,
                   positivo: true,

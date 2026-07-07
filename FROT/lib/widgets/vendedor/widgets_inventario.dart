@@ -5,6 +5,190 @@ import 'package:flutter/material.dart';
 import '../../models/modelo_producto_inventario.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 0. Tarjeta de producto (grilla visual del inventario)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class TarjetaProductoInventario extends StatefulWidget {
+  final ProductoInventario producto;
+  final bool seleccionado;
+  final ValueChanged<bool?> alCambiarSeleccion;
+  final VoidCallback alVer;
+  final VoidCallback alEditar;
+  final VoidCallback alEliminar;
+
+  const TarjetaProductoInventario({
+    super.key,
+    required this.producto,
+    required this.seleccionado,
+    required this.alCambiarSeleccion,
+    required this.alVer,
+    required this.alEditar,
+    required this.alEliminar,
+  });
+
+  @override
+  State<TarjetaProductoInventario> createState() => _TarjetaProductoInventarioState();
+}
+
+class _TarjetaProductoInventarioState extends State<TarjetaProductoInventario> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    final colorTarjeta = esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white;
+    const colorPrimario = Color(0xFF821515);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: colorTarjeta,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: widget.seleccionado
+                ? colorPrimario
+                : (_hover
+                    ? colorPrimario.withValues(alpha: 0.35)
+                    : (esModoOscuro ? const Color(0xFF2E2E2E) : const Color(0xFFEDE8E2))),
+            width: widget.seleccionado ? 1.6 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: _hover ? (esModoOscuro ? 0.28 : 0.08) : (esModoOscuro ? 0.2 : 0.04)),
+              blurRadius: _hover ? 16 : 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                GestureDetector(
+                  onTap: widget.alVer,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: AspectRatio(
+                      aspectRatio: 16 / 11,
+                      child: Image.network(
+                        widget.producto.rutaImagen,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          color: colorPrimario.withValues(alpha: 0.08),
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.inventory_2_outlined, color: colorPrimario, size: 32),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Checkbox(
+                      value: widget.seleccionado,
+                      onChanged: widget.alCambiarSeleccion,
+                      activeColor: colorPrimario,
+                      checkColor: Colors.white,
+                      side: const BorderSide(color: Colors.white),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.producto.nombre,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: esModoOscuro ? Colors.white : const Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${widget.producto.precio.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: colorPrimario,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Stock: ${widget.producto.stock}   Ventas: ${widget.producto.ventas}',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      color: esModoOscuro ? Colors.white54 : const Color(0xFF6B5A52),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  BadgeEstado(estado: widget.producto.estado),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: widget.alEditar,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: esModoOscuro ? Colors.white70 : const Color(0xFF4A4A4A),
+                            side: BorderSide(
+                              color: esModoOscuro ? const Color(0xFF3A3A3A) : const Color(0xFFDDD5CC),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                          ),
+                          child: const Text('Editar',
+                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: widget.alEliminar,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFC62828),
+                            side: const BorderSide(color: Color(0xFFF0C6C6)),
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                          ),
+                          child: const Text('Eliminar',
+                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 1. Tarjeta de estadística superior
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -163,6 +347,7 @@ class ChipColeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     const colorPrimario = Color(0xFF821515);
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: colorPrimario.withValues(alpha: 0.08),
@@ -171,6 +356,9 @@ class ChipColeccion extends StatelessWidget {
       ),
       child: Text(
         nombre,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        textAlign: TextAlign.center,
         style: const TextStyle(
           fontFamily: 'Poppins',
           fontSize: 11,
@@ -248,12 +436,11 @@ class _FilaProductoState extends State<FilaProducto> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
+                      child: Image.network(
                         widget.producto.rutaImagen,
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
-                        // 🔌 API: Cambiar por Image.network(widget.producto.rutaImagen)
                         errorBuilder: (_, _, _) => Container(
                           width: 48,
                           height: 48,

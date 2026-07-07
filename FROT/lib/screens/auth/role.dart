@@ -1,5 +1,4 @@
 import 'package:abi_frotend_nd/screens/auth/pantalla_gustos.dart';
-import 'package:abi_frotend_nd/screens/comprador/inicio_comprador.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
@@ -230,16 +229,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => PantallaIntereses(
-                            alGuardar: () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const HomeComprador(userId: '')),
-                            ),
-                            alOmitir: () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const HomeComprador(userId: '')),
-                            ),
-                          ),
+                          builder: (_) => const PantallaIntereses(userId: ''),
                         ),
                       ),
                     ),

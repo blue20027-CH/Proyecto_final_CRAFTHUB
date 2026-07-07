@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -6,6 +7,24 @@ from fastapi import APIRouter, HTTPException
 from supabase_client import supabase
 
 router = APIRouter(prefix="/api/vendedor", tags=["Vendedor"])
+
+
+def _comentarios_de_vendedor(productos: list) -> list:
+    """Todos los comentarios (con calificación o no) de los productos del vendedor."""
+    ids = [p.get("id") for p in productos if p.get("id") is not None]
+    if not ids:
+        return []
+    try:
+        resp = (
+            supabase.table("comentarios")
+            .select("*")
+            .in_("producto_id", ids)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return resp.data or []
+    except Exception:
+        return []
 
 
 def _precio_float(valor) -> float:
@@ -136,6 +155,43 @@ def dashboard_vendedor(nombre_vendedor: str, periodo: Optional[str] = None):
         ]
 
         productos_activos = sum(1 for p in productos if _cantidad_int(p.get("stock")) > 0)
+
+        # ── Evaluaciones reales (tabla `comentarios` de los productos del vendedor) ──
+        comentarios = _comentarios_de_vendedor(productos)
+        calificaciones = [c["calificacion"] for c in comentarios if c.get("calificacion") is not None]
+        promedio_evaluacion = round(sum(calificaciones) / len(calificaciones), 1) if calificaciones else 0
+        total_evaluaciones = len(calificaciones)
+        distribucion_evaluaciones = {"5": 0, "4": 0, "3": 0, "2": 0, "1": 0}
+        for cal in calificaciones:
+            estrella = str(min(5, max(1, round(cal))))
+            distribucion_evaluaciones[estrella] = distribucion_evaluaciones.get(estrella, 0) + 1
+
+        # "Nuevas opiniones" = comentarios publicados en los últimos 30 días
+        ahora = datetime.now(timezone.utc)
+        nuevas_opiniones = 0
+        for c in comentarios:
+            creado = c.get("created_at")
+            if not creado:
+                continue
+            try:
+                fecha = datetime.fromisoformat(str(creado).replace("Z", "+00:00"))
+                if (ahora - fecha).days <= 30:
+                    nuevas_opiniones += 1
+            except Exception:
+                continue
+
+        # ── Visitas reales al perfil (tabla `visitas_perfil`) ──
+        try:
+            visitas_resp = (
+                supabase.table("visitas_perfil")
+                .select("id", count="exact")
+                .eq("vendedor_nombre", nombre_vendedor)
+                .execute()
+            )
+            visitas_perfil = visitas_resp.count or 0
+        except Exception:
+            visitas_perfil = 0
+
         return {
             "nombre_vendedor": nombre_vendedor,
             "ingresos_total": round(ingresos_total, 2),
@@ -143,15 +199,59 @@ def dashboard_vendedor(nombre_vendedor: str, periodo: Optional[str] = None):
             "ingresos_mensuales": [0, 0, 0, 0, 0, round(ingresos_total, 2)],
             "etiquetas_meses": ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
             "top_productos": top_productos,
-            "promedio_evaluacion": 0,
-            "total_evaluaciones": 0,
-            "distribucion_evaluaciones": {"5": 0, "4": 0, "3": 0, "2": 0, "1": 0},
+            "promedio_evaluacion": promedio_evaluacion,
+            "total_evaluaciones": total_evaluaciones,
+            "distribucion_evaluaciones": distribucion_evaluaciones,
             "clientes_felices": pedidos_totales,
-            "nuevas_opiniones": 0,
+            "nuevas_opiniones": nuevas_opiniones,
             "pedidos_totales": pedidos_totales,
             "pendientes_enviar": pendientes,
             "productos_activos": productos_activos,
-            "visitas_tienda": 0,
+            "visitas_tienda": visitas_perfil,
         }
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Error cargando dashboard del vendedor: {ex}")
+
+
+@router.get("/{nombre_vendedor}/opiniones")
+def opiniones_vendedor(nombre_vendedor: str, limite: int = 20):
+    """
+    Opiniones (comentarios) recientes sobre los productos del vendedor.
+    🔗 FLUTTER: GET /api/vendedor/{nombre}/opiniones
+    """
+    try:
+        productos, *_ = _productos_y_ventas(nombre_vendedor)
+        comentarios = _comentarios_de_vendedor(productos)[:limite]
+        nombres_productos = {p.get("id"): (p.get("nombre") or "Producto") for p in productos}
+        return {
+            "opiniones": [
+                {
+                    "id": c.get("id"),
+                    "producto": nombres_productos.get(c.get("producto_id"), "Producto"),
+                    "nombre": c.get("nombre") or "Comprador CraftHub",
+                    "comentario": c.get("comentario"),
+                    "calificacion": c.get("calificacion"),
+                    "avatar_url": c.get("avatar_url"),
+                    "created_at": c.get("created_at"),
+                }
+                for c in comentarios
+            ]
+        }
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error cargando opiniones: {ex}")
+
+
+@router.post("/visita-perfil")
+def registrar_visita_perfil(data: dict):
+    """
+    Registra una visita al perfil público de un artesano.
+    🔗 FLUTTER: POST /api/vendedor/visita-perfil  Body: {"nombre": "..."}
+    """
+    nombre = (data.get("nombre") or "").strip()
+    if not nombre:
+        raise HTTPException(status_code=400, detail="Falta el nombre del artesano.")
+    try:
+        supabase.table("visitas_perfil").insert({"vendedor_nombre": nombre}).execute()
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error registrando la visita: {ex}")

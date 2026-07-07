@@ -7,6 +7,7 @@ class SidebarVendedor extends StatelessWidget {
   final int indiceActivo;
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
+  final bool tieneNotificacionMensajes;
 
   const SidebarVendedor({
     super.key,
@@ -15,18 +16,21 @@ class SidebarVendedor extends StatelessWidget {
     required this.indiceActivo,
     required this.alSeleccionar,
     required this.alCerrarSesion,
+    this.tieneNotificacionMensajes = false,
   });
 
   static const double _ancho = 68.0;
+  static const int _indiceMensajes = 3;
 
   // Solo se listan las secciones que realmente existen (mismo orden que el
   // menú "Explorar" del topbar y que el switch de _obtenerPantallaActual en
   // pantalla_dashoard_vendedor.dart) — así ningún ítem lleva a un callejón
   // sin salida.
   static const _items = [
-    {'icono': Icons.dashboard_outlined,     'label': 'Dashboard'},
-    {'icono': Icons.inventory_2_outlined,   'label': 'Productos'},
-    {'icono': Icons.video_library_outlined, 'label': 'Tutoriales'},
+    {'icono': Icons.dashboard_outlined,      'label': 'Dashboard'},
+    {'icono': Icons.inventory_2_outlined,    'label': 'Productos'},
+    {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
+    {'icono': Icons.forum_outlined,          'label': 'Mensajes'},
   ];
 
   @override
@@ -61,6 +65,7 @@ class SidebarVendedor extends StatelessWidget {
                 label:  _items[i]['label'] as String,
                 activo: indiceActivo == i,
                 onTap:  () => alSeleccionar(i),
+                mostrarPunto: i == _indiceMensajes && tieneNotificacionMensajes,
               ),
             ),
           ),
@@ -151,6 +156,7 @@ class _ItemNav extends StatefulWidget {
   final bool activo;
   final VoidCallback onTap;
   final bool esLogout;
+  final bool mostrarPunto;
 
   const _ItemNav({
     required this.icono,
@@ -158,6 +164,7 @@ class _ItemNav extends StatefulWidget {
     required this.activo,
     required this.onTap,
     this.esLogout = false,
+    this.mostrarPunto = false,
   });
 
   @override
@@ -202,10 +209,29 @@ class _ItemNavState extends State<_ItemNav> {
                       : null),
             ),
             child: Center(
-              child: Icon(
-                widget.icono,
-                size: 19,
-                color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    widget.icono,
+                    size: 19,
+                    color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+                  ),
+                  if (widget.mostrarPunto)
+                    Positioned(
+                      top: -2,
+                      right: -3,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFE53935),
+                          border: Border.all(color: const Color(0xFF821515), width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

@@ -30,11 +30,13 @@ class CarritoProvider extends ChangeNotifier {
   }
 
   Future<void> cargarCarritos() async {
-    if (_userId == null) return;
+    // Un invitado (userId vacío) no tiene carrito en el backend: no hay
+    // nada que cargar, y llamar igual causaba un crash por cast inválido.
+    if (_userId == null || _userId!.isEmpty) return;
     _cargando = true;
     try {
       final data = await ApiService.getCarritos(_userId!);
-      final lista = data['carritos'] as List<dynamic>;
+      final lista = (data['carritos'] as List<dynamic>?) ?? [];
       _carritos = lista.map((c) => CarritoModel.fromJson(c)).toList();
       if (_carritos.isEmpty) {
         await _crearCarritoInicial();

@@ -84,6 +84,41 @@ class DatosDashboardVendedor {
   }
 }
 
+class OpinionVendedor {
+  final String id;
+  final String producto;
+  final String nombre;
+  final String comentario;
+  final double? calificacion;
+  final String avatarUrl;
+  final String fecha;
+
+  const OpinionVendedor({
+    required this.id,
+    required this.producto,
+    required this.nombre,
+    required this.comentario,
+    required this.calificacion,
+    required this.avatarUrl,
+    required this.fecha,
+  });
+
+  factory OpinionVendedor.fromJson(Map<String, dynamic> json) {
+    final creado = (json['created_at'] ?? '').toString();
+    return OpinionVendedor(
+      id: (json['id'] ?? '').toString(),
+      producto: (json['producto'] ?? 'Producto').toString(),
+      nombre: (json['nombre'] ?? 'Comprador CraftHub').toString(),
+      comentario: (json['comentario'] ?? '').toString(),
+      calificacion: json['calificacion'] == null
+          ? null
+          : double.tryParse(json['calificacion'].toString()),
+      avatarUrl: (json['avatar_url'] ?? '').toString(),
+      fecha: creado.length >= 10 ? creado.substring(0, 10) : creado,
+    );
+  }
+}
+
 class InventarioVendedorRespuesta {
   final List<ProductoInventario> productos;
   final Map<String, dynamic> estadisticas;
@@ -107,6 +142,21 @@ class VendedorApiService {
     }
 
     return DatosDashboardVendedor.fromJson(jsonDecode(response.body));
+  }
+
+  static Future<List<OpinionVendedor>> cargarOpiniones(String nombreVendedor) async {
+    final uri = Uri.parse('$baseUrl/api/vendedor/${Uri.encodeComponent(nombreVendedor)}/opiniones');
+    final response = await http.get(uri).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['detail'] ?? 'Error cargando opiniones del vendedor');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ((data['opiniones'] as List?) ?? [])
+        .map((item) => OpinionVendedor.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<InventarioVendedorRespuesta> cargarProductos(String nombreVendedor) async {

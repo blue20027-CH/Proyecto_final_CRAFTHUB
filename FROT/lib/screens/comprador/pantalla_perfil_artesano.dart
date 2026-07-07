@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/comprador/tarjeta_producto_perfil.dart';
 import '../../widgets/comprador/selector_coleccion.dart';
+import '../../services/api_service.dart';
 
 // Modelo de datos del artesano
 // TODO: reemplazar con tu modelo real desde FastAPI
@@ -76,6 +77,13 @@ class PantallaPerfilArtesano extends StatefulWidget {
 class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
   String? _coleccionSeleccionada;
   final Set<String> _favoritos = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Cuenta como una visita real al perfil (dashboard del vendedor).
+    ApiService.registrarVisitaPerfil(widget.artesano.nombre);
+  }
 
   List<ModeloProductoResumen> get _productosFiltrados {
     if (_coleccionSeleccionada == null) return widget.artesano.productos;

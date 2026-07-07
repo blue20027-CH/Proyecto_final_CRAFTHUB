@@ -130,18 +130,96 @@ class _HomeCompradorState extends State<HomeComprador> {
   String? _error;
   List<ArtesanoModelo> _artesanos = [];
 
+  // Preferencias guardadas por el usuario (pantalla de intereses): se usan
+  // para que el catálogo muestre primero lo que coincide con lo que le gusta.
+  Set<String> _categoriasPreferidas = {};
+  Set<String> _regionesPreferidas = {};
+
   // ✅ NUEVO: datos del usuario logueado
   String _nombreUsuario = 'Usuario CraftHub';
   String _fotoUsuario = '';
+
+  bool _tieneAnuncioSinLeer = false;
 
   @override
   void initState() {
     super.initState();
     _inicializarCarrito();
     _inicializarFavoritos();
-    _cargarProductos();
+    _cargarPreferenciasUsuario().then((_) => _cargarProductos());
     _cargarArtesanos();
     _cargarPerfilUsuario(); // ✅ NUEVO
+    _revisarAnuncios();
+  }
+
+  Future<void> _revisarAnuncios() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final data = await ApiService.getAnuncios(widget.userId);
+      if (!mounted) return;
+      setState(() => _tieneAnuncioSinLeer = (data['no_leidos'] ?? 0) > 0);
+    } catch (e) {
+      debugPrint('Error revisando anuncios: $e');
+    }
+  }
+
+  void _abrirMensajes() {
+    setState(() {
+      _navIndice = 5;
+      _tieneAnuncioSinLeer = false;
+    });
+    if (widget.userId.isNotEmpty) {
+      ApiService.marcarAnunciosLeidos(widget.userId);
+    }
+  }
+
+  Future<void> _cargarPreferenciasUsuario() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final data = await ApiService.getPreferencias(widget.userId);
+      _categoriasPreferidas =
+          (data['categorias'] as List<dynamic>? ?? []).map((e) => e.toString()).toSet();
+      _regionesPreferidas = {
+        ...(data['provincias'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        ...(data['comarcas'] as List<dynamic>? ?? []).map((e) => e.toString()),
+      };
+    } catch (e) {
+      debugPrint('Error cargando preferencias: $e');
+    }
+  }
+
+  // "Comarca Guna-Yala" (como se guarda desde la pantalla de intereses) debe
+  // considerarse igual a "Guna Yala" (como aparece en productos/artesanos):
+  // se quita el prefijo "comarca" y se normalizan guiones/mayúsculas.
+  String _normalizarRegion(String s) {
+    var t = s.trim().toLowerCase().replaceAll('-', ' ');
+    if (t.startsWith('comarca ')) t = t.substring('comarca '.length);
+    return t.trim();
+  }
+
+  bool _coincideCategoria(String preferida, String delProducto) {
+    final a = preferida.trim().toLowerCase();
+    final b = delProducto.trim().toLowerCase();
+    if (a.isEmpty || b.isEmpty) return false;
+    return a.contains(b) || b.contains(a);
+  }
+
+  // Pone primero (preservando el orden entre sí) los productos cuya
+  // categoría o provincia coincide con las preferencias guardadas.
+  List<ProductoModelo> _ordenarPorPreferencias(List<ProductoModelo> productos) {
+    if (_categoriasPreferidas.isEmpty && _regionesPreferidas.isEmpty) {
+      return productos;
+    }
+    final regionesNormalizadas = _regionesPreferidas.map(_normalizarRegion).toSet();
+    final coinciden = <ProductoModelo>[];
+    final resto = <ProductoModelo>[];
+    for (final p in productos) {
+      final coincideRegion = regionesNormalizadas.contains(_normalizarRegion(p.provincia));
+      final coincideCategoria =
+          _categoriasPreferidas.any((c) => _coincideCategoria(c, p.categoria));
+      (coincideRegion || coincideCategoria ? coinciden : resto).add(p);
+    }
+    return [...coinciden, ...resto];
   }
 
   Future<void> _inicializarCarrito() async {
@@ -198,7 +276,7 @@ class _HomeCompradorState extends State<HomeComprador> {
         categoria: _categoriaActiva,
         busqueda: _busquedaCtrl.text,
       );
-      setState(() => _productos = productos);
+      setState(() => _productos = _ordenarPorPreferencias(productos));
     } catch (e) {
       setState(() => _error = 'No se pudieron cargar los productos: $e');
     } finally {
@@ -269,8 +347,9 @@ class _HomeCompradorState extends State<HomeComprador> {
             nombre: _nombreUsuario,
             fotoUrl: _fotoUsuario,
             indiceActivo: _navIndice,
-            alSeleccionar: (i) => setState(() => _navIndice = i),
+            alSeleccionar: (i) => i == 5 ? _abrirMensajes() : setState(() => _navIndice = i),
             alCerrarSesion: () => _cerrarSesion(context),
+            tieneNotificacionMensajes: _tieneAnuncioSinLeer,
           ),
 
           Expanded(
@@ -301,7 +380,7 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 4:
         return PantallaTutorialesComprador(userId: widget.userId);
       case 5:
-        return PantallaMensajesComprador();
+        return PantallaMensajesComprador(userId: widget.userId);
       default:
         return _buildContenido(oscuro);
     }

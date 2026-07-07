@@ -5,7 +5,6 @@ import 'core/theme/app_theme.dart';
 import 'core/carrito_provider.dart';
 import 'core/favoritos_provider.dart';
 import 'screens/auth/inicio_screen.dart';
-
 class GestorTema extends ChangeNotifier {
   bool _modoOscuro = false;
 

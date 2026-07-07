@@ -6,6 +6,7 @@ import '../../widgets/boton_primario.dart';
 import '../../widgets/campo_texto.dart';
 import '../../widgets/boton_google.dart';
 import '../../services/servicio_auth.dart';
+import '../../services/api_service.dart';
 import '../comprador/inicio_comprador.dart';
 import '../vendedor/pantalla_dashoard_vendedor.dart';
 import 'pantalla_gustos.dart';
@@ -85,20 +86,26 @@ class _PantallaLoginState extends State<PantallaLogin> {
             ),
           );
         } else {
+          // Las preferencias solo se piden una vez: si el usuario ya tiene
+          // algo guardado, se salta directo al home sin volver a mostrarlas.
+          bool yaTienePreferencias = false;
+          try {
+            final prefs = await ApiService.getPreferencias(userId);
+            yaTienePreferencias =
+                (prefs['provincias'] as List?)?.isNotEmpty == true ||
+                (prefs['comarcas'] as List?)?.isNotEmpty == true ||
+                (prefs['categorias'] as List?)?.isNotEmpty == true;
+          } catch (_) {
+            yaTienePreferencias = false;
+          }
+
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => PantallaIntereses(
-                userId: userId,
-                alGuardar: () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => HomeComprador(userId: userId)),
-                ),
-                alOmitir: () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => HomeComprador(userId: userId)),
-                ),
-              ),
+              builder: (_) => yaTienePreferencias
+                  ? HomeComprador(userId: userId)
+                  : PantallaIntereses(userId: userId),
             ),
           );
         }
