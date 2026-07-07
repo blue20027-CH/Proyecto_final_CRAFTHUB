@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-3", "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8080", "--app-dir", "BACK/CraftHub"],
+      "port": 8080
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d FROT && flutter run -d web-server --web-port=5173"],
+      "port": 5173
+    }
+  ]
+}

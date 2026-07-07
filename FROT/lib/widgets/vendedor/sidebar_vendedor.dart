@@ -27,6 +27,7 @@ class SidebarVendedor extends StatelessWidget {
     {'icono': Icons.chat_bubble_outline,   'label': 'Mensajes'},
     {'icono': Icons.bar_chart_rounded,     'label': 'Reportes'},
     {'icono': Icons.settings_outlined,     'label': 'ConfiguraciÃ³n'},
+    {'icono': Icons.map_outlined,          'label': 'Mapa'},
   ];
 
   @override

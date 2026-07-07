@@ -12,6 +12,8 @@ import '../../widgets/vendedor/resumen_rapido.dart';
 import '../../services/vendedor_api_service.dart';
 import '../../widgets/topbar_flotante.dart';
 import 'pantalla_eventos_vendedor.dart';
+import 'pantalla_ordenes_vendedor.dart';
+import 'pantalla_mapa_vendedor.dart';
 
 class HomeVendedor extends StatefulWidget {
   final bool esOscuro;
@@ -33,6 +35,7 @@ class HomeVendedor extends StatefulWidget {
 
 class _HomeVendedorState extends State<HomeVendedor> {
   int _navIndice = 0;
+  String? _pedidoResaltadoMapa;
   final TextEditingController _busquedaCtrl = TextEditingController();
 
   @override
@@ -79,16 +82,33 @@ class _HomeVendedorState extends State<HomeVendedor> {
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
           alVerProductos: () => setState(() => _navIndice = 1),
+          alVerPedidos: () => setState(() => _navIndice = 2),
         );
       case 1:
         return PantallaInventario(nombreVendedor: widget.nombreVendedor);
+      case 2:
+        return PantallaOrdenesVendedor(
+          esOscuro: oscuro,
+          nombreVendedor: widget.nombreVendedor,
+          alVerEnMapa: (idPedido) => setState(() {
+            _pedidoResaltadoMapa = idPedido;
+            _navIndice = 7;
+          }),
+        );
       case 4:
         return PantallaTutoriales(userId: widget.userId);
+      case 7:
+        return PantallaMapaVendedor(
+          esOscuro: oscuro,
+          nombreVendedor: widget.nombreVendedor,
+          pedidoResaltado: _pedidoResaltadoMapa,
+        );
       default:
         return _ContenidoDashboard(
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
           alVerProductos: () => setState(() => _navIndice = 1),
+          alVerPedidos: () => setState(() => _navIndice = 2),
         );
     }
   }
@@ -112,8 +132,12 @@ class _HomeVendedorState extends State<HomeVendedor> {
             onTap: () => setState(() => _navIndice = 0)),
         ItemExplorar(icono: Icons.inventory_2_outlined, etiqueta: 'Productos',
             onTap: () => setState(() => _navIndice = 1)),
+        ItemExplorar(icono: Icons.receipt_long_outlined, etiqueta: 'Pedidos',
+            onTap: () => setState(() => _navIndice = 2)),
         ItemExplorar(icono: Icons.play_circle_outline_rounded, etiqueta: 'Tutoriales',
             onTap: () => setState(() => _navIndice = 4)),
+        ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de pedidos',
+            onTap: () => setState(() => _navIndice = 7)),
       ],
     );
   }
@@ -125,11 +149,13 @@ class _ContenidoDashboard extends StatefulWidget {
   final bool esOscuro;
   final String nombreVendedor;
   final VoidCallback alVerProductos;
+  final VoidCallback? alVerPedidos;
 
   const _ContenidoDashboard({
     required this.esOscuro,
     required this.nombreVendedor,
     required this.alVerProductos,
+    this.alVerPedidos,
   });
 
   @override
@@ -235,7 +261,7 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
             productosActivos: datos.productosActivos,
             visitasTienda: datos.visitasTienda,
             variacionVisitas: '↑ 23%',
-            alVerPedidos: () {},
+            alVerPedidos: widget.alVerPedidos ?? () {},
             alVerProductos: widget.alVerProductos,
           ),
         ],

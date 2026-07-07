@@ -187,3 +187,4 @@ List<MensajeModelo> mockMensajesRosa() => [
     hora: DateTime.now().subtract(const Duration(minutes: 16)),
   ),
 ];
+
