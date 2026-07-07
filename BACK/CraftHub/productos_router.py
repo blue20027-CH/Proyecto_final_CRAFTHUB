@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Optional
+import uuid
 from supabase_client import supabase
 
 router = APIRouter(
@@ -70,6 +71,26 @@ def _rating_de_producto(producto_id: int) -> tuple[float, int]:
     if not calificaciones:
         return 0.0, 0
     return round(sum(calificaciones) / len(calificaciones), 1), len(calificaciones)
+
+
+@router.post("/subir-foto")
+async def subir_foto_producto(file: UploadFile = File(...)):
+    """
+    Sube una foto de producto al Storage de Supabase y devuelve su URL pública.
+    🔗 FLUTTER: POST /productos/subir-foto (multipart, campo "file")
+    """
+    try:
+        contenido = await file.read()
+        extension = file.filename.split(".")[-1] if file.filename else "jpg"
+        nombre_archivo = f"producto_{uuid.uuid4().hex[:10]}.{extension}"
+        bucket = "productos"
+        supabase.storage.from_(bucket).upload(
+            nombre_archivo, contenido, {"content-type": file.content_type or "image/jpeg"}
+        )
+        url = supabase.storage.from_(bucket).get_public_url(nombre_archivo)
+        return {"success": True, "url": url}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error al subir la imagen: {str(ex)}")
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)

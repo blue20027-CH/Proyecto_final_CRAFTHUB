@@ -60,6 +60,18 @@ class ModeloProductoResumen {
     required this.imagenUrl,
     required this.coleccion,
   });
+
+  // Mapea el producto crudo que devuelve GET /artesanos/{nombre} (campo "productos").
+  factory ModeloProductoResumen.fromJson(Map<String, dynamic> json) {
+    final precio = double.tryParse((json['precio'] ?? 0).toString()) ?? 0;
+    return ModeloProductoResumen(
+      id: (json['id'] ?? '').toString(),
+      nombre: (json['nombre'] ?? '').toString(),
+      precio: '\$${precio.toStringAsFixed(2)}',
+      imagenUrl: (json['imagen_url'] ?? json['imagen'] ?? json['img'] ?? '').toString(),
+      coleccion: (json['categoria'] ?? 'General').toString(),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -67,8 +79,18 @@ class ModeloProductoResumen {
 // ─────────────────────────────────────────────────────────────
 class PantallaPerfilArtesano extends StatefulWidget {
   final ModeloArtesano artesano;
+  // Cuando es tu propio perfil (te lo abrió el sidebar del vendedor), se ve
+  // exactamente igual a como lo ve un comprador, pero con un botón de
+  // "Editar perfil" en vez de "Enviar mensaje"/"Seguir".
+  final bool esPropio;
+  final VoidCallback? onEditar;
 
-  const PantallaPerfilArtesano({super.key, required this.artesano});
+  const PantallaPerfilArtesano({
+    super.key,
+    required this.artesano,
+    this.esPropio = false,
+    this.onEditar,
+  });
 
   @override
   State<PantallaPerfilArtesano> createState() => _PantallaPerfilArtesanoState();
@@ -111,6 +133,8 @@ class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
             _SeccionBanner(
               artesano: a,
               onVolver: () => Navigator.maybePop(context),
+              esPropio: widget.esPropio,
+              onEditar: widget.onEditar,
             ),
 
             // ── CUERPO: stats + contenido ───────────────────────────────
@@ -162,8 +186,15 @@ class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
 class _SeccionBanner extends StatelessWidget {
   final ModeloArtesano artesano;
   final VoidCallback onVolver;
+  final bool esPropio;
+  final VoidCallback? onEditar;
 
-  const _SeccionBanner({required this.artesano, required this.onVolver});
+  const _SeccionBanner({
+    required this.artesano,
+    required this.onVolver,
+    this.esPropio = false,
+    this.onEditar,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -329,21 +360,30 @@ class _SeccionBanner extends StatelessWidget {
                   ),
                   // Botones de acción alineados a la derecha
                   Row(
-                    children: [
-                      _BotonAccion(
-                        texto: 'Enviar mensaje',
-                        icono: Icons.chat_bubble_outline_rounded,
-                        esPrimario: true,
-                        alPresionar: () {},
-                      ),
-                      const SizedBox(width: 12),
-                      _BotonAccion(
-                        texto: 'Seguir artesana',
-                        icono: Icons.favorite_border_rounded,
-                        esPrimario: false,
-                        alPresionar: () {},
-                      ),
-                    ],
+                    children: esPropio
+                        ? [
+                            _BotonAccion(
+                              texto: 'Editar perfil',
+                              icono: Icons.edit_outlined,
+                              esPrimario: true,
+                              alPresionar: onEditar ?? () {},
+                            ),
+                          ]
+                        : [
+                            _BotonAccion(
+                              texto: 'Enviar mensaje',
+                              icono: Icons.chat_bubble_outline_rounded,
+                              esPrimario: true,
+                              alPresionar: () {},
+                            ),
+                            const SizedBox(width: 12),
+                            _BotonAccion(
+                              texto: 'Seguir artesana',
+                              icono: Icons.favorite_border_rounded,
+                              esPrimario: false,
+                              alPresionar: () {},
+                            ),
+                          ],
                   ),
                 ],
               ),

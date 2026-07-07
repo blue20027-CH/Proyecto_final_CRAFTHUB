@@ -10,8 +10,6 @@ import '../../models/modelo_producto_inventario.dart';
 
 class TarjetaProductoInventario extends StatefulWidget {
   final ProductoInventario producto;
-  final bool seleccionado;
-  final ValueChanged<bool?> alCambiarSeleccion;
   final VoidCallback alVer;
   final VoidCallback alEditar;
   final VoidCallback alEliminar;
@@ -19,8 +17,6 @@ class TarjetaProductoInventario extends StatefulWidget {
   const TarjetaProductoInventario({
     super.key,
     required this.producto,
-    required this.seleccionado,
-    required this.alCambiarSeleccion,
     required this.alVer,
     required this.alEditar,
     required this.alEliminar,
@@ -49,12 +45,9 @@ class _TarjetaProductoInventarioState extends State<TarjetaProductoInventario> {
           color: colorTarjeta,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: widget.seleccionado
-                ? colorPrimario
-                : (_hover
-                    ? colorPrimario.withValues(alpha: 0.35)
-                    : (esModoOscuro ? const Color(0xFF2E2E2E) : const Color(0xFFEDE8E2))),
-            width: widget.seleccionado ? 1.6 : 1,
+            color: _hover
+                ? colorPrimario.withValues(alpha: 0.35)
+                : (esModoOscuro ? const Color(0xFF2E2E2E) : const Color(0xFFEDE8E2)),
           ),
           boxShadow: [
             BoxShadow(
@@ -67,45 +60,23 @@ class _TarjetaProductoInventarioState extends State<TarjetaProductoInventario> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                GestureDetector(
-                  onTap: widget.alVer,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: AspectRatio(
-                      aspectRatio: 16 / 11,
-                      child: Image.network(
-                        widget.producto.rutaImagen,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          color: colorPrimario.withValues(alpha: 0.08),
-                          alignment: Alignment.center,
-                          child: const Icon(Icons.inventory_2_outlined, color: colorPrimario, size: 32),
-                        ),
-                      ),
+            GestureDetector(
+              onTap: widget.alVer,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: AspectRatio(
+                  aspectRatio: 16 / 11,
+                  child: Image.network(
+                    widget.producto.rutaImagen,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      color: colorPrimario.withValues(alpha: 0.08),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.inventory_2_outlined, color: colorPrimario, size: 32),
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Checkbox(
-                      value: widget.seleccionado,
-                      onChanged: widget.alCambiarSeleccion,
-                      activeColor: colorPrimario,
-                      checkColor: Colors.white,
-                      side: const BorderSide(color: Colors.white),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -676,7 +647,7 @@ class PaginadorTabla extends StatelessWidget {
       children: [
         // Info de registros
         Text(
-          'Mostrando 1 a $registrosPorPagina de $totalRegistros productos',
+          _textoRango(),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 12,
@@ -725,7 +696,7 @@ class PaginadorTabla extends StatelessWidget {
             fontSize: 12,
             color: esModoOscuro ? Colors.white : const Color(0xFF1A1A1A),
           ),
-          items: [6, 12, 24, 50].map((n) {
+          items: [25, 50, 100].map((n) {
             return DropdownMenuItem(value: n, child: Text('$n'));
           }).toList(),
           onChanged: (v) {
@@ -734,6 +705,13 @@ class PaginadorTabla extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _textoRango() {
+    if (totalRegistros == 0) return 'No hay productos';
+    final inicio = (paginaActual - 1) * registrosPorPagina + 1;
+    final fin = (inicio + registrosPorPagina - 1).clamp(0, totalRegistros);
+    return 'Mostrando $inicio a $fin de $totalRegistros productos';
   }
 
   List<Widget> _construirBotonesPagina(bool esModoOscuro) {

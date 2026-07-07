@@ -8,6 +8,7 @@ class SidebarVendedor extends StatelessWidget {
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
   final bool tieneNotificacionMensajes;
+  final VoidCallback? alTocarAvatar;
 
   const SidebarVendedor({
     super.key,
@@ -17,6 +18,7 @@ class SidebarVendedor extends StatelessWidget {
     required this.alSeleccionar,
     required this.alCerrarSesion,
     this.tieneNotificacionMensajes = false,
+    this.alTocarAvatar,
   });
 
   static const double _ancho = 68.0;
@@ -99,25 +101,30 @@ class SidebarVendedor extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    // ðŸ”Œ GET /api/vendedor/perfil â†’ fotoUrl, nombre
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: nombre,
+        message: 'Editar perfil',
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(7),
         ),
         textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
-        child: ClipOval(
-          child: fotoUrl.isNotEmpty
-              ? Image.network(
-                  fotoUrl,
-                  width: 40, height: 40, fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
-                )
-              : _AvatarIniciales(texto: _iniciales(nombre)),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: alTocarAvatar,
+            child: ClipOval(
+              child: fotoUrl.isNotEmpty
+                  ? Image.network(
+                      fotoUrl,
+                      width: 40, height: 40, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
+                    )
+                  : _AvatarIniciales(texto: _iniciales(nombre)),
+            ),
+          ),
         ),
       ),
     );

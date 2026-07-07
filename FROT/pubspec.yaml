@@ -23,6 +23,7 @@ dependencies:
   table_calendar: ^3.1.2     # Para el calendario de ferias/eventos
   provider: ^6.1.2           # Para el cambio de tema (Claro/Oscuro) y traducciones
   file_picker: ^8.0.0        # Para que el vendedor suba fotos de sus artesanías
+  image_picker: ^1.1.2       # Para tomar foto con la cámara al crear/editar un producto
   video_player: ^2.8.2
   fl_chart: ^0.70.0          # Gráficos espectaculares para el Dashboard del Vendedor
   flutter_animate: ^4.5.2    # Animaciones fluidas que le dan vida a la interfaz

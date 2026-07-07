@@ -352,6 +352,7 @@ class ApiService {
     required String categoria,
     required String creador,
     String? imagenUrl,
+    String? descripcion,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/productos/'),
@@ -363,12 +364,27 @@ class ApiService {
         'categoria': categoria,
         'creador': creador,
         if (imagenUrl != null && imagenUrl.isNotEmpty) 'img': imagenUrl,
+        if (descripcion != null && descripcion.isNotEmpty) 'descripcion': descripcion,
       }),
     ).timeout(const Duration(seconds: 8));
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Error al crear el producto: ${response.statusCode} ${response.body}');
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  // Sube una foto de producto y devuelve su URL pública en Supabase Storage.
+  static Future<String> subirFotoProducto(List<int> bytes, String nombreArchivo) async {
+    final uri = Uri.parse('$baseUrl/productos/subir-foto');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombreArchivo));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('No se pudo subir la imagen: ${response.statusCode}');
+    }
+    final data = jsonDecode(body);
+    return (data['url'] ?? '').toString();
   }
 
   static Future<void> eliminarProducto(String productoId) async {
@@ -388,6 +404,7 @@ class ApiService {
     required int stock,
     required String categoria,
     String? imagenUrl,
+    String? descripcion,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/productos/$productoId'),
@@ -398,6 +415,7 @@ class ApiService {
         'stock': stock,
         'categoria': categoria,
         if (imagenUrl != null && imagenUrl.isNotEmpty) 'img': imagenUrl,
+        if (descripcion != null && descripcion.isNotEmpty) 'descripcion': descripcion,
       }),
     ).timeout(const Duration(seconds: 8));
     if (response.statusCode != 200) {

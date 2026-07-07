@@ -12,6 +12,8 @@ import 'pantalla_mensajes_comprador.dart';
 import 'pantalla_detalle_producto.dart';
 import 'pantalla_perfil_artesano.dart';
 import '../auth/inicio_screen.dart';
+import '../pantalla_editar_perfil.dart';
+import 'pantalla_mi_perfil.dart';
 import '../../core/theme/app_theme.dart';
 import '../../main.dart';
 import '../../core/carrito_provider.dart';
@@ -266,6 +268,15 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
+  Future<void> _verMiPerfil() async {
+    if (widget.userId.isEmpty) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PantallaMiPerfilComprador(userId: widget.userId)),
+    );
+    _cargarPerfilUsuario();
+  }
+
   Future<void> _cargarProductos() async {
     setState(() {
       _cargando = true;
@@ -293,10 +304,28 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
-  // Conecta la tarjeta de "Artesanos destacados" con su perfil completo.
-  // 🔌 GET /artesanos/{id} aún no trae colecciones/productos del perfil:
-  // se aproximan con datos ya disponibles del listado general mientras tanto.
-  void _abrirPerfilArtesano(ArtesanoModelo a) {
+  // Conecta la tarjeta de "Artesanos destacados" con su perfil completo,
+  // cargando sus productos reales desde GET /artesanos/{nombre}.
+  Future<void> _abrirPerfilArtesano(ArtesanoModelo a) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+    );
+
+    var productos = <ModeloProductoResumen>[];
+    try {
+      final detalle = await ApiService.getDetalleArtesano(a.nombre);
+      productos = ((detalle['productos'] as List<dynamic>?) ?? [])
+          .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error cargando productos del artesano: $e');
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -317,8 +346,8 @@ class _HomeCompradorState extends State<HomeComprador> {
             ventasRealizadas: a.totalVentas,
             descripcion: a.descripcion,
             etiquetas: a.especialidades,
-            colecciones: const [],
-            productos: const [],
+            colecciones: productos.map((p) => p.coleccion).toSet().toList(),
+            productos: productos,
           ),
         ),
       ),
@@ -350,6 +379,7 @@ class _HomeCompradorState extends State<HomeComprador> {
             alSeleccionar: (i) => i == 5 ? _abrirMensajes() : setState(() => _navIndice = i),
             alCerrarSesion: () => _cerrarSesion(context),
             tieneNotificacionMensajes: _tieneAnuncioSinLeer,
+            alTocarAvatar: _verMiPerfil,
           ),
 
           Expanded(

@@ -37,20 +37,7 @@ class ArtesanoModelo {
   if (fotoPortadaUrl.isNotEmpty && fotoPortadaUrl != fotoUrl) {
     return fotoPortadaUrl;
   }
-  const banners = {
-    'Vestir':      'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=900',
-    'Artesanía':   'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=900',
-    'Muebles':     'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900',
-    'Joyería':     'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900',
-    'Alimentos':   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900',
-    'Accesorios':  'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900',
-    'Calzado':     'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900',
-  };
-  final key = banners.keys.firstWhere(
-    (k) => categoria.toLowerCase().contains(k.toLowerCase()),
-    orElse: () => '',
-  );
-  return banners[key] ?? 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900';
+  return bannerPorCategoria(categoria);
 }
   factory ArtesanoModelo.fromJson(Map<String, dynamic> json) {
     final categorias = (json['categorias'] as List?)
@@ -92,4 +79,26 @@ class ArtesanoModelo {
       esFavorito: json['es_favorito'] ?? false,
     );
   }
+}
+
+// Banner de respaldo por categoría del artesano, usado cuando no ha subido
+// su propia foto de portada (perfil público y pantalla de editar perfil).
+const Map<String, String> _bannersPorCategoria = {
+  'Vestir':      'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=900',
+  'Artesanía':   'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=900',
+  'Muebles':     'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900',
+  'Joyería':     'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900',
+  'Alimentos':   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900',
+  'Accesorios':  'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900',
+  'Calzado':     'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900',
+};
+const String _bannerRespaldo =
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900';
+
+String bannerPorCategoria(String categoria) {
+  final key = _bannersPorCategoria.keys.firstWhere(
+    (k) => categoria.toLowerCase().contains(k.toLowerCase()),
+    orElse: () => '',
+  );
+  return _bannersPorCategoria[key] ?? _bannerRespaldo;
 }

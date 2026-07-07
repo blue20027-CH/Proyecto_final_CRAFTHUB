@@ -71,7 +71,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
         
         final perfil = respuesta['perfil'] as Map<String, dynamic>? ?? {};
         final nombre = (perfil['nombre'] ?? respuesta['email'] ?? '').toString();
-        final foto = (perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
+        final foto = (perfil['foto'] ?? perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
 
         if (_modoSeleccionado == 'Vendedor') {
           Navigator.pushReplacement(
@@ -358,6 +358,17 @@ class _PanelLogin extends StatelessWidget {
             visualDensity: VisualDensity.compact,
             textStyle: WidgetStateProperty.all(
               const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+            ),
+            backgroundColor: WidgetStateProperty.resolveWith((states) =>
+                states.contains(WidgetState.selected)
+                    ? CraftHubColors.vinoTinto
+                    : Colors.transparent),
+            foregroundColor: WidgetStateProperty.resolveWith((states) =>
+                states.contains(WidgetState.selected)
+                    ? Colors.white
+                    : CraftHubColors.textoPrincipal(esOscuro)),
+            side: WidgetStateProperty.all(
+              BorderSide(color: CraftHubColors.vinoTinto.withValues(alpha: 0.4)),
             ),
           ),
         ),

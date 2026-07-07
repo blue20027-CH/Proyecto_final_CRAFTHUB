@@ -297,7 +297,26 @@ class _PantallaMapaState extends State<PantallaMapa> {
         .toList();
   }
 
-  void _abrirPerfilArtesano(ArtesanoModelo a) {
+  Future<void> _abrirPerfilArtesano(ArtesanoModelo a) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+    );
+
+    var productos = <ModeloProductoResumen>[];
+    try {
+      final detalle = await ApiService.getDetalleArtesano(a.nombre);
+      productos = ((detalle['productos'] as List<dynamic>?) ?? [])
+          .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error cargando productos del artesano: $e');
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -318,8 +337,8 @@ class _PantallaMapaState extends State<PantallaMapa> {
             ventasRealizadas: a.totalVentas,
             descripcion: a.descripcion,
             etiquetas: a.especialidades,
-            colecciones: const [],
-            productos: const [],
+            colecciones: productos.map((p) => p.coleccion).toSet().toList(),
+            productos: productos,
           ),
         ),
       ),

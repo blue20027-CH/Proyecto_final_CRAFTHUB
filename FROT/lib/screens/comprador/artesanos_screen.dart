@@ -72,28 +72,6 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
     }
   }
 
-  ModeloArtesano _convertirAModeloArtesano(ArtesanoModelo artesano) {
-    return ModeloArtesano(
-      nombre: artesano.nombre,
-      specialty: artesano.especialidad,
-      especialidad: artesano.especialidad,
-      ubicacion: artesano.provincia,
-      fotoUrl: artesano.fotoUrl,
-      bannerUrl: artesano.bannerEfectivo,
-      calificacion: artesano.rating,
-      totalResenas: artesano.totalResenas,
-      verificado: artesano.estaVerificado,
-      totalProductos: artesano.totalVentas,
-      anosEnCraftHub: artesano.anosExperiencia,
-      valoracionesPositivas: artesano.totalResenas,
-      ventasRealizadas: artesano.totalVentas,
-      descripcion: artesano.descripcion,
-      etiquetas: artesano.especialidades,
-      colecciones: artesano.especialidades,
-      productos: const [],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
@@ -192,13 +170,9 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
   try {
     final detalle = await ApiService.getDetalleArtesano(artesanoActual.nombre);
     final productosRaw = detalle['productos'] as List<dynamic>? ?? [];
-    final productos = productosRaw.map((p) => ModeloProductoResumen(
-      id: p['id'].toString(),
-      nombre: p['nombre'] ?? '',
-      precio: '\$${double.tryParse(p['precio'].toString())?.toStringAsFixed(2) ?? '0.00'}',
-      imagenUrl: p['img'] ?? p['imagen'] ?? '',
-      coleccion: p['categoria'] ?? 'General',
-    )).toList();
+    final productos = productosRaw
+        .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+        .toList();
 
     final categorias = productos.map((p) => p.coleccion).toSet().toList();
 

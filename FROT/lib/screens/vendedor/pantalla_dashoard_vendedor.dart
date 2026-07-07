@@ -16,6 +16,9 @@ import '../../services/vendedor_api_service.dart';
 import '../../services/api_service.dart';
 import '../../widgets/topbar_flotante.dart';
 import '../auth/inicio_screen.dart';
+import '../pantalla_editar_perfil.dart';
+import '../comprador/pantalla_perfil_artesano.dart';
+import '../../models/artesano_modelo.dart' show bannerPorCategoria;
 import 'pantalla_eventos_vendedor.dart';
 import 'pantalla_mensajes_vendedor.dart';
 
@@ -42,12 +45,93 @@ class _HomeVendedorState extends State<HomeVendedor> {
   final TextEditingController _busquedaCtrl = TextEditingController();
   bool _tieneAnuncioSinLeer = false;
   bool _tieneNotificacionSinLeer = false;
+  late String _fotoPerfilActual;
 
   @override
   void initState() {
     super.initState();
+    _fotoPerfilActual = widget.fotoPerfil;
     _revisarAnuncios();
     _revisarNotificaciones();
+  }
+
+  // Editar perfil directo (llamado desde el botón "Editar perfil" al ver tu
+  // propio perfil). Al volver, refresca la foto que se ve en el sidebar.
+  Future<void> _editarPerfil() async {
+    if (widget.userId.isEmpty) return;
+    final actualizado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => PantallaEditarPerfil(userId: widget.userId)),
+    );
+    if (actualizado != true) return;
+    try {
+      final perfil = await ApiService.getPerfil(widget.userId);
+      if (mounted) setState(() => _fotoPerfilActual = (perfil['foto'] ?? '').toString());
+    } catch (e) {
+      debugPrint('Error refrescando foto de perfil: $e');
+    }
+  }
+
+  // Tocar tu avatar en el sidebar te lleva a VER tu perfil, exactamente
+  // igual a como lo ve cualquier comprador, con un botón de "Editar perfil".
+  Future<void> _verMiPerfil() async {
+    if (widget.userId.isEmpty || widget.nombreVendedor.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+    );
+
+    Map<String, dynamic> detalle = {};
+    try {
+      detalle = await ApiService.getDetalleArtesano(widget.nombreVendedor);
+    } catch (e) {
+      debugPrint('Error cargando mi perfil: $e');
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    final productos = ((detalle['productos'] as List<dynamic>?) ?? [])
+        .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+        .toList();
+    final rating = double.tryParse((detalle['rating'] ?? 0).toString()) ?? 0;
+    final totalResenas = int.tryParse((detalle['total_resenas'] ?? 0).toString()) ?? 0;
+    final categoriaArtesano = (detalle['categoria'] ?? '').toString();
+    final fotoPortada = (detalle['foto_portada'] ?? '').toString();
+
+    final artesano = ModeloArtesano(
+      nombre: widget.nombreVendedor,
+      specialty: (detalle['especialidad'] ?? '').toString(),
+      especialidad: (detalle['especialidad'] ?? '').toString(),
+      ubicacion: (detalle['ubicacion'] ?? '').toString(),
+      fotoUrl: (detalle['foto_url'] ?? _fotoPerfilActual).toString(),
+      bannerUrl: fotoPortada.isNotEmpty ? fotoPortada : bannerPorCategoria(categoriaArtesano),
+      calificacion: rating,
+      totalResenas: totalResenas,
+      verificado: true,
+      totalProductos: productos.length,
+      anosEnCraftHub: 1,
+      valoracionesPositivas: (rating / 5 * 100).round(),
+      ventasRealizadas: productos.length,
+      descripcion: (detalle['descripcion'] ?? '').toString(),
+      etiquetas: ((detalle['categorias'] as List<dynamic>?) ?? []).map((e) => e.toString()).toList(),
+      colecciones: productos.map((p) => p.coleccion).toSet().toList(),
+      productos: productos,
+    );
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaPerfilArtesano(
+          artesano: artesano,
+          esPropio: true,
+          onEditar: _editarPerfil,
+        ),
+      ),
+    );
   }
 
   Future<void> _revisarNotificaciones() async {
@@ -185,10 +269,11 @@ class _HomeVendedorState extends State<HomeVendedor> {
         children: [
           SidebarVendedor(
             nombre: widget.nombreVendedor,
-            fotoUrl: widget.fotoPerfil,
+            fotoUrl: _fotoPerfilActual,
             indiceActivo: _navIndice,
             alSeleccionar: (i) => i == 3 ? _abrirMensajes() : setState(() => _navIndice = i),
             alCerrarSesion: () => _cerrarSesion(context),
+            alTocarAvatar: _verMiPerfil,
             tieneNotificacionMensajes: _tieneAnuncioSinLeer,
           ),
           Expanded(

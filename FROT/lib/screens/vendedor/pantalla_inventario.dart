@@ -2,12 +2,11 @@
 // Panel de inventario del vendedor — se inserta en _obtenerPantallaActual()
 // NO contiene Scaffold, Sidebar ni TopBar propios
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-// 🔌 API: Descomentar cuando conectes el backend
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../models/modelo_producto_inventario.dart';
 import '../../../widgets/vendedor/widgets_inventario.dart';
@@ -32,8 +31,6 @@ class _PantallaInventarioState extends State<PantallaInventario> {
   // ── Estado de la tabla ────────────────────────────────────────────────────
   List<ProductoInventario> _productos = [];
   List<ProductoInventario> _productosFiltrados = [];
-  final Set<String> _seleccionados = {};
-  bool _todosSeleccionados = false;
   bool _cargando = true;
   String? _error;
 
@@ -45,7 +42,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
 
   // ── Paginación ────────────────────────────────────────────────────────────
   int _paginaActual = 1;
-  int _registrosPorPagina = 6;
+  int _registrosPorPagina = 25;
 
   // ── Ordenamiento ─────────────────────────────────────────────────────────
   String _columnaOrden = 'nombre';
@@ -187,10 +184,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
     if (confirmado != true) return;
     try {
       await ApiService.eliminarProducto(producto.id);
-      setState(() {
-        _productos.removeWhere((p) => p.id == producto.id);
-        _seleccionados.remove(producto.id);
-      });
+      setState(() => _productos.removeWhere((p) => p.id == producto.id));
       _aplicarFiltros();
     } catch (e) {
       if (!mounted) return;
@@ -198,43 +192,6 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         SnackBar(content: Text('No se pudo eliminar: ${e.toString().replaceAll('Exception: ', '')}')),
       );
     }
-  }
-
-  Future<void> _confirmarEliminarSeleccionados() async {
-    final cantidad = _seleccionados.length;
-    final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Eliminar productos',
-            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16)),
-        content: Text('¿Seguro que quieres eliminar $cantidad producto(s)? Esta acción no se puede deshacer.',
-            style: const TextStyle(fontFamily: 'Poppins', fontSize: 13)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-    if (confirmado != true) return;
-    final idsAEliminar = List<String>.from(_seleccionados);
-    for (final id in idsAEliminar) {
-      try {
-        await ApiService.eliminarProducto(id);
-      } catch (_) {
-        // Sigue con el resto aunque uno falle; se refleja al final quién quedó.
-      }
-    }
-    setState(() {
-      _productos.removeWhere((p) => idsAEliminar.contains(p.id));
-      _seleccionados.clear();
-      _todosSeleccionados = false;
-    });
-    _aplicarFiltros();
   }
 
   Future<void> _nuevoProducto() async {
@@ -682,46 +639,6 @@ class _PantallaInventarioState extends State<PantallaInventario> {
       ),
       child: Column(
         children: [
-          // ── Barra de selección múltiple ──────────────────────────────
-          Row(
-            children: [
-              Checkbox(
-                value: _todosSeleccionados,
-                onChanged: (v) {
-                  setState(() {
-                    _todosSeleccionados = v ?? false;
-                    if (_todosSeleccionados) {
-                      _seleccionados.addAll(_paginaProductos.map((p) => p.id));
-                    } else {
-                      _seleccionados.clear();
-                    }
-                  });
-                },
-                activeColor: const Color(0xFF821515),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-              ),
-              Text(
-                _seleccionados.isEmpty
-                    ? 'Seleccionar todos'
-                    : '${_seleccionados.length} seleccionado(s)',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12.5,
-                  color: esModoOscuro ? Colors.white60 : const Color(0xFF6B5A52),
-                ),
-              ),
-              const Spacer(),
-              if (_seleccionados.isNotEmpty)
-                TextButton.icon(
-                  onPressed: _confirmarEliminarSeleccionados,
-                  icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFC62828)),
-                  label: const Text('Eliminar seleccionados',
-                      style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: Color(0xFFC62828))),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
           // ── Productos ─────────────────────────────────────────────────
           if (_paginaProductos.isEmpty)
             Padding(
@@ -754,16 +671,6 @@ class _PantallaInventarioState extends State<PantallaInventario> {
                 final producto = _paginaProductos[i];
                 return TarjetaProductoInventario(
                   producto: producto,
-                  seleccionado: _seleccionados.contains(producto.id),
-                  alCambiarSeleccion: (v) {
-                    setState(() {
-                      if (v == true) {
-                        _seleccionados.add(producto.id);
-                      } else {
-                        _seleccionados.remove(producto.id);
-                      }
-                    });
-                  },
                   alVer: () => _verProducto(producto),
                   alEditar: () => _editarProducto(producto),
                   alEliminar: () => _confirmarEliminarProducto(producto),
@@ -880,8 +787,10 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
   late final TextEditingController _ctrlPrecio;
   late final TextEditingController _ctrlStock;
   late final TextEditingController _ctrlImagen;
+  late final TextEditingController _ctrlDescripcion;
   late String _categoria;
   bool _guardando = false;
+  bool _subiendoImagen = false;
   String? _error;
 
   @override
@@ -891,6 +800,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     _ctrlPrecio = TextEditingController(text: widget.producto.precio.toStringAsFixed(2));
     _ctrlStock = TextEditingController(text: widget.producto.stock.toString());
     _ctrlImagen = TextEditingController(text: widget.producto.rutaImagen);
+    _ctrlDescripcion = TextEditingController(text: widget.producto.descripcion);
     _categoria = _categorias.contains(widget.producto.categoria)
         ? widget.producto.categoria
         : _categorias.first;
@@ -902,7 +812,41 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     _ctrlPrecio.dispose();
     _ctrlStock.dispose();
     _ctrlImagen.dispose();
+    _ctrlDescripcion.dispose();
     super.dispose();
+  }
+
+  Future<void> _subirDesdePC() async {
+    final resultado = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+      allowMultiple: false,
+    );
+    if (resultado == null || resultado.files.isEmpty) return;
+    final archivo = resultado.files.single;
+    if (archivo.bytes == null) return;
+    await _subirImagen(archivo.bytes!, archivo.name);
+  }
+
+  Future<void> _tomarFoto() async {
+    final foto = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 85);
+    if (foto == null) return;
+    final bytes = await foto.readAsBytes();
+    await _subirImagen(bytes, foto.name);
+  }
+
+  Future<void> _subirImagen(Uint8List bytes, String nombreArchivo) async {
+    setState(() => _subiendoImagen = true);
+    try {
+      final url = await ApiService.subirFotoProducto(bytes, nombreArchivo);
+      if (!mounted) return;
+      setState(() => _ctrlImagen.text = url);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _subiendoImagen = false);
+    }
   }
 
   Future<void> _guardar() async {
@@ -924,6 +868,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
         stock: stock,
         categoria: _categoria,
         imagenUrl: _ctrlImagen.text.trim(),
+        descripcion: _ctrlDescripcion.text.trim(),
       );
       if (!mounted) return;
       Navigator.pop(
@@ -941,6 +886,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
           rutaImagen: _ctrlImagen.text.trim().isEmpty
               ? widget.producto.rutaImagen
               : _ctrlImagen.text.trim(),
+          descripcion: _ctrlDescripcion.text.trim(),
         ),
       );
     } catch (e) {
@@ -956,86 +902,173 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 680),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Editar producto',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
-                    fontWeight: FontWeight.w700, color: colorTexto),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _ctrlNombre,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-              ),
-              const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ctrlPrecio,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF821515).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    child: const Icon(Icons.edit_note_rounded, color: Color(0xFF821515), size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextField(
-                      controller: _ctrlStock,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Stock'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Editar producto',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 17,
+                              fontWeight: FontWeight.w700, color: colorTexto),
+                        ),
+                        Text(
+                          widget.producto.nombre,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
+                              color: esModoOscuro ? Colors.white54 : const Color(0xFF9E8E85)),
+                        ),
+                      ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: _guardando ? null : () => Navigator.pop(context),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _categoria,
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                items: _categorias
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+              const SizedBox(height: 8),
+              const Divider(height: 1),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 18),
+                      _SeccionFormulario(
+                        icono: Icons.info_outline_rounded,
+                        titulo: 'Información básica',
+                        child: TextField(
+                          controller: _ctrlNombre,
+                          decoration: const InputDecoration(labelText: 'Nombre del producto'),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      _SeccionFormulario(
+                        icono: Icons.sell_outlined,
+                        titulo: 'Precio e inventario',
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _ctrlPrecio,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _ctrlStock,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(labelText: 'Stock'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<String>(
+                              value: _categoria,
+                              decoration: const InputDecoration(labelText: 'Categoría'),
+                              items: _categorias
+                                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+                            ),
+                          ],
+                        ),
+                        tip: 'Compara con productos parecidos de tu categoría antes de fijar el precio: '
+                            'te ayuda a mantenerte competitivo sin regalar tu trabajo.',
+                      ),
+                      const SizedBox(height: 20),
+                      _SeccionFormulario(
+                        icono: Icons.image_outlined,
+                        titulo: 'Imagen del producto',
+                        child: _SelectorImagenProducto(
+                          ctrlImagen: _ctrlImagen,
+                          subiendo: _subiendoImagen,
+                          alSubirDesdePC: _subirDesdePC,
+                          alTomarFoto: _tomarFoto,
+                        ),
+                        tip: 'Usa luz natural y un fondo limpio y neutro. Las fotos claras y bien '
+                            'iluminadas son las que más convierten visitas en ventas.',
+                      ),
+                      const SizedBox(height: 20),
+                      _SeccionFormulario(
+                        icono: Icons.description_outlined,
+                        titulo: 'Descripción',
+                        child: TextField(
+                          controller: _ctrlDescripcion,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            labelText: 'Descripción',
+                            hintText: 'Materiales, técnica, tamaño, tiempo de elaboración...',
+                          ),
+                        ),
+                        tip: 'Cuenta la historia detrás de la pieza: qué materiales usaste y de qué '
+                            'provincia es la técnica. A los compradores les encanta esa conexión.',
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 14),
+                        Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _ctrlImagen,
-                decoration: const InputDecoration(labelText: 'URL de la imagen'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 10),
-                Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
-              ],
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
+                  OutlinedButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: const Text('Cancelar'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _guardando ? null : _guardar,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF821515),
-                      foregroundColor: Colors.white,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: _guardando
+                    child: const Text('Cancelar'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: _guardando ? null : _guardar,
+                    icon: _guardando
                         ? const SizedBox(
                             width: 16, height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Guardar'),
+                        : const Icon(Icons.check_rounded, size: 18),
+                    label: Text(_guardando ? 'Guardando...' : 'Guardar cambios'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF821515),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
                   ),
                 ],
               ),
@@ -1043,6 +1076,177 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── SECCIÓN DE FORMULARIO: encabezado con ícono + tip de ayuda opcional ──────
+class _SeccionFormulario extends StatelessWidget {
+  final IconData icono;
+  final String titulo;
+  final Widget child;
+  final String? tip;
+
+  const _SeccionFormulario({
+    required this.icono,
+    required this.titulo,
+    required this.child,
+    this.tip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icono, size: 15, color: const Color(0xFF821515)),
+            const SizedBox(width: 6),
+            Text(
+              titulo,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+                color: esModoOscuro ? Colors.white60 : const Color(0xFF9E8E85),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        child,
+        if (tip != null) _TipAyuda(texto: tip!),
+      ],
+    );
+  }
+}
+
+// ── TIP DE AYUDA: consejo corto y amable, no un error ni una advertencia ─────
+class _TipAyuda extends StatelessWidget {
+  final String texto;
+  const _TipAyuda({required this.texto});
+
+  @override
+  Widget build(BuildContext context) {
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: esModoOscuro ? const Color(0xFF2A2116) : const Color(0xFFFFF8E7),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: esModoOscuro ? const Color(0xFF4A3B1E) : const Color(0xFFF0E0B0),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.lightbulb_outline_rounded, size: 15, color: Color(0xFFB8860B)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 11.5,
+                height: 1.45,
+                color: esModoOscuro ? Colors.white70 : const Color(0xFF7A6414),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── SELECTOR DE IMAGEN: vista previa + URL + subir de PC/cámara ──────────────
+class _SelectorImagenProducto extends StatelessWidget {
+  final TextEditingController ctrlImagen;
+  final bool subiendo;
+  final VoidCallback alSubirDesdePC;
+  final VoidCallback alTomarFoto;
+
+  const _SelectorImagenProducto({
+    required this.ctrlImagen,
+    required this.subiendo,
+    required this.alSubirDesdePC,
+    required this.alTomarFoto,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: ctrlImagen,
+      builder: (context, valor, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: subiendo
+                        ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF821515)))
+                        : (valor.text.isEmpty
+                            ? Container(
+                                color: const Color(0xFF821515).withValues(alpha: 0.08),
+                                child: const Icon(Icons.image_outlined, color: Color(0xFF821515), size: 26),
+                              )
+                            : Image.network(
+                                valor.text,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => Container(
+                                  color: const Color(0xFF821515).withValues(alpha: 0.08),
+                                  child: const Icon(Icons.image_outlined, color: Color(0xFF821515), size: 26),
+                                ),
+                              )),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: ctrlImagen,
+                    decoration: const InputDecoration(labelText: 'URL de imagen'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: subiendo ? null : alSubirDesdePC,
+              icon: const Icon(Icons.upload_outlined, size: 16, color: Color(0xFF821515)),
+              label: const Text('Subir imagen desde PC',
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(40),
+                side: const BorderSide(color: Color(0xFFE3B8B8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: subiendo ? null : alTomarFoto,
+              icon: const Icon(Icons.photo_camera_outlined, size: 16, color: Color(0xFF821515)),
+              label: const Text('Tomar foto con cámara',
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(40),
+                side: const BorderSide(color: Color(0xFFE3B8B8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1065,8 +1269,10 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
   final _ctrlPrecio = TextEditingController();
   final _ctrlStock = TextEditingController(text: '0');
   final _ctrlImagen = TextEditingController();
+  final _ctrlDescripcion = TextEditingController();
   String _categoria = _categorias.first;
   bool _guardando = false;
+  bool _subiendoImagen = false;
   String? _error;
 
   @override
@@ -1075,7 +1281,41 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
     _ctrlPrecio.dispose();
     _ctrlStock.dispose();
     _ctrlImagen.dispose();
+    _ctrlDescripcion.dispose();
     super.dispose();
+  }
+
+  Future<void> _subirDesdePC() async {
+    final resultado = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+      allowMultiple: false,
+    );
+    if (resultado == null || resultado.files.isEmpty) return;
+    final archivo = resultado.files.single;
+    if (archivo.bytes == null) return;
+    await _subirImagen(archivo.bytes!, archivo.name);
+  }
+
+  Future<void> _tomarFoto() async {
+    final foto = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 85);
+    if (foto == null) return;
+    final bytes = await foto.readAsBytes();
+    await _subirImagen(bytes, foto.name);
+  }
+
+  Future<void> _subirImagen(Uint8List bytes, String nombreArchivo) async {
+    setState(() => _subiendoImagen = true);
+    try {
+      final url = await ApiService.subirFotoProducto(bytes, nombreArchivo);
+      if (!mounted) return;
+      setState(() => _ctrlImagen.text = url);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _subiendoImagen = false);
+    }
   }
 
   Future<void> _guardar() async {
@@ -1097,6 +1337,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
         categoria: _categoria,
         creador: widget.nombreVendedor,
         imagenUrl: _ctrlImagen.text.trim(),
+        descripcion: _ctrlDescripcion.text.trim(),
       );
       if (!mounted) return;
       Navigator.pop(context, ProductoInventario.fromJson(respuesta));
@@ -1113,86 +1354,173 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
     final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 680),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Nuevo producto',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
-                    fontWeight: FontWeight.w700, color: colorTexto),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _ctrlNombre,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-              ),
-              const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ctrlPrecio,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF821515).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    child: const Icon(Icons.add_box_outlined, color: Color(0xFF821515), size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextField(
-                      controller: _ctrlStock,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Stock'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Nuevo producto',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 17,
+                              fontWeight: FontWeight.w700, color: colorTexto),
+                        ),
+                        Text(
+                          'Publica una nueva pieza en tu tienda',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
+                              color: esModoOscuro ? Colors.white54 : const Color(0xFF9E8E85)),
+                        ),
+                      ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: _guardando ? null : () => Navigator.pop(context),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _categoria,
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                items: _categorias
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+              const SizedBox(height: 8),
+              const Divider(height: 1),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 18),
+                      _SeccionFormulario(
+                        icono: Icons.info_outline_rounded,
+                        titulo: 'Información básica',
+                        child: TextField(
+                          controller: _ctrlNombre,
+                          decoration: const InputDecoration(labelText: 'Nombre del producto'),
+                        ),
+                        tip: 'Un nombre claro y específico (ej. "Mola Guna floral tejida a mano") '
+                            'ayuda a que te encuentren más fácil en las búsquedas.',
+                      ),
+                      const SizedBox(height: 20),
+                      _SeccionFormulario(
+                        icono: Icons.sell_outlined,
+                        titulo: 'Precio e inventario',
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _ctrlPrecio,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _ctrlStock,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(labelText: 'Stock'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            DropdownButtonFormField<String>(
+                              value: _categoria,
+                              decoration: const InputDecoration(labelText: 'Categoría'),
+                              items: _categorias
+                                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _categoria = v ?? _categoria),
+                            ),
+                          ],
+                        ),
+                        tip: 'Compara con productos parecidos de tu categoría antes de fijar el precio: '
+                            'te ayuda a mantenerte competitivo sin regalar tu trabajo.',
+                      ),
+                      const SizedBox(height: 20),
+                      _SeccionFormulario(
+                        icono: Icons.image_outlined,
+                        titulo: 'Imagen del producto',
+                        child: _SelectorImagenProducto(
+                          ctrlImagen: _ctrlImagen,
+                          subiendo: _subiendoImagen,
+                          alSubirDesdePC: _subirDesdePC,
+                          alTomarFoto: _tomarFoto,
+                        ),
+                        tip: 'Usa luz natural y un fondo limpio y neutro. Las fotos claras y bien '
+                            'iluminadas son las que más convierten visitas en ventas.',
+                      ),
+                      const SizedBox(height: 20),
+                      _SeccionFormulario(
+                        icono: Icons.description_outlined,
+                        titulo: 'Descripción',
+                        child: TextField(
+                          controller: _ctrlDescripcion,
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            labelText: 'Descripción',
+                            hintText: 'Materiales, técnica, tamaño, tiempo de elaboración...',
+                          ),
+                        ),
+                        tip: 'Cuenta la historia detrás de la pieza: qué materiales usaste y de qué '
+                            'provincia es la técnica. A los compradores les encanta esa conexión.',
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 14),
+                        Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _ctrlImagen,
-                decoration: const InputDecoration(labelText: 'URL de la imagen (opcional)'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 10),
-                Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
-              ],
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
+                  OutlinedButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: const Text('Cancelar'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _guardando ? null : _guardar,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF821515),
-                      foregroundColor: Colors.white,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: _guardando
+                    child: const Text('Cancelar'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed: _guardando ? null : _guardar,
+                    icon: _guardando
                         ? const SizedBox(
                             width: 16, height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Crear producto'),
+                        : const Icon(Icons.add_rounded, size: 18),
+                    label: Text(_guardando ? 'Creando...' : 'Crear producto'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF821515),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
                   ),
                 ],
               ),
