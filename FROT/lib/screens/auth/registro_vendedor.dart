@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../vendedor/pantalla_dashoard_vendedor.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/provincias_panama.dart';
+import '../../services/servicio_auth.dart';
 import '../../widgets/boton_primario.dart';
 import '../../widgets/boton_google.dart';
 import '../../widgets/campo_texto.dart';
@@ -32,6 +34,64 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
   bool _ofrecDelivery = true;
   String? _genero;
   String? _fechaNac;
+  String? _provincia;
+  bool _registrando = false;
+  String? _errorMensaje;
+
+  Future<void> _registrar() async {
+    if (_ctrlNombres.text.trim().isEmpty ||
+        _ctrlCorreo.text.trim().isEmpty ||
+        _ctrlPassword.text.isEmpty) {
+      setState(() => _errorMensaje = 'Completa nombre, correo y contraseña.');
+      return;
+    }
+    if (_provincia == null) {
+      setState(() => _errorMensaje = 'Selecciona tu provincia o comarca.');
+      return;
+    }
+
+    setState(() { _registrando = true; _errorMensaje = null; });
+
+    try {
+      final nombreCompleto =
+          '${_ctrlNombres.text.trim()} ${_ctrlApellidos.text.trim()}'.trim();
+
+      final respuesta = await registrarConEmailYPassword(
+        nombre: nombreCompleto,
+        email: _ctrlCorreo.text.trim(),
+        password: _ctrlPassword.text,
+        rol: 'Vendedor',
+        telefono: _ctrlTelefono.text.trim().isEmpty ? null : _ctrlTelefono.text.trim(),
+        provincia: _provincia,
+        ubicacion: _ctrlUbicacion.text.trim().isEmpty ? null : _ctrlUbicacion.text.trim(),
+      );
+
+      if (respuesta == null || respuesta['success'] != true) {
+        throw Exception('No se pudo completar el registro.');
+      }
+
+      if (!mounted) return;
+
+      final String userId = respuesta['user_id'] ?? '';
+      final perfil = respuesta['perfil'] as Map<String, dynamic>? ?? {};
+      final nombre = (perfil['nombre'] ?? nombreCompleto).toString();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomeVendedor(
+            esOscuro: false,
+            nombreVendedor: nombre,
+            userId: userId,
+          ),
+        ),
+      );
+    } catch (e) {
+      setState(() => _errorMensaje = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _registrando = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -112,6 +172,9 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
                       verPassword: _verPassword,
                       ofrecDelivery: _ofrecDelivery,
                       genero: _genero,
+                      provincia: _provincia,
+                      registrando: _registrando,
+                      errorMensaje: _errorMensaje,
                       fechaNac: _fechaNac,
                       ctrlFechaNacimiento: _ctrlFechaNacimiento,
                       alAlternarPassword: () =>
@@ -119,7 +182,9 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
                       alCambiarDelivery: (v) =>
                           setState(() => _ofrecDelivery = v),
                       alCambiarGenero: (v) => setState(() => _genero = v),
+                      alCambiarProvincia: (v) => setState(() => _provincia = v),
                       alCambiarFecha: (v) => setState(() => _fechaNac = v),
+                      alRegistrar: _registrar,
                     ),
                   ),
                 ),
@@ -149,11 +214,16 @@ class _FormularioRegistro extends StatelessWidget {
   final bool verPassword;
   final bool ofrecDelivery;
   final String? genero;
+  final String? provincia;
+  final bool registrando;
+  final String? errorMensaje;
   final String? fechaNac;
   final VoidCallback alAlternarPassword;
   final ValueChanged<bool> alCambiarDelivery;
   final ValueChanged<String?> alCambiarGenero;
+  final ValueChanged<String?> alCambiarProvincia;
   final ValueChanged<String?> alCambiarFecha;
+  final VoidCallback alRegistrar;
 
   const _FormularioRegistro({
     required this.esOscuro,
@@ -168,12 +238,17 @@ class _FormularioRegistro extends StatelessWidget {
     required this.verPassword,
     required this.ofrecDelivery,
     required this.genero,
+    required this.provincia,
+    required this.registrando,
+    required this.errorMensaje,
     required this.fechaNac,
     required this.alAlternarPassword,
     required this.alCambiarDelivery,
     required this.alCambiarGenero,
+    required this.alCambiarProvincia,
     required this.alCambiarFecha,
     required this.ctrlFechaNacimiento,
+    required this.alRegistrar,
   });
 
   @override
@@ -311,12 +386,23 @@ class _FormularioRegistro extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // ── FILA 5: Ubicación (ancho completo) ───────────────────────
-        CampoTexto(
-          controlador: ctrlUbicacion,
-          hint: 'Ubicación (Ciudad, Provincia)',
-          icono: Icons.location_on_outlined,
-          esOscuro: esOscuro,
+        // ── FILA 5: Provincia/comarca | Ciudad o dirección (detalle) ──
+        _FilaDos(
+          izquierda: CampoDropdown<String>(
+            valorSeleccionado: provincia,
+            hint: 'Provincia / comarca',
+            icono: Icons.map_outlined,
+            alCambiar: alCambiarProvincia,
+            items: kProvinciasPanama
+                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                .toList(),
+          ),
+          derecha: CampoTexto(
+            controlador: ctrlUbicacion,
+            hint: 'Ciudad / dirección (opcional)',
+            icono: Icons.location_on_outlined,
+            esOscuro: esOscuro,
+          ),
         ),
 
         const SizedBox(height: 10),
@@ -347,20 +433,37 @@ class _FormularioRegistro extends StatelessWidget {
         // ── TOGGLE DELIVERY ───────────────────────────────────────────
         _ToggleDelivery(valor: ofrecDelivery, alCambiar: alCambiarDelivery),
 
-        const SizedBox(height: 18),
+        const SizedBox(height: 10),
+
+        if (errorMensaje != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text(
+              errorMensaje!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                color: Colors.redAccent,
+              ),
+            ),
+          ),
 
         // ── BOTÓN CREAR CUENTA ────────────────────────────────────────
-        BotonPrimario(
-          texto: 'Crear cuenta',
-          alPresionar: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HomeVendedor(esOscuro: esOscuro, nombreVendedor: '',),
+        registrando
+            ? const SizedBox(
+                height: 48,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: CraftHubColors.vinoTinto,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+              )
+            : BotonPrimario(
+                texto: 'Crear cuenta',
+                alPresionar: alRegistrar,
               ),
-            ); // TODO: lógica de registro con FastAPI
-          },
-        ),
 
         const SizedBox(height: 16),
 

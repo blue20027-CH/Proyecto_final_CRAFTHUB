@@ -4,12 +4,14 @@ import '../../models/models_chat.dart';
 import '../../widgets/comprador/sidebar_comprador.dart';
 import '../../widgets/chat/panel_conversaciones.dart';
 import '../../widgets/chat/panel_chat.dart';
+import '../../widgets/chat/banner_anuncio_crafthub.dart';
 
 // Layout desktop: [Sidebar] | [PanelConversaciones] | [PanelChat]
 // TODO al iniciar: GET /api/conversaciones/{compradorId}
 // TODO en tiempo real: WS /ws/chat/{conversacionId}
 class PantallaMensajesComprador extends StatefulWidget {
-  const PantallaMensajesComprador({super.key});
+  final String userId;
+  const PantallaMensajesComprador({super.key, this.userId = ''});
 
   @override
   State<PantallaMensajesComprador> createState() =>
@@ -43,27 +45,34 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: CraftHubColors.fondo(isDark),
-      body: Row(
+      body: Column(
         children: [
-          PanelConversaciones(
-            conversaciones: _conversaciones,
-            idSeleccionado: _conversacionActiva?.id,
-            alSeleccionar: _seleccionar,
-          ),
+          BannerAnuncioCraftHub(userId: widget.userId),
           Expanded(
-            child: _conversacionActiva == null
-                ? _PantallaVacia(
-                    isDark: isDark,
-                    icono: Icons.forum_outlined,
-                    titulo: 'Tus mensajes',
-                    subtitulo:
-                        'Selecciona una conversación para chatear\ncon un artesano.',
-                  )
-                : PanelChat(
-                    key: ValueKey(_conversacionActiva!.id),
-                    conversacion: _conversacionActiva!,
-                    mensajes: _mensajesActivos,
-                  ),
+            child: Row(
+              children: [
+                PanelConversaciones(
+                  conversaciones: _conversaciones,
+                  idSeleccionado: _conversacionActiva?.id,
+                  alSeleccionar: _seleccionar,
+                ),
+                Expanded(
+                  child: _conversacionActiva == null
+                      ? _PantallaVacia(
+                          isDark: isDark,
+                          icono: Icons.forum_outlined,
+                          titulo: 'Tus mensajes',
+                          subtitulo:
+                              'Selecciona una conversación para chatear\ncon un artesano.',
+                        )
+                      : PanelChat(
+                          key: ValueKey(_conversacionActiva!.id),
+                          conversacion: _conversacionActiva!,
+                          mensajes: _mensajesActivos,
+                        ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

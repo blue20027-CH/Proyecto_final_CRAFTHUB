@@ -1,77 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
-import '../../services/api_service.dart';
+import '../../core/favoritos_provider.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
+import '../../widgets/eventos/modal_detalle_evento.dart';
+import '../../widgets/eventos/tarjeta_evento_proximo.dart';
 import 'pantalla_detalle_producto.dart';
 
-class PantallaFavoritos extends StatefulWidget {
+// Pantalla "Mis favoritos": lee directamente del FavoritosProvider global,
+// así que cualquier corazón que se toque en el resto de la app (tarjetas de
+// producto, detalle de producto, detalle de evento) se refleja aquí al
+// instante, sin salir y volver a entrar a esta pantalla.
+class PantallaFavoritos extends StatelessWidget {
   final String userId;
 
   const PantallaFavoritos({super.key, required this.userId});
 
   @override
-  State<PantallaFavoritos> createState() => _PantallaFavoritosState();
-}
-
-class _PantallaFavoritosState extends State<PantallaFavoritos> {
-  List<ProductoModelo> _favoritos = [];
-  bool _cargando = true;
-  String? _error;
-
-  // Para usuarios no logueados: favoritos locales en memoria
-  final Set<String> _favoritosLocales = {};
-
-  bool get _estaLogueado => widget.userId.isNotEmpty;
-
-  @override
-  void initState() {
-    super.initState();
-    if (_estaLogueado) {
-      _cargarFavoritos();
-    } else {
-      setState(() => _cargando = false);
-    }
-  }
-
-  Future<void> _cargarFavoritos() async {
-    setState(() { _cargando = true; _error = null; });
-    try {
-      final data = await ApiService.getFavoritos(widget.userId);
-      debugPrint('FAVORITOS RAW: $data');
-      setState(() {
-        _favoritos = data.map((p) {
-          final mapa = Map<String, dynamic>.from(p);
-          mapa['id'] = mapa['id'].toString();
-          return ProductoModelo.fromJson(mapa);
-        }).toList();
-      });
-    } catch (e) {
-      debugPrint('ERROR FAVORITOS: $e');
-      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
-    } finally {
-      setState(() => _cargando = false);
-    }
-  }
-
-  Future<void> _quitarFavorito(ProductoModelo producto) async {
-    if (!_estaLogueado) {
-      setState(() => _favoritosLocales.remove(producto.id));
-      return;
-    }
-    try {
-      await ApiService.quitarFavorito(widget.userId, int.parse(producto.id));
-      await _cargarFavoritos();
-    } catch (e) {
-      debugPrint('Error quitando favorito: $e');
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
     final colorFondo = CraftHubColors.fondo(oscuro);
+    final provider = context.watch<FavoritosProvider>();
+    final estaLogueado = provider.estaLogueado;
+    final total = provider.productos.length + provider.eventos.length;
 
     return Container(
       color: colorFondo,
@@ -89,7 +42,7 @@ class _PantallaFavoritosState extends State<PantallaFavoritos> {
               const SizedBox(width: 8),
               const Icon(Icons.favorite, color: CraftHubColors.vinoTinto, size: 22),
               const Spacer(),
-              if (_estaLogueado)
+              if (estaLogueado)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -97,7 +50,7 @@ class _PantallaFavoritosState extends State<PantallaFavoritos> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: CraftHubColors.borde(oscuro)),
                   ),
-                  child: Text('${_favoritos.length} productos',
+                  child: Text('$total guardados',
                     style: GoogleFonts.poppins(fontSize: 12,
                       color: CraftHubColors.textoSecundario(oscuro))),
                 ),
@@ -107,8 +60,8 @@ class _PantallaFavoritosState extends State<PantallaFavoritos> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Text(
-              _estaLogueado
-                ? 'Productos que has guardado como favoritos.'
+              estaLogueado
+                ? 'Productos y eventos que has guardado como favoritos.'
                 : 'Inicia sesión para guardar tus favoritos.',
               style: GoogleFonts.poppins(fontSize: 13,
                 color: CraftHubColors.textoSecundario(oscuro))),
@@ -117,75 +70,112 @@ class _PantallaFavoritosState extends State<PantallaFavoritos> {
 
           // ── Contenido ────────────────────────────────────────────
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: _cargando
-                ? const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto))
-                : _error != null
-                  ? Center(child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.wifi_off_rounded, size: 48, color: CraftHubColors.vinoTinto),
-                        const SizedBox(height: 12),
-                        Text(_error!, textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(fontSize: 13,
-                            color: CraftHubColors.textoSecundario(oscuro))),
-                        const SizedBox(height: 16),
-                        OutlinedButton(
-                          onPressed: _cargarFavoritos,
-                          child: Text('Reintentar', style: GoogleFonts.poppins()),
-                        ),
-                      ],
-                    ))
-                  : !_estaLogueado
-                    ? _EstadoNoLogueado(oscuro: oscuro)
-                    : _favoritos.isEmpty
-                      ? _EstadoVacio(oscuro: oscuro)
-                      : MasonryGridView.count(
-                          crossAxisCount: 4,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          itemCount: _favoritos.length,
-                          itemBuilder: (_, i) {
-                            final alturas = [280.0, 220.0, 310.0, 250.0, 290.0, 240.0];
-                            return Stack(
+            child: !estaLogueado
+                ? _EstadoNoLogueado(oscuro: oscuro)
+                : provider.cargando
+                    ? const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto))
+                    : total == 0
+                        ? _EstadoVacio(oscuro: oscuro)
+                        : SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(28, 0, 28, 28),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TarjetaProducto(
-                                  producto: _favoritos[i],
-                                  altura: alturas[i % alturas.length],
-                                  alPresionar: () {
-                                    PantallaDetalleProducto.mostrar(
-                                      context,
-                                      productoId: _favoritos[i].id,
-                                      productoPrevisualizado: _favoritos[i],
-                                      userId: widget.userId,
-                                    );
-                                  },
-                                ),
-                                Positioned(
-                                  top: 8, right: 8,
-                                  child: GestureDetector(
-                                    onTap: () => _quitarFavorito(_favoritos[i]),
-                                    child: Container(
-                                      width: 32, height: 32,
-                                      decoration: const BoxDecoration(
-                                        color: CraftHubColors.vinoTinto,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.favorite,
-                                        color: Colors.white, size: 16),
-                                    ),
+                                if (provider.productos.isNotEmpty) ...[
+                                  _EncabezadoSeccion(
+                                    icono: Icons.shopping_bag_outlined,
+                                    titulo: 'Productos favoritos',
+                                    total: provider.productos.length,
+                                    oscuro: oscuro,
                                   ),
-                                ),
+                                  const SizedBox(height: 12),
+                                  MasonryGridView.count(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    crossAxisCount: 4,
+                                    mainAxisSpacing: 12,
+                                    crossAxisSpacing: 12,
+                                    itemCount: provider.productos.length,
+                                    itemBuilder: (_, i) {
+                                      final alturas = [280.0, 220.0, 310.0, 250.0, 290.0, 240.0];
+                                      final producto = provider.productos[i];
+                                      return TarjetaProducto(
+                                        producto: producto,
+                                        altura: alturas[i % alturas.length],
+                                        alPresionar: () {
+                                          PantallaDetalleProducto.mostrar(
+                                            context,
+                                            productoId: producto.id,
+                                            productoPrevisualizado: producto,
+                                            userId: userId,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 32),
+                                ],
+                                if (provider.eventos.isNotEmpty) ...[
+                                  _EncabezadoSeccion(
+                                    icono: Icons.event_outlined,
+                                    titulo: 'Eventos favoritos',
+                                    total: provider.eventos.length,
+                                    oscuro: oscuro,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  for (final evento in provider.eventos) ...[
+                                    TarjetaEventoProximo(
+                                      evento: evento,
+                                      textoBotonPrimario: 'Quitar de favoritos',
+                                      iconoBotonPrimario: Icons.favorite,
+                                      alVerDetalles: () => mostrarDetalleEvento(
+                                        context,
+                                        evento: evento,
+                                        esVendedor: false,
+                                        usuarioId: userId,
+                                      ),
+                                      alPresionarPrimario: () =>
+                                          context.read<FavoritosProvider>().alternarEvento(evento),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                ],
                               ],
-                            );
-                          },
-                        ),
-            ),
+                            ),
+                          ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _EncabezadoSeccion extends StatelessWidget {
+  final IconData icono;
+  final String titulo;
+  final int total;
+  final bool oscuro;
+
+  const _EncabezadoSeccion({
+    required this.icono,
+    required this.titulo,
+    required this.total,
+    required this.oscuro,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Icon(icono, size: 18, color: CraftHubColors.vinoTinto),
+      const SizedBox(width: 8),
+      Text(titulo,
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700,
+              color: CraftHubColors.textoPrincipal(oscuro))),
+      const SizedBox(width: 8),
+      Text('($total)',
+          style: GoogleFonts.poppins(fontSize: 13,
+              color: CraftHubColors.textoSecundario(oscuro))),
+    ]);
   }
 }
 
@@ -206,7 +196,7 @@ class _EstadoVacio extends StatelessWidget {
             style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600,
               color: CraftHubColors.textoPrincipal(oscuro))),
           const SizedBox(height: 8),
-          Text('Explora el catálogo y guarda los productos\nque más te gusten.',
+          Text('Explora el catálogo y el calendario de eventos\ny guarda lo que más te guste.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(fontSize: 13,
               color: CraftHubColors.textoSecundario(oscuro))),
@@ -233,7 +223,7 @@ class _EstadoNoLogueado extends StatelessWidget {
             style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600,
               color: CraftHubColors.textoPrincipal(oscuro))),
           const SizedBox(height: 8),
-          Text('Guarda tus productos favoritos\ny accede a ellos desde cualquier dispositivo.',
+          Text('Guarda tus productos y eventos favoritos\ny accede a ellos desde cualquier dispositivo.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(fontSize: 13,
               color: CraftHubColors.textoSecundario(oscuro))),

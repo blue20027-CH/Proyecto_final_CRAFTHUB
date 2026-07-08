@@ -29,6 +29,20 @@ class ApiService {
     return data.map((json) => ProductoModelo.fromJson(json)).toList();
   }
 
+  // Registra una visita al perfil público de un artesano (para el dashboard
+  // del vendedor). No bloquea la UI si falla: es una métrica, no algo crítico.
+  static Future<void> registrarVisitaPerfil(String nombreArtesano) async {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/api/vendedor/visita-perfil'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'nombre': nombreArtesano}),
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Silencioso: no afecta la experiencia del comprador viendo el perfil.
+    }
+  }
+
   static Future<List<ArtesanoModelo>> getArtesanos({
     String? categoria,
     String? provincia,
@@ -70,6 +84,27 @@ class ApiService {
       body: jsonEncode({'email': email, 'password': password, 'modo': modo}),
     );
     return jsonDecode(response.body);
+  }
+
+  // Notificaciones reales (no derivadas de pedidos), p. ej. "te marcaron favorito".
+  static Future<Map<String, dynamic>> getNotificacionesUsuario(String userId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/api/notificaciones/usuario/$userId'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar notificaciones: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<void> marcarNotificacionesLeidas(String userId) async {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/api/notificaciones/usuario/$userId/marcar-leidas'),
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Silencioso: en el peor caso el puntito rojo tarda un poco en apagarse.
+    }
   }
 
   static Future<Map<String, dynamic>> getNotificacionesComprador(String compradorId) async {
@@ -309,6 +344,86 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  // Crea un producto nuevo (vendedor).
+  static Future<Map<String, dynamic>> crearProducto({
+    required String nombre,
+    required double precio,
+    required int stock,
+    required String categoria,
+    required String creador,
+    String? imagenUrl,
+    String? descripcion,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/productos/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'nombre': nombre,
+        'precio': precio,
+        'stock': stock,
+        'categoria': categoria,
+        'creador': creador,
+        if (imagenUrl != null && imagenUrl.isNotEmpty) 'img': imagenUrl,
+        if (descripcion != null && descripcion.isNotEmpty) 'descripcion': descripcion,
+      }),
+    ).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error al crear el producto: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  // Sube una foto de producto y devuelve su URL pública en Supabase Storage.
+  static Future<String> subirFotoProducto(List<int> bytes, String nombreArchivo) async {
+    final uri = Uri.parse('$baseUrl/productos/subir-foto');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombreArchivo));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('No se pudo subir la imagen: ${response.statusCode}');
+    }
+    final data = jsonDecode(body);
+    return (data['url'] ?? '').toString();
+  }
+
+  static Future<void> eliminarProducto(String productoId) async {
+    final response = await http
+        .delete(Uri.parse('$baseUrl/productos/$productoId'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Error al eliminar el producto: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  // Edita nombre/precio/stock/categoría/imagen de un producto (vendedor).
+  static Future<Map<String, dynamic>> actualizarProducto({
+    required String productoId,
+    required String nombre,
+    required double precio,
+    required int stock,
+    required String categoria,
+    String? imagenUrl,
+    String? descripcion,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/productos/$productoId'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'nombre': nombre,
+        'precio': precio,
+        'stock': stock,
+        'categoria': categoria,
+        if (imagenUrl != null && imagenUrl.isNotEmpty) 'img': imagenUrl,
+        if (descripcion != null && descripcion.isNotEmpty) 'descripcion': descripcion,
+      }),
+    ).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al actualizar el producto: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
   // 🔌 GET /productos/{id}/similares?limite=N → recomendaciones relacionadas
   static Future<List<Map<String, dynamic>>> getProductosSimilares(
     String productoId, {
@@ -386,5 +501,62 @@ class ApiService {
     }
     final data = jsonDecode(body);
     return (data['url'] ?? '').toString();
+  }
+
+  // ── ANUNCIOS (mensajes de CraftHub para todos los usuarios) ────────────
+
+  static Future<Map<String, dynamic>> getAnuncios(String userId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/anuncios/$userId'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar anuncios: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<void> marcarAnunciosLeidos(String userId) async {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/anuncios/marcar-leido'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Silencioso: en el peor caso el puntito rojo tarda un poco en apagarse.
+    }
+  }
+
+  // ── PREFERENCIAS (provincias/comarcas/categorías de interés) ──────────
+
+  static Future<Map<String, dynamic>> getPreferencias(String userId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/preferencias/$userId'))
+        .timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al cargar preferencias: ${response.statusCode} ${response.body}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static Future<void> guardarPreferencias({
+    required String userId,
+    required List<String> provincias,
+    required List<String> comarcas,
+    required List<String> categorias,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/preferencias/guardar'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'provincias': provincias,
+        'comarcas': comarcas,
+        'categorias': categorias,
+      }),
+    ).timeout(const Duration(seconds: 8));
+    if (response.statusCode != 200) {
+      throw Exception('Error al guardar preferencias: ${response.statusCode} ${response.body}');
+    }
   }
 }

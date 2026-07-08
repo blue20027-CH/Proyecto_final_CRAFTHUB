@@ -6,8 +6,10 @@ import '../../widgets/boton_primario.dart';
 import '../../widgets/campo_texto.dart';
 import '../../widgets/boton_google.dart';
 import '../../services/servicio_auth.dart';
+import '../../services/api_service.dart';
 import '../comprador/inicio_comprador.dart';
 import '../vendedor/pantalla_dashoard_vendedor.dart';
+import 'pantalla_gustos.dart';
 
 class PantallaLogin extends StatefulWidget {
   final String modo;
@@ -69,21 +71,44 @@ class _PantallaLoginState extends State<PantallaLogin> {
         
         final perfil = respuesta['perfil'] as Map<String, dynamic>? ?? {};
         final nombre = (perfil['nombre'] ?? respuesta['email'] ?? '').toString();
-        final foto = (perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
+        final foto = (perfil['foto'] ?? perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-           builder: (_) => _modoSeleccionado == 'Vendedor'
-                ? HomeVendedor(
-                    esOscuro: context.read<GestorTema>().esModoOscuro,
-                    nombreVendedor: nombre,
-                    fotoPerfil: foto,
-                   userId: userId,  // ✅ NUEVO: para tutoriales, mis-videos, etc.
-                  )
-                : HomeComprador(userId: userId),
-          ),
-        );
+        if (_modoSeleccionado == 'Vendedor') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomeVendedor(
+                esOscuro: context.read<GestorTema>().esModoOscuro,
+                nombreVendedor: nombre,
+                fotoPerfil: foto,
+                userId: userId,  // ✅ NUEVO: para tutoriales, mis-videos, etc.
+              ),
+            ),
+          );
+        } else {
+          // Las preferencias solo se piden una vez: si el usuario ya tiene
+          // algo guardado, se salta directo al home sin volver a mostrarlas.
+          bool yaTienePreferencias = false;
+          try {
+            final prefs = await ApiService.getPreferencias(userId);
+            yaTienePreferencias =
+                (prefs['provincias'] as List?)?.isNotEmpty == true ||
+                (prefs['comarcas'] as List?)?.isNotEmpty == true ||
+                (prefs['categorias'] as List?)?.isNotEmpty == true;
+          } catch (_) {
+            yaTienePreferencias = false;
+          }
+
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => yaTienePreferencias
+                  ? HomeComprador(userId: userId)
+                  : PantallaIntereses(userId: userId),
+            ),
+          );
+        }
       }
 
     } catch (e) {
@@ -333,6 +358,17 @@ class _PanelLogin extends StatelessWidget {
             visualDensity: VisualDensity.compact,
             textStyle: WidgetStateProperty.all(
               const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+            ),
+            backgroundColor: WidgetStateProperty.resolveWith((states) =>
+                states.contains(WidgetState.selected)
+                    ? CraftHubColors.vinoTinto
+                    : Colors.transparent),
+            foregroundColor: WidgetStateProperty.resolveWith((states) =>
+                states.contains(WidgetState.selected)
+                    ? Colors.white
+                    : CraftHubColors.textoPrincipal(esOscuro)),
+            side: WidgetStateProperty.all(
+              BorderSide(color: CraftHubColors.vinoTinto.withValues(alpha: 0.4)),
             ),
           ),
         ),

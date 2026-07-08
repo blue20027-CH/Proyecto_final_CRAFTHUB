@@ -3,15 +3,24 @@
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_inventario.dart';
 import 'package:abi_frotend_nd/screens/vendedor/pantalla_tutoriales.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/carrito_provider.dart';
+import '../../core/favoritos_provider.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
 import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
 import '../../widgets/vendedor/resumen_rapido.dart';
 import '../../services/vendedor_api_service.dart';
+import '../../services/api_service.dart';
 import '../../widgets/topbar_flotante.dart';
+import '../auth/inicio_screen.dart';
+import '../pantalla_editar_perfil.dart';
+import '../comprador/pantalla_perfil_artesano.dart';
+import '../../models/artesano_modelo.dart' show bannerPorCategoria;
 import 'pantalla_eventos_vendedor.dart';
+import 'pantalla_mensajes_vendedor.dart';
 import 'pantalla_ordenes_vendedor.dart';
 import 'pantalla_mapa_vendedor.dart';
 
@@ -37,11 +46,219 @@ class _HomeVendedorState extends State<HomeVendedor> {
   int _navIndice = 0;
   String? _pedidoResaltadoMapa;
   final TextEditingController _busquedaCtrl = TextEditingController();
+  bool _tieneAnuncioSinLeer = false;
+  bool _tieneNotificacionSinLeer = false;
+  late String _fotoPerfilActual;
+
+  @override
+  void initState() {
+    super.initState();
+    _fotoPerfilActual = widget.fotoPerfil;
+    _revisarAnuncios();
+    _revisarNotificaciones();
+  }
+
+  // Editar perfil directo (llamado desde el botón "Editar perfil" al ver tu
+  // propio perfil). Al volver, refresca la foto que se ve en el sidebar.
+  Future<void> _editarPerfil() async {
+    if (widget.userId.isEmpty) return;
+    final actualizado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => PantallaEditarPerfil(userId: widget.userId)),
+    );
+    if (actualizado != true) return;
+    try {
+      final perfil = await ApiService.getPerfil(widget.userId);
+      if (mounted) setState(() => _fotoPerfilActual = (perfil['foto'] ?? '').toString());
+    } catch (e) {
+      debugPrint('Error refrescando foto de perfil: $e');
+    }
+  }
+
+  // Tocar tu avatar en el sidebar te lleva a VER tu perfil, exactamente
+  // igual a como lo ve cualquier comprador, con un botón de "Editar perfil".
+  Future<void> _verMiPerfil() async {
+    if (widget.userId.isEmpty || widget.nombreVendedor.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+    );
+
+    Map<String, dynamic> detalle = {};
+    try {
+      detalle = await ApiService.getDetalleArtesano(widget.nombreVendedor);
+    } catch (e) {
+      debugPrint('Error cargando mi perfil: $e');
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    final productos = ((detalle['productos'] as List<dynamic>?) ?? [])
+        .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+        .toList();
+    final rating = double.tryParse((detalle['rating'] ?? 0).toString()) ?? 0;
+    final totalResenas = int.tryParse((detalle['total_resenas'] ?? 0).toString()) ?? 0;
+    final categoriaArtesano = (detalle['categoria'] ?? '').toString();
+    final fotoPortada = (detalle['foto_portada'] ?? '').toString();
+
+    final artesano = ModeloArtesano(
+      nombre: widget.nombreVendedor,
+      specialty: (detalle['especialidad'] ?? '').toString(),
+      especialidad: (detalle['especialidad'] ?? '').toString(),
+      ubicacion: (detalle['ubicacion'] ?? '').toString(),
+      fotoUrl: (detalle['foto_url'] ?? _fotoPerfilActual).toString(),
+      bannerUrl: fotoPortada.isNotEmpty ? fotoPortada : bannerPorCategoria(categoriaArtesano),
+      calificacion: rating,
+      totalResenas: totalResenas,
+      verificado: true,
+      totalProductos: productos.length,
+      anosEnCraftHub: 1,
+      valoracionesPositivas: (rating / 5 * 100).round(),
+      ventasRealizadas: productos.length,
+      descripcion: (detalle['descripcion'] ?? '').toString(),
+      etiquetas: ((detalle['categorias'] as List<dynamic>?) ?? []).map((e) => e.toString()).toList(),
+      colecciones: productos.map((p) => p.coleccion).toSet().toList(),
+      productos: productos,
+    );
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaPerfilArtesano(
+          artesano: artesano,
+          esPropio: true,
+          onEditar: _editarPerfil,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _revisarNotificaciones() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final data = await ApiService.getNotificacionesUsuario(widget.userId);
+      if (!mounted) return;
+      setState(() => _tieneNotificacionSinLeer = (data['no_leidas'] ?? 0) > 0);
+    } catch (e) {
+      debugPrint('Error revisando notificaciones: $e');
+    }
+  }
+
+  void _mostrarNotificaciones() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420, maxHeight: 480),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Text('Notificaciones',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
+                            fontWeight: FontWeight.w700, color: CraftHubColors.textoClaro)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                Flexible(
+                  child: FutureBuilder<Map<String, dynamic>>(
+                    future: ApiService.getNotificacionesUsuario(widget.userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+                        );
+                      }
+                      final notifs = (snapshot.data?['notificaciones'] as List<dynamic>? ?? []);
+                      if (notifs.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Text('No tienes notificaciones todavía.',
+                                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecClaro)),
+                          ),
+                        );
+                      }
+                      return ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: notifs.length,
+                        separatorBuilder: (_, _) => const Divider(color: CraftHubColors.bordeClaro, height: 16),
+                        itemBuilder: (_, i) {
+                          final n = notifs[i] as Map<String, dynamic>;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text((n['titulo'] ?? 'CraftHub').toString(),
+                                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w700, color: CraftHubColors.textoClaro)),
+                              const SizedBox(height: 3),
+                              Text((n['mensaje'] ?? '').toString(),
+                                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoSecClaro)),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    setState(() => _tieneNotificacionSinLeer = false);
+    ApiService.marcarNotificacionesLeidas(widget.userId);
+  }
 
   @override
   void dispose() {
     _busquedaCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _revisarAnuncios() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final data = await ApiService.getAnuncios(widget.userId);
+      if (!mounted) return;
+      setState(() => _tieneAnuncioSinLeer = (data['no_leidos'] ?? 0) > 0);
+    } catch (e) {
+      debugPrint('Error revisando anuncios: $e');
+    }
+  }
+
+  void _abrirMensajes() {
+    setState(() {
+      _navIndice = 3;
+      _tieneAnuncioSinLeer = false;
+    });
+    if (widget.userId.isNotEmpty) {
+      ApiService.marcarAnunciosLeidos(widget.userId);
+    }
+  }
+
+  void _cerrarSesion(BuildContext context) {
+    // 🔌 POST /api/auth/logout (invalidar token en el backend cuando exista)
+    context.read<CarritoProvider>().cerrarSesion();
+    context.read<FavoritosProvider>().cerrarSesion();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const PantallaInicio()),
+      (route) => false,
+    );
   }
 
   @override
@@ -55,10 +272,12 @@ class _HomeVendedorState extends State<HomeVendedor> {
         children: [
           SidebarVendedor(
             nombre: widget.nombreVendedor,
-            fotoUrl: widget.fotoPerfil,
+            fotoUrl: _fotoPerfilActual,
             indiceActivo: _navIndice,
-            alSeleccionar: (i) => setState(() => _navIndice = i),
-            alCerrarSesion: () {},
+            alSeleccionar: (i) => i == 3 ? _abrirMensajes() : setState(() => _navIndice = i),
+            alCerrarSesion: () => _cerrarSesion(context),
+            alTocarAvatar: _verMiPerfil,
+            tieneNotificacionMensajes: _tieneAnuncioSinLeer,
           ),
           Expanded(
             child: Column(
@@ -75,6 +294,8 @@ class _HomeVendedorState extends State<HomeVendedor> {
     );
   }
 
+  // Índices: 0=Dashboard, 1=Productos, 2=Tutoriales, 3=Mensajes,
+  // 4=Pedidos, 5=Mapa (mismo orden que SidebarVendedor._items).
   Widget _obtenerPantallaActual(int indice, bool oscuro) {
     switch (indice) {
       case 0:
@@ -82,22 +303,24 @@ class _HomeVendedorState extends State<HomeVendedor> {
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
           alVerProductos: () => setState(() => _navIndice = 1),
-          alVerPedidos: () => setState(() => _navIndice = 2),
+          alVerPedidos: () => setState(() => _navIndice = 4),
         );
       case 1:
         return PantallaInventario(nombreVendedor: widget.nombreVendedor);
       case 2:
+        return PantallaTutoriales(userId: widget.userId);
+      case 3:
+        return PantallaMensajesVendedor(userId: widget.userId);
+      case 4:
         return PantallaOrdenesVendedor(
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
           alVerEnMapa: (idPedido) => setState(() {
             _pedidoResaltadoMapa = idPedido;
-            _navIndice = 7;
+            _navIndice = 5;
           }),
         );
-      case 4:
-        return PantallaTutoriales(userId: widget.userId);
-      case 7:
+      case 5:
         return PantallaMapaVendedor(
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
@@ -108,7 +331,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
           alVerProductos: () => setState(() => _navIndice = 1),
-          alVerPedidos: () => setState(() => _navIndice = 2),
+          alVerPedidos: () => setState(() => _navIndice = 4),
         );
     }
   }
@@ -116,7 +339,8 @@ class _HomeVendedorState extends State<HomeVendedor> {
   Widget _buildTopBar(bool oscuro) {
     return TopbarFlotante(
       controladorBusqueda: _busquedaCtrl,
-      tieneNotificaciones: true,
+      tieneNotificaciones: _tieneNotificacionSinLeer,
+      alPresionarNotificaciones: widget.userId.isEmpty ? null : _mostrarNotificaciones,
       alPresionarLogo: () => setState(() => _navIndice = 0),
       alPresionarEventos: () => Navigator.push(
         context,
@@ -132,12 +356,14 @@ class _HomeVendedorState extends State<HomeVendedor> {
             onTap: () => setState(() => _navIndice = 0)),
         ItemExplorar(icono: Icons.inventory_2_outlined, etiqueta: 'Productos',
             onTap: () => setState(() => _navIndice = 1)),
-        ItemExplorar(icono: Icons.receipt_long_outlined, etiqueta: 'Pedidos',
+        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: 'Tutoriales',
             onTap: () => setState(() => _navIndice = 2)),
-        ItemExplorar(icono: Icons.play_circle_outline_rounded, etiqueta: 'Tutoriales',
+        ItemExplorar(icono: Icons.forum_outlined, etiqueta: 'Mensajes',
+            onTap: _abrirMensajes),
+        ItemExplorar(icono: Icons.receipt_long_outlined, etiqueta: 'Pedidos',
             onTap: () => setState(() => _navIndice = 4)),
         ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de pedidos',
-            onTap: () => setState(() => _navIndice = 7)),
+            onTap: () => setState(() => _navIndice = 5)),
       ],
     );
   }
@@ -256,7 +482,6 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
           const SizedBox(height: 16),
           ResumenRapido(
             pedidosTotales: datos.pedidosTotales,
-            variacionPedidos: '↑ 16%',
             pendientesEnviar: datos.pendientesEnviar,
             productosActivos: datos.productosActivos,
             visitasTienda: datos.visitasTienda,
@@ -380,6 +605,120 @@ class _PanelIngresos extends StatelessWidget {
   }
 }
 
+void _mostrarOpiniones(BuildContext context, String nombreVendedor) {
+  showDialog(
+    context: context,
+    builder: (ctx) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 560),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Text('Opiniones de tus clientes',
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
+                          fontWeight: FontWeight.w700, color: CraftHubColors.textoClaro)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: FutureBuilder<List<OpinionVendedor>>(
+                  future: VendedorApiService.cargarOpiniones(nombreVendedor),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Text('No se pudieron cargar las opiniones: ${snapshot.error}',
+                            style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: CraftHubColors.error)),
+                      );
+                    }
+                    final opiniones = snapshot.data ?? [];
+                    if (opiniones.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Text('Aún no tienes opiniones de clientes.',
+                              style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecClaro)),
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: opiniones.length,
+                      separatorBuilder: (_, _) => const Divider(color: CraftHubColors.bordeClaro, height: 20),
+                      itemBuilder: (_, i) => _FilaOpinion(opinion: opiniones[i]),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _FilaOpinion extends StatelessWidget {
+  final OpinionVendedor opinion;
+  const _FilaOpinion({required this.opinion});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: CraftHubColors.vinoTintoSuave,
+              backgroundImage: opinion.avatarUrl.isNotEmpty ? NetworkImage(opinion.avatarUrl) : null,
+              child: opinion.avatarUrl.isEmpty
+                  ? Text(opinion.nombre.isNotEmpty ? opinion.nombre[0].toUpperCase() : '?',
+                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto))
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(opinion.nombre,
+                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600, color: CraftHubColors.textoClaro)),
+            ),
+            if (opinion.calificacion != null) ...[
+              const Icon(Icons.star_rounded, size: 14, color: Color(0xFFD4A843)),
+              const SizedBox(width: 2),
+              Text(opinion.calificacion!.toStringAsFixed(1),
+                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600, color: CraftHubColors.textoClaro)),
+            ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text('Sobre "${opinion.producto}"',
+            style: const TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecClaro)),
+        const SizedBox(height: 4),
+        Text(opinion.comentario,
+            style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoClaro, height: 1.4)),
+      ],
+    );
+  }
+}
+
 // ── PANEL EVALUACIONES ────────────────────────────────────────────────────────
 
 class _PanelEvaluaciones extends StatelessWidget {
@@ -401,7 +740,10 @@ class _PanelEvaluaciones extends StatelessWidget {
               style: TextStyle(fontFamily: 'Poppins', fontSize: 13,
                   fontWeight: FontWeight.w600, color: CraftHubColors.textoClaro)),
             const Spacer(),
-            _BotonTexto(texto: 'Ver opiniones', alPresionar: () {}),
+            _BotonTexto(
+              texto: 'Ver opiniones',
+              alPresionar: () => _mostrarOpiniones(context, datos.nombreVendedor),
+            ),
           ]),
           const SizedBox(height: 16),
           Expanded(
@@ -492,15 +834,17 @@ class _PanelStatsClientes extends StatelessWidget {
         children: [
           _StatCliente(icono: Icons.sentiment_satisfied_alt_outlined,
             titulo: 'Clientes felices', valor: '${datos.clientesFelices}',
-            variacion: '↑ 20%', positivo: true),
+            positivo: true),
           const Divider(color: CraftHubColors.bordeClaro, height: 1),
           _StatCliente(icono: Icons.chat_bubble_outline_rounded,
             titulo: 'Nuevas opiniones', valor: '${datos.nuevasOpiniones}',
-            variacion: '↑ 12%', positivo: true),
+            subtitulo: 'Últimos 30 días', positivo: true),
           const Divider(color: CraftHubColors.bordeClaro, height: 1),
           _StatCliente(icono: Icons.check_circle_outline_rounded,
-            titulo: 'Respuestas', valor: '100%',
-            subtitulo: 'Tiempo de respuesta < 24h', positivo: true),
+            titulo: 'Pedidos completados',
+            valor: '${datos.pedidosTotales - datos.pendientesEnviar}',
+            subtitulo: '${datos.pendientesEnviar} pendientes por enviar',
+            positivo: true),
         ],
       ),
     );

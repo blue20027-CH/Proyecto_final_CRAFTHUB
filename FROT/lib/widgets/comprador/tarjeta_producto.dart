@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/favoritos_provider.dart';
 
 // 🔌 Modelo que mapea la respuesta de GET /api/productos
 class ProductoModelo {
@@ -59,14 +61,12 @@ class _TarjetaProductoState extends State<TarjetaProducto>
     with SingleTickerProviderStateMixin {
   // ignore: unused_field
   bool _hover = false;
-  bool _favorito = false;
   late AnimationController _ctrl;
   late Animation<double> _overlay, _zoom;
 
   @override
   void initState() {
     super.initState();
-    _favorito = widget.producto.esFavorito;
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 260));
     _overlay = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
@@ -80,6 +80,7 @@ class _TarjetaProductoState extends State<TarjetaProducto>
   @override
   Widget build(BuildContext context) {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
+    final favorito = context.watch<FavoritosProvider>().esProductoFavorito(widget.producto.id);
     return MouseRegion(
       onEnter: (_) { setState(() => _hover = true);  _ctrl.forward(); },
       onExit:  (_) { setState(() => _hover = false); _ctrl.reverse(); },
@@ -158,24 +159,20 @@ class _TarjetaProductoState extends State<TarjetaProducto>
               Positioned(
                 top: 10, right: 10,
                 child: GestureDetector(
-                  onTap: () {
-                    setState(() => _favorito = !_favorito);
-                    // 🔌 POST /api/favoritos { producto_id: widget.producto.id }
-                    // 🔌 DELETE /api/favoritos/${widget.producto.id}
-                  },
+                  onTap: () => context.read<FavoritosProvider>().alternarProducto(widget.producto),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: _favorito ? CraftHubColors.vinoTinto : Colors.white.withValues(alpha: 0.9),
+                      color: favorito ? CraftHubColors.vinoTinto : Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
                           blurRadius: 6, offset: const Offset(0, 2))],
                     ),
                     child: Icon(
-                      _favorito ? Icons.favorite : Icons.favorite_border,
+                      favorito ? Icons.favorite : Icons.favorite_border,
                       size: 15,
-                      color: _favorito ? Colors.white : CraftHubColors.vinoTinto,
+                      color: favorito ? Colors.white : CraftHubColors.vinoTinto,
                     ),
                   ),
                 ),

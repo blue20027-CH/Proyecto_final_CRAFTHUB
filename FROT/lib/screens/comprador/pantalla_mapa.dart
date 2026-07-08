@@ -7,9 +7,12 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui' as ui;
 import '../../core/theme/app_theme.dart';
+import '../../models/artesano_modelo.dart';
+import '../../services/api_service.dart';
 import '../../widgets/comprador/tarjeta_artesano_mapa.dart';
 import '../../widgets/comprador/popup_artesano_mapa.dart';
 import '../../widgets/comprador/chip_categoria_mapa.dart';
+import 'pantalla_perfil_artesano.dart';
 
 // 🔌 Ruteo dentro de la app usando OSRM (Open Source Routing Machine), el
 // mismo ecosistema de OpenStreetMap que ya usamos para los tiles del mapa.
@@ -50,9 +53,40 @@ class _ServicioRuta {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODELOS MOCK
-// 🔗 API: GET /artesanos?categoria=&radio_km=
+// 🔌 Conectado a GET /artesanos (ApiService.getArtesanos), el mismo
+// endpoint que ya usa el listado de artesanos. El backend no guarda
+// coordenadas GPS de cada vendedor — solo su provincia/comarca — así que
+// el pin se ubica en el centro aproximado de esa provincia (con un
+// pequeño "jitter" determinístico por artesano para que no queden varios
+// pines exactamente superpuestos).
 // ─────────────────────────────────────────────────────────────
+const Map<String, LatLng> _coordenadasProvincia = {
+  'Bocas del Toro':   LatLng(9.3400, -82.2500),
+  'Chiriquí':         LatLng(8.4300, -82.4300),
+  'Coclé':            LatLng(8.4167, -80.4167),
+  'Colón':            LatLng(9.3592, -79.9014),
+  'Darién':           LatLng(8.0000, -77.7000),
+  'Herrera':          LatLng(7.9333, -80.4167),
+  'Los Santos':       LatLng(7.7608, -80.2792),
+  'Panamá':           LatLng(8.9824, -79.5199),
+  'Panamá Oeste':     LatLng(8.9000, -79.7500),
+  'Veraguas':         LatLng(8.1167, -80.9833),
+  'Guna Yala':        LatLng(9.5535, -78.9631),
+  'Emberá-Wounaan':   LatLng(8.0000, -77.5000),
+  'Ngäbe-Buglé':      LatLng(8.4167, -81.7833),
+};
+const LatLng _centroPanama = LatLng(8.5940, -80.1099);
+
+LatLng _posicionParaArtesano(ArtesanoModelo a) {
+  final base = _coordenadasProvincia[a.provincia.trim()] ?? _centroPanama;
+  // Jitter determinístico (± ~0.05°, unos pocos km) a partir del id, para
+  // que varios artesanos de la misma provincia no queden apilados.
+  final hash = a.id.hashCode;
+  final jitterLat = ((hash % 1000) / 1000 - 0.5) * 0.1;
+  final jitterLng = (((hash ~/ 1000) % 1000) / 1000 - 0.5) * 0.1;
+  return LatLng(base.latitude + jitterLat, base.longitude + jitterLng);
+}
+
 class _ModeloArtesanoMapa {
   final String id;
   final String nombre;
@@ -63,6 +97,7 @@ class _ModeloArtesanoMapa {
   final double distanciaKm;
   final bool enLinea;
   final String categoria;
+  final ArtesanoModelo original;
 
   const _ModeloArtesanoMapa({
     required this.id,
@@ -74,7 +109,33 @@ class _ModeloArtesanoMapa {
     required this.distanciaKm,
     required this.enLinea,
     required this.categoria,
+    required this.original,
   });
+
+  factory _ModeloArtesanoMapa.desde(ArtesanoModelo a, {double distanciaKm = 0}) {
+    return _ModeloArtesanoMapa(
+      id: a.id,
+      nombre: a.nombre,
+      especialidad: a.especialidad,
+      ubicacion: a.provincia,
+      fotoUrl: a.fotoUrl,
+      posicion: _posicionParaArtesano(a),
+      distanciaKm: distanciaKm,
+      enLinea: false, // 🔌 el backend aún no expone un estado de "en línea"
+      categoria: _normalizarCategoria(
+        a.categoria.isNotEmpty ? a.categoria : a.especialidad,
+      ),
+      original: a,
+    );
+  }
+}
+
+// Normaliza espacios/mayúsculas para que la misma categoría del backend
+// (p. ej. "accesorios " y "Accesorios") no aparezca como dos chips distintos.
+String _normalizarCategoria(String raw) {
+  final t = raw.trim();
+  if (t.isEmpty) return t;
+  return t[0].toUpperCase() + t.substring(1).toLowerCase();
 }
 
 class _ModeloCategoria {
@@ -89,74 +150,19 @@ class _ModeloCategoria {
   });
 }
 
-// Datos mock — reemplazar con llamada a FastAPI
-final List<_ModeloArtesanoMapa> _artesanosMock = [
-  _ModeloArtesanoMapa(
-    id: '1', nombre: 'Rosa Martínez',
-    especialidad: 'Tejedora tradicional',
-    ubicacion: 'David, Chiriquí',
-    fotoUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    posicion: const LatLng(8.4343, -82.4322),
-    distanciaKm: 2.3, enLinea: true, categoria: 'Textiles',
-  ),
-  _ModeloArtesanoMapa(
-    id: '2', nombre: 'Carlos Ruiz',
-    especialidad: 'Sombreros Pintao',
-    ubicacion: 'David, Chiriquí',
-    fotoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-    posicion: const LatLng(8.0000, -80.5000),
-    distanciaKm: 3.1, enLinea: false, categoria: 'Accesorios',
-  ),
-  _ModeloArtesanoMapa(
-    id: '3', nombre: 'Ana Santos',
-    especialidad: 'Molas y textiles',
-    ubicacion: 'David, Chiriquí',
-    fotoUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
-    posicion: const LatLng(8.9943, -79.5188),
-    distanciaKm: 4.8, enLinea: true, categoria: 'Textiles',
-  ),
-  _ModeloArtesanoMapa(
-    id: '4', nombre: 'Miguel Torres',
-    especialidad: 'Cerámica artesanal',
-    ubicacion: 'David, Chiriquí',
-    fotoUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
-    posicion: const LatLng(7.8833, -80.4167),
-    distanciaKm: 6.2, enLinea: false, categoria: 'Cerámica',
-  ),
-  _ModeloArtesanoMapa(
-    id: '5', nombre: 'Elena García',
-    especialidad: 'Joyería Emberá',
-    ubicacion: 'David, Chiriquí',
-    fotoUrl: 'https://randomuser.me/api/portraits/women/22.jpg',
-    posicion: const LatLng(8.6667, -81.0833),
-    distanciaKm: 8.7, enLinea: true, categoria: 'Joyería',
-  ),
-  _ModeloArtesanoMapa(
-    id: '6', nombre: 'Luis Moreno',
-    especialidad: 'Talla en madera',
-    ubicacion: 'Bocas del Toro',
-    fotoUrl: 'https://randomuser.me/api/portraits/men/71.jpg',
-    posicion: const LatLng(9.3397, -82.2481),
-    distanciaKm: 12.4, enLinea: false, categoria: 'Madera',
-  ),
-  _ModeloArtesanoMapa(
-    id: '7', nombre: 'Carmen Pérez',
-    especialidad: 'Decoración folclórica',
-    ubicacion: 'Los Santos',
-    fotoUrl: 'https://randomuser.me/api/portraits/women/55.jpg',
-    posicion: const LatLng(7.9333, -80.4167),
-    distanciaKm: 15.6, enLinea: true, categoria: 'Decoración',
-  ),
-];
-
-final List<_ModeloCategoria> _categoriasMock = [
-  _ModeloCategoria(nombre: 'Textiles',    imagenUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=200', total: 24),
-  _ModeloCategoria(nombre: 'Cerámica',   imagenUrl: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200', total: 18),
-  _ModeloCategoria(nombre: 'Madera',     imagenUrl: 'https://images.unsplash.com/photo-1611486212557-88be5ff6f941?w=200', total: 16),
-  _ModeloCategoria(nombre: 'Joyería',    imagenUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200', total: 20),
-  _ModeloCategoria(nombre: 'Decoración', imagenUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200', total: 15),
-  _ModeloCategoria(nombre: 'Accesorios', imagenUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200', total: 12),
-];
+// Imagen representativa por categoría (para los chips de "explorar por
+// categoría"); si aparece una categoría nueva que no está aquí, se usa
+// una imagen genérica de respaldo.
+const Map<String, String> _imagenPorCategoria = {
+  'Textiles':    'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=200',
+  'Cerámica':    'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200',
+  'Madera':      'https://images.unsplash.com/photo-1611486212557-88be5ff6f941?w=200',
+  'Joyería':     'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200',
+  'Decoración':  'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200',
+  'Accesorios':  'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200',
+};
+const String _imagenCategoriaRespaldo =
+    'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200';
 
 // ─────────────────────────────────────────────────────────────
 // PANTALLA MAPA
@@ -181,9 +187,166 @@ class _PantallaMapaState extends State<PantallaMapa> {
   LatLng? _miUbicacion;
   List<LatLng> _rutaPuntos = [];
   bool _calculandoRuta = false;
+  bool _obteniendoUbicacion = false;
+
+  List<_ModeloArtesanoMapa> _artesanos = [];
+  bool _cargando = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarArtesanos();
+  }
+
+  @override
+  void dispose() {
+    _ctrlBusqueda.dispose();
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cargarArtesanos() async {
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+    try {
+      final artesanos = await ApiService.getArtesanos(limite: 200);
+      if (!mounted) return;
+      setState(() => _artesanos = artesanos.map((a) {
+            final distancia = _miUbicacion == null
+                ? 0.0
+                : Geolocator.distanceBetween(
+                      _miUbicacion!.latitude,
+                      _miUbicacion!.longitude,
+                      _posicionParaArtesano(a).latitude,
+                      _posicionParaArtesano(a).longitude,
+                    ) /
+                    1000;
+            return _ModeloArtesanoMapa.desde(a, distanciaKm: distancia);
+          }).toList());
+    } catch (e) {
+      if (mounted) setState(() => _error = 'No se pudieron cargar los artesanos.');
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  // Recalcula la distancia real de cada artesano a partir de la ubicación
+  // del usuario (una vez que la tenemos), en vez del valor en 0 por defecto.
+  void _recalcularDistancias() {
+    if (_miUbicacion == null) return;
+    setState(() {
+      _artesanos = _artesanos.map((a) {
+        final distancia = Geolocator.distanceBetween(
+              _miUbicacion!.latitude,
+              _miUbicacion!.longitude,
+              a.posicion.latitude,
+              a.posicion.longitude,
+            ) /
+            1000;
+        return _ModeloArtesanoMapa(
+          id: a.id,
+          nombre: a.nombre,
+          especialidad: a.especialidad,
+          ubicacion: a.ubicacion,
+          fotoUrl: a.fotoUrl,
+          posicion: a.posicion,
+          distanciaKm: distancia,
+          enLinea: a.enLinea,
+          categoria: a.categoria,
+          original: a.original,
+        );
+      }).toList();
+    });
+  }
+
+  Future<void> _usarMiUbicacion() async {
+    setState(() => _obteniendoUbicacion = true);
+    try {
+      final ubicacion = await _obtenerUbicacionActual();
+      if (!mounted) return;
+      setState(() => _miUbicacion = ubicacion);
+      _recalcularDistancias();
+      _mapController.move(ubicacion, 10.0);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _obteniendoUbicacion = false);
+    }
+  }
+
+  List<_ModeloCategoria> get _categoriasDisponibles {
+    final conteo = <String, int>{};
+    for (final a in _artesanos) {
+      if (a.categoria.isEmpty) continue;
+      conteo[a.categoria] = (conteo[a.categoria] ?? 0) + 1;
+    }
+    final entradas = conteo.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return entradas
+        .map((e) => _ModeloCategoria(
+              nombre: e.key,
+              imagenUrl: _imagenPorCategoria[e.key] ?? _imagenCategoriaRespaldo,
+              total: e.value,
+            ))
+        .toList();
+  }
+
+  Future<void> _abrirPerfilArtesano(ArtesanoModelo a) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+    );
+
+    var productos = <ModeloProductoResumen>[];
+    try {
+      final detalle = await ApiService.getDetalleArtesano(a.nombre);
+      productos = ((detalle['productos'] as List<dynamic>?) ?? [])
+          .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error cargando productos del artesano: $e');
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaPerfilArtesano(
+          artesano: ModeloArtesano(
+            nombre: a.nombre,
+            specialty: a.especialidad,
+            especialidad: a.especialidad,
+            ubicacion: a.provincia,
+            fotoUrl: a.fotoUrl,
+            bannerUrl: a.bannerEfectivo,
+            calificacion: a.rating,
+            totalResenas: a.totalResenas,
+            verificado: a.estaVerificado,
+            totalProductos: a.totalVentas,
+            anosEnCraftHub: a.anosExperiencia,
+            valoracionesPositivas: (a.rating / 5 * 100).round(),
+            ventasRealizadas: a.totalVentas,
+            descripcion: a.descripcion,
+            etiquetas: a.especialidades,
+            colecciones: productos.map((p) => p.coleccion).toSet().toList(),
+            productos: productos,
+          ),
+        ),
+      ),
+    );
+  }
 
   List<_ModeloArtesanoMapa> get _artesanosFiltrados {
-    var lista = _artesanosMock;
+    var lista = _artesanos;
     if (_categoriaSeleccionada != null) {
       lista = lista
           .where((a) => a.categoria == _categoriaSeleccionada)
@@ -292,6 +455,8 @@ class _PantallaMapaState extends State<PantallaMapa> {
             esOscuro: esOscuro,
             radioKm: _radioKm,
             alCambiarRadio: (v) => setState(() => _radioKm = v),
+            alUsarUbicacion: _usarMiUbicacion,
+            obteniendoUbicacion: _obteniendoUbicacion,
           ),
 
           // ── CUERPO: lista + mapa ──────────────────────────────────────
@@ -331,36 +496,64 @@ class _PantallaMapaState extends State<PantallaMapa> {
 
                         // Lista artesanos
                         Expanded(
-                          child: ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                            itemCount: _artesanosFiltrados.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 2),
-                            itemBuilder: (_, i) {
-                              final a = _artesanosFiltrados[i];
-                              return TarjetaArtesanoMapa(
-                                nombre: a.nombre,
-                                especialidad: a.especialidad,
-                                ubicacion: a.ubicacion,
-                                fotoUrl: a.fotoUrl,
-                                distanciaKm: a.distanciaKm,
-                                enLinea: a.enLinea,
-                                seleccionado:
-                                    _idArtesanoSeleccionado == a.id,
-                                alPresionar: () => _seleccionarArtesano(a),
-                              ).animate().fadeIn(
-                                    delay: Duration(milliseconds: i * 40),
-                                    duration: 300.ms,
-                                  );
-                            },
-                          ),
+                          child: _cargando
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                      color: CraftHubColors.vinoTinto),
+                                )
+                              : _error != null
+                                  ? Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(_error!,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    fontSize: 12.5,
+                                                    color: CraftHubColors
+                                                        .textoSecundario(esOscuro))),
+                                            const SizedBox(height: 10),
+                                            OutlinedButton(
+                                              onPressed: _cargarArtesanos,
+                                              child: const Text('Reintentar'),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                                      itemCount: _artesanosFiltrados.length,
+                                      separatorBuilder: (_, _) =>
+                                          const SizedBox(height: 2),
+                                      itemBuilder: (_, i) {
+                                        final a = _artesanosFiltrados[i];
+                                        return TarjetaArtesanoMapa(
+                                          nombre: a.nombre,
+                                          especialidad: a.especialidad,
+                                          ubicacion: a.ubicacion,
+                                          fotoUrl: a.fotoUrl,
+                                          distanciaKm: a.distanciaKm,
+                                          enLinea: a.enLinea,
+                                          seleccionado:
+                                              _idArtesanoSeleccionado == a.id,
+                                          alPresionar: () => _seleccionarArtesano(a),
+                                        ).animate().fadeIn(
+                                              delay: Duration(milliseconds: i * 40),
+                                              duration: 300.ms,
+                                            );
+                                      },
+                                    ),
                         ),
 
                         // Ver todos
                         Padding(
                           padding: const EdgeInsets.all(12),
                           child: _BotonVerTodos(
-                            total: _artesanosMock.length,
+                            total: _artesanos.length,
                             esOscuro: esOscuro,
                           ),
                         ),
@@ -451,9 +644,8 @@ class _PantallaMapaState extends State<PantallaMapa> {
                                 alCerrar: _cerrarPopup,
                                 alComoLlegar: () =>
                                     _calcularRutaHacia(_artesanoPopup!),
-                                alVerPerfil: () {
-                                  // TODO: navegar a PantallaPerfilArtesano
-                                },
+                                alVerPerfil: () =>
+                                    _abrirPerfilArtesano(_artesanoPopup!.original),
                               ).animate().fadeIn(duration: 200.ms).slideY(
                                     begin: -0.1,
                                     end: 0,
@@ -487,7 +679,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
 
           // ── CATEGORÍAS ────────────────────────────────────────────────
           _SeccionCategorias(
-            categorias: _categoriasMock,
+            categorias: _categoriasDisponibles,
             categoriaSeleccionada: _categoriaSeleccionada,
             esOscuro: esOscuro,
             alSeleccionar: (cat) {
@@ -510,11 +702,15 @@ class _HeaderMapa extends StatelessWidget {
   final bool esOscuro;
   final double radioKm;
   final ValueChanged<double> alCambiarRadio;
+  final VoidCallback alUsarUbicacion;
+  final bool obteniendoUbicacion;
 
   const _HeaderMapa({
     required this.esOscuro,
     required this.radioKm,
     required this.alCambiarRadio,
+    required this.alUsarUbicacion,
+    this.obteniendoUbicacion = false,
   });
 
   @override
@@ -568,7 +764,11 @@ class _HeaderMapa extends StatelessWidget {
           const SizedBox(width: 10),
 
           // Usar mi ubicación
-          _BotonUbicacion(esOscuro: esOscuro),
+          _BotonUbicacion(
+            esOscuro: esOscuro,
+            onTap: alUsarUbicacion,
+            cargando: obteniendoUbicacion,
+          ),
         ],
       ),
     );
@@ -677,7 +877,13 @@ class _SelectorRadio extends StatelessWidget {
 
 class _BotonUbicacion extends StatefulWidget {
   final bool esOscuro;
-  const _BotonUbicacion({required this.esOscuro});
+  final VoidCallback onTap;
+  final bool cargando;
+  const _BotonUbicacion({
+    required this.esOscuro,
+    required this.onTap,
+    this.cargando = false,
+  });
 
   @override
   State<_BotonUbicacion> createState() => _BotonUbicacionState();
@@ -693,10 +899,7 @@ class _BotonUbicacionState extends State<_BotonUbicacion> {
       onExit: (_) => setState(() => _sobre = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () {
-          // TODO: obtener ubicación real con geolocator
-          // 🔗 API: GET /artesanos/cercanos?lat=&lng=&radio_km=
-        },
+        onTap: widget.cargando ? null : widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding:
@@ -714,14 +917,23 @@ class _BotonUbicacionState extends State<_BotonUbicacion> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.my_location_rounded,
-                  color: Colors.white, size: 15),
-              SizedBox(width: 8),
+              widget.cargando
+                  ? const SizedBox(
+                      width: 15,
+                      height: 15,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.my_location_rounded,
+                      color: Colors.white, size: 15),
+              const SizedBox(width: 8),
               Text(
-                'Usar mi ubicación',
-                style: TextStyle(
+                widget.cargando ? 'Ubicando...' : 'Usar mi ubicación',
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1137,23 +1349,26 @@ class _SeccionCategorias extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              // Chips de categorías
-              ...categorias.map((c) => Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: ChipCategoriaMapa(
-                  nombre: c.nombre,
-                  imagenUrl: c.imagenUrl,
-                  totalArtesanos: c.total,
-                  seleccionado: categoriaSeleccionada == c.nombre,
-                  alPresionar: () => alSeleccionar(c.nombre),
-                ).animate().fadeIn(duration: 300.ms),
-              )),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                // Chips de categorías
+                ...categorias.map((c) => Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: ChipCategoriaMapa(
+                    nombre: c.nombre,
+                    imagenUrl: c.imagenUrl,
+                    totalArtesanos: c.total,
+                    seleccionado: categoriaSeleccionada == c.nombre,
+                    alPresionar: () => alSeleccionar(c.nombre),
+                  ).animate().fadeIn(duration: 300.ms),
+                )),
 
-              // Más categorías
-              _BotonMasCategorias(esOscuro: esOscuro),
-            ],
+                // Más categorías
+                _BotonMasCategorias(esOscuro: esOscuro),
+              ],
+            ),
           ),
         ],
       ),

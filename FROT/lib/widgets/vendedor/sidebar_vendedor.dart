@@ -7,6 +7,8 @@ class SidebarVendedor extends StatelessWidget {
   final int indiceActivo;
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
+  final bool tieneNotificacionMensajes;
+  final VoidCallback? alTocarAvatar;
 
   const SidebarVendedor({
     super.key,
@@ -15,19 +17,27 @@ class SidebarVendedor extends StatelessWidget {
     required this.indiceActivo,
     required this.alSeleccionar,
     required this.alCerrarSesion,
+    this.tieneNotificacionMensajes = false,
+    this.alTocarAvatar,
   });
 
   static const double _ancho = 68.0;
+  static const int _indiceMensajes = 3;
 
+  // Solo se listan las secciones que realmente existen (mismo orden que el
+  // menú "Explorar" del topbar y que el switch de _obtenerPantallaActual en
+  // pantalla_dashoard_vendedor.dart) — así ningún ítem lleva a un callejón
+  // sin salida.
+  // Índices: 0=Dashboard, 1=Productos, 2=Tutoriales, 3=Mensajes,
+  // 4=Pedidos, 5=Mapa (mismo orden que el switch de _obtenerPantallaActual
+  // y el menú "Explorar" del topbar en pantalla_dashoard_vendedor.dart).
   static const _items = [
-    {'icono': Icons.dashboard_outlined,    'label': 'Dashboard'},
-    {'icono': Icons.inventory_2_outlined,  'label': 'Productos'},
-    {'icono': Icons.receipt_long_outlined, 'label': 'Pedidos'},
-    {'icono': Icons.people_outline,        'label': 'Clientes'},
-    {'icono': Icons.chat_bubble_outline,   'label': 'Mensajes'},
-    {'icono': Icons.bar_chart_rounded,     'label': 'Reportes'},
-    {'icono': Icons.settings_outlined,     'label': 'ConfiguraciÃ³n'},
-    {'icono': Icons.map_outlined,          'label': 'Mapa'},
+    {'icono': Icons.dashboard_outlined,      'label': 'Dashboard'},
+    {'icono': Icons.inventory_2_outlined,    'label': 'Productos'},
+    {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
+    {'icono': Icons.forum_outlined,          'label': 'Mensajes'},
+    {'icono': Icons.receipt_long_outlined,   'label': 'Pedidos'},
+    {'icono': Icons.map_outlined,            'label': 'Mapa'},
   ];
 
   @override
@@ -62,6 +72,7 @@ class SidebarVendedor extends StatelessWidget {
                 label:  _items[i]['label'] as String,
                 activo: indiceActivo == i,
                 onTap:  () => alSeleccionar(i),
+                mostrarPunto: i == _indiceMensajes && tieneNotificacionMensajes,
               ),
             ),
           ),
@@ -95,25 +106,30 @@ class SidebarVendedor extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    // ðŸ”Œ GET /api/vendedor/perfil â†’ fotoUrl, nombre
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: nombre,
+        message: 'Editar perfil',
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(7),
         ),
         textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
-        child: ClipOval(
-          child: fotoUrl.isNotEmpty
-              ? Image.network(
-                  fotoUrl,
-                  width: 40, height: 40, fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
-                )
-              : _AvatarIniciales(texto: _iniciales(nombre)),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: alTocarAvatar,
+            child: ClipOval(
+              child: fotoUrl.isNotEmpty
+                  ? Image.network(
+                      fotoUrl,
+                      width: 40, height: 40, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
+                    )
+                  : _AvatarIniciales(texto: _iniciales(nombre)),
+            ),
+          ),
         ),
       ),
     );
@@ -152,6 +168,7 @@ class _ItemNav extends StatefulWidget {
   final bool activo;
   final VoidCallback onTap;
   final bool esLogout;
+  final bool mostrarPunto;
 
   const _ItemNav({
     required this.icono,
@@ -159,6 +176,7 @@ class _ItemNav extends StatefulWidget {
     required this.activo,
     required this.onTap,
     this.esLogout = false,
+    this.mostrarPunto = false,
   });
 
   @override
@@ -203,10 +221,29 @@ class _ItemNavState extends State<_ItemNav> {
                       : null),
             ),
             child: Center(
-              child: Icon(
-                widget.icono,
-                size: 19,
-                color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    widget.icono,
+                    size: 19,
+                    color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+                  ),
+                  if (widget.mostrarPunto)
+                    Positioned(
+                      top: -2,
+                      right: -3,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFE53935),
+                          border: Border.all(color: const Color(0xFF821515), width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

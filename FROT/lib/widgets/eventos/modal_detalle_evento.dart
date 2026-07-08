@@ -6,8 +6,10 @@
 //    solicitud para participar como vendedor en el evento.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/favoritos_provider.dart';
 import '../../models/evento_modelo.dart';
 import '../../services/eventos_api_service.dart';
 import 'tarjeta_contacto_organizador.dart';
@@ -134,16 +136,18 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                     Positioned(
                       top: 12,
                       right: 58,
-                      child: _BotonCircular(
-                        icono: evento.esFavorito ? Icons.favorite : Icons.favorite_border,
-                        colorIcono: evento.esFavorito ? CraftHubColors.vinoTinto : Colors.white,
-                        onTap: () {
-                          setState(() => evento.esFavorito = !evento.esFavorito);
-                          EventosApiService.alternarFavorito(
-                              evento.id, widget.usuarioId, evento.esFavorito);
-                          widget.alCambiarFavorito?.call();
-                        },
-                      ),
+                      child: Builder(builder: (context) {
+                        final favorito =
+                            context.watch<FavoritosProvider>().esEventoFavorito(evento.id);
+                        return _BotonCircular(
+                          icono: favorito ? Icons.favorite : Icons.favorite_border,
+                          colorIcono: favorito ? CraftHubColors.vinoTinto : Colors.white,
+                          onTap: () {
+                            context.read<FavoritosProvider>().alternarEvento(evento);
+                            widget.alCambiarFavorito?.call();
+                          },
+                        );
+                      }),
                     ),
                   Positioned(
                     left: 16,

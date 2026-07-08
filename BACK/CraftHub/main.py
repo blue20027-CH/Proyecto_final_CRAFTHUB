@@ -15,6 +15,9 @@ from vendedores_router import router as vendedores_router
 from artesanos_router import router as artesanos_router
 from carrito_router import router as carrito_router
 from tutoriales_router import router as tutoriales_router
+from eventos_router import router as eventos_router
+from preferencias_router import router as preferencias_router
+from anuncios_router import router as anuncios_router
 
 
 app = FastAPI(
@@ -46,6 +49,9 @@ app.include_router(vendedores_router)
 app.include_router(artesanos_router)
 app.include_router(carrito_router)
 app.include_router(tutoriales_router)
+app.include_router(eventos_router)
+app.include_router(preferencias_router)
+app.include_router(anuncios_router)
 
 # ---------------------------------------------------------------------------
 # MODELOS
@@ -87,4 +93,4 @@ async def login(credenciales: LoginRequest):
 if __name__ == "__main__":
     import uvicorn
     print("\n[CraftHub] Iniciando servidor backend...")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)

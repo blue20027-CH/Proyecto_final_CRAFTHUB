@@ -5,10 +5,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-// API: importa tu servicio HTTP cuando conectes el backend.
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
+import '../../services/api_service.dart';
+import '../comprador/inicio_comprador.dart';
 
 class _Provincia {
   final String id;
@@ -128,59 +126,64 @@ const List<_Comarca> _comarcas = [
   ),
 ];
 
+// Mismas 7 categorías reales que filtran el catálogo (ver la constante
+// `categorias` en inicio_comprador.dart, la que de verdad se envía al
+// backend vía ApiService.getProductos). Antes esta pantalla mostraba
+// nombres inventados que no coincidían con ninguna categoría real, así
+// que guardar una preferencia nunca hacía match con ningún producto.
 const List<_Categoria> _categorias = [
   _Categoria(
-    id: 'ceramica',
-    nombre: 'Cerámica',
-    rutaImagen: 'assets/images/Categoria/ceramica.png',
+    id: 'vestir',
+    nombre: 'Vestir',
+    rutaImagen: 'assets/images/Categoria/vestir.png',
   ),
   _Categoria(
-    id: 'joyeria',
-    nombre: 'Joyería artesanal',
-    rutaImagen: 'assets/images/Categoria/joyeria.png',
+    id: 'artesania',
+    nombre: 'Artesanía',
+    rutaImagen: 'assets/images/Categoria/artesania.png',
   ),
   _Categoria(
     id: 'muebles',
-    nombre: 'Muebeles y decoración',
+    nombre: 'Muebles',
     rutaImagen: 'assets/images/Categoria/muebles.png',
   ),
   _Categoria(
-    id: 'accesorios',
-    nombre: 'Accesorios y moda',
-    rutaImagen: 'assets/images/Categoria/accesorios.png',
+    id: 'joyeria',
+    nombre: 'Joyería',
+    rutaImagen: 'assets/images/Categoria/joyeria.png',
   ),
   _Categoria(
     id: 'alimentos',
-    nombre: 'Alimento',
+    nombre: 'Alimentos',
     rutaImagen: 'assets/images/Categoria/alimentos.png',
+  ),
+  _Categoria(
+    id: 'accesorios',
+    nombre: 'Accesorios',
+    rutaImagen: 'assets/images/Categoria/accesorios.png',
   ),
   _Categoria(
     id: 'calzado',
     nombre: 'Calzado',
     rutaImagen: 'assets/images/Categoria/calzado.png',
   ),
-  _Categoria(
-    id: 'artesania',
-    nombre: 'Aresania tradicional',
-    rutaImagen: 'assets/images/Categoria/artesania.png',
-  ),
-  _Categoria(
-    id: 'instrumentos',
-    nombre: 'Instrumentos',
-    rutaImagen: 'assets/images/Categoria/instrumentos.png',
-  ),
-  _Categoria(
-    id: 'vestuario',
-    nombre: 'Vestuario y textiles',
-    rutaImagen: 'assets/images/Categoria/vestir.png',
-  ),
 ];
 
 class PantallaIntereses extends StatefulWidget {
+  final String userId;
+  // Hooks opcionales para casos que quieran un efecto extra al continuar
+  // (por defecto esta pantalla ya navega sola a HomeComprador usando su
+  // propio context, así no depende de un context externo que puede haber
+  // quedado obsoleto si quien la empujó usó pushReplacement).
   final VoidCallback? alGuardar;
   final VoidCallback? alOmitir;
 
-  const PantallaIntereses({super.key, this.alGuardar, this.alOmitir});
+  const PantallaIntereses({
+    super.key,
+    this.userId = '',
+    this.alGuardar,
+    this.alOmitir,
+  });
 
   @override
   State<PantallaIntereses> createState() => _PantallaInteresesState();
@@ -193,20 +196,71 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
 
   bool _guardando = false;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.userId.isNotEmpty) {
+      _cargarPreferenciasExistentes();
+    }
+  }
+
+  Future<void> _cargarPreferenciasExistentes() async {
+    try {
+      final data = await ApiService.getPreferencias(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _provinciasSeleccionadas.addAll(
+          (data['provincias'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        );
+        _comarcasSeleccionadas.addAll(
+          (data['comarcas'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        );
+        _categoriasSeleccionadas.addAll(
+          (data['categorias'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        );
+      });
+    } catch (_) {
+      // Sin preferencias previas o backend no disponible: se queda en blanco.
+    }
+  }
+
   Future<void> _guardarIntereses() async {
     setState(() => _guardando = true);
 
-    // API: POST /api/compradores/{userId}/intereses
-    // Body: {
-    //   "provincias": [...],
-    //   "comarcas": [...],
-    //   "categorias": [...]
-    // }
-    await Future.delayed(const Duration(milliseconds: 600));
+    try {
+      if (widget.userId.isNotEmpty) {
+        await ApiService.guardarPreferencias(
+          userId: widget.userId,
+          provincias: _provinciasSeleccionadas.toList(),
+          comarcas: _comarcasSeleccionadas.toList(),
+          categorias: _categoriasSeleccionadas.toList(),
+        );
+      }
+    } catch (_) {
+      // Si falla el guardado no bloqueamos el flujo: el usuario igual continúa.
+    }
 
     if (!mounted) return;
     setState(() => _guardando = false);
     widget.alGuardar?.call();
+    _continuar();
+  }
+
+  void _omitir() {
+    widget.alOmitir?.call();
+    _continuar();
+  }
+
+  // Navega a HomeComprador usando el context de esta propia pantalla
+  // (siempre vivo en este punto), en vez de depender de un callback externo
+  // que puede haber capturado un context ya destruido por un pushReplacement
+  // previo (login/registro reemplazan su propia pantalla al llegar aquí).
+  void _continuar() {
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => HomeComprador(userId: widget.userId)),
+    );
   }
 
   @override
@@ -216,9 +270,13 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
         ? const Color(0xFF121212)
         : const Color(0xFFF9F6F0);
 
-    return Container(
-      color: colorFondoPantalla,
-      child: DefaultTextStyle.merge(
+    // Scaffold propio: permite empujar esta pantalla directamente con
+    // Navigator.push (como hacen role.dart y pantalla_login.dart) sin
+    // perder la posibilidad de embeberla dentro de otro Scaffold (p. ej.
+    // el switch de HomeComprador), ya que un Scaffold anidado es válido.
+    return Scaffold(
+      backgroundColor: colorFondoPantalla,
+      body: DefaultTextStyle.merge(
         style: const TextStyle(decoration: TextDecoration.none),
         child: Column(
           children: [
@@ -275,7 +333,7 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
             ),
             _BarraAcciones(
               guardando: _guardando,
-              alOmitir: widget.alOmitir,
+              alOmitir: _omitir,
               alGuardar: _guardarIntereses,
             ),
           ],
@@ -421,8 +479,8 @@ class _SeccionRegiones extends StatelessWidget {
               return _ChipRegionInline(
                 nombre: provincia.nombre,
                 bandera: provincia.bandera,
-                seleccionado: provinciasSeleccionadas.contains(provincia.id),
-                alSeleccionar: () => alToggleProvincia(provincia.id),
+                seleccionado: provinciasSeleccionadas.contains(provincia.nombre),
+                alSeleccionar: () => alToggleProvincia(provincia.nombre),
               );
             }).toList(),
           ),
@@ -436,8 +494,8 @@ class _SeccionRegiones extends StatelessWidget {
               return _ChipRegionInline(
                 nombre: comarca.nombre,
                 bandera: comarca.bandera,
-                seleccionado: comarcasSeleccionadas.contains(comarca.id),
-                alSeleccionar: () => alToggleComarca(comarca.id),
+                seleccionado: comarcasSeleccionadas.contains(comarca.nombre),
+                alSeleccionar: () => alToggleComarca(comarca.nombre),
               );
             }).toList(),
           ),
@@ -505,9 +563,9 @@ class _SeccionCategorias extends StatelessWidget {
                     nombre: categoria.nombre,
                     rutaImagen: categoria.rutaImagen,
                     seleccionado: categoriasSeleccionadas.contains(
-                      categoria.id,
+                      categoria.nombre,
                     ),
-                    alSeleccionar: () => alToggleCategoria(categoria.id),
+                    alSeleccionar: () => alToggleCategoria(categoria.nombre),
                   );
                 },
               );
@@ -842,7 +900,19 @@ class _ChipRegionInlineState extends State<_ChipRegionInline> {
                 fit: StackFit.expand,
                 children: [
                   if (esAsset)
-                    Image.asset(widget.bandera, fit: BoxFit.cover)
+                    Image.asset(
+                      widget.bandera,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        color: const Color(0xFFF4EDE5),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.map_outlined,
+                          color: Color(0xFF9E8E85),
+                          size: 34,
+                        ),
+                      ),
+                    )
                   else
                     Container(
                       color: const Color(0xFFF4EDE5),

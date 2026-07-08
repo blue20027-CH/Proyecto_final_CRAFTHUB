@@ -1,9 +1,9 @@
 import 'package:abi_frotend_nd/screens/auth/pantalla_gustos.dart';
-import 'package:abi_frotend_nd/screens/comprador/inicio_comprador.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../screens/auth/registro_vendedor.dart';
+import '../../screens/auth/registro_comprador.dart';
 import '../../main.dart';
 
 class PantallaSeleccionRol extends StatefulWidget {
@@ -229,7 +229,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const HomeComprador(userId: ''),  // ✅ CAMBIO: Pasar userId
+                          builder: (_) => const PantallaIntereses(userId: ''),
                         ),
                       ),
                     ),
@@ -240,7 +240,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                       alPresionar: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const PantallaIntereses(),
+                          builder: (_) => const PantallaRegistroComprador(),
                         ),
                       ),
                     ),

@@ -10,9 +10,14 @@ import 'pantalla_eventos_comprador.dart';
 import 'pantalla_tutoriales_comprador.dart';
 import 'pantalla_mensajes_comprador.dart';
 import 'pantalla_detalle_producto.dart';
+import 'pantalla_perfil_artesano.dart';
+import '../auth/inicio_screen.dart';
+import '../pantalla_editar_perfil.dart';
+import 'pantalla_mi_perfil.dart';
 import '../../core/theme/app_theme.dart';
 import '../../main.dart';
 import '../../core/carrito_provider.dart';
+import '../../core/favoritos_provider.dart';
 import '../../widgets/comprador/sidebar_comprador.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/comprador/carrusel_hero.dart';
@@ -127,17 +132,96 @@ class _HomeCompradorState extends State<HomeComprador> {
   String? _error;
   List<ArtesanoModelo> _artesanos = [];
 
+  // Preferencias guardadas por el usuario (pantalla de intereses): se usan
+  // para que el catálogo muestre primero lo que coincide con lo que le gusta.
+  Set<String> _categoriasPreferidas = {};
+  Set<String> _regionesPreferidas = {};
+
   // ✅ NUEVO: datos del usuario logueado
   String _nombreUsuario = 'Usuario CraftHub';
   String _fotoUsuario = '';
+
+  bool _tieneAnuncioSinLeer = false;
 
   @override
   void initState() {
     super.initState();
     _inicializarCarrito();
-    _cargarProductos();
+    _inicializarFavoritos();
+    _cargarPreferenciasUsuario().then((_) => _cargarProductos());
     _cargarArtesanos();
     _cargarPerfilUsuario(); // ✅ NUEVO
+    _revisarAnuncios();
+  }
+
+  Future<void> _revisarAnuncios() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final data = await ApiService.getAnuncios(widget.userId);
+      if (!mounted) return;
+      setState(() => _tieneAnuncioSinLeer = (data['no_leidos'] ?? 0) > 0);
+    } catch (e) {
+      debugPrint('Error revisando anuncios: $e');
+    }
+  }
+
+  void _abrirMensajes() {
+    setState(() {
+      _navIndice = 5;
+      _tieneAnuncioSinLeer = false;
+    });
+    if (widget.userId.isNotEmpty) {
+      ApiService.marcarAnunciosLeidos(widget.userId);
+    }
+  }
+
+  Future<void> _cargarPreferenciasUsuario() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final data = await ApiService.getPreferencias(widget.userId);
+      _categoriasPreferidas =
+          (data['categorias'] as List<dynamic>? ?? []).map((e) => e.toString()).toSet();
+      _regionesPreferidas = {
+        ...(data['provincias'] as List<dynamic>? ?? []).map((e) => e.toString()),
+        ...(data['comarcas'] as List<dynamic>? ?? []).map((e) => e.toString()),
+      };
+    } catch (e) {
+      debugPrint('Error cargando preferencias: $e');
+    }
+  }
+
+  // "Comarca Guna-Yala" (como se guarda desde la pantalla de intereses) debe
+  // considerarse igual a "Guna Yala" (como aparece en productos/artesanos):
+  // se quita el prefijo "comarca" y se normalizan guiones/mayúsculas.
+  String _normalizarRegion(String s) {
+    var t = s.trim().toLowerCase().replaceAll('-', ' ');
+    if (t.startsWith('comarca ')) t = t.substring('comarca '.length);
+    return t.trim();
+  }
+
+  bool _coincideCategoria(String preferida, String delProducto) {
+    final a = preferida.trim().toLowerCase();
+    final b = delProducto.trim().toLowerCase();
+    if (a.isEmpty || b.isEmpty) return false;
+    return a.contains(b) || b.contains(a);
+  }
+
+  // Pone primero (preservando el orden entre sí) los productos cuya
+  // categoría o provincia coincide con las preferencias guardadas.
+  List<ProductoModelo> _ordenarPorPreferencias(List<ProductoModelo> productos) {
+    if (_categoriasPreferidas.isEmpty && _regionesPreferidas.isEmpty) {
+      return productos;
+    }
+    final regionesNormalizadas = _regionesPreferidas.map(_normalizarRegion).toSet();
+    final coinciden = <ProductoModelo>[];
+    final resto = <ProductoModelo>[];
+    for (final p in productos) {
+      final coincideRegion = regionesNormalizadas.contains(_normalizarRegion(p.provincia));
+      final coincideCategoria =
+          _categoriasPreferidas.any((c) => _coincideCategoria(c, p.categoria));
+      (coincideRegion || coincideCategoria ? coinciden : resto).add(p);
+    }
+    return [...coinciden, ...resto];
   }
 
   Future<void> _inicializarCarrito() async {
@@ -147,6 +231,24 @@ class _HomeCompradorState extends State<HomeComprador> {
     } catch (e) {
       debugPrint('❌ Error inicializando carrito: $e');
     }
+  }
+
+  Future<void> _inicializarFavoritos() async {
+    try {
+      await context.read<FavoritosProvider>().inicializar(widget.userId);
+    } catch (e) {
+      debugPrint('❌ Error inicializando favoritos: $e');
+    }
+  }
+
+  void _cerrarSesion(BuildContext context) {
+    // 🔌 POST /api/auth/logout (invalidar token en el backend cuando exista)
+    context.read<CarritoProvider>().cerrarSesion();
+    context.read<FavoritosProvider>().cerrarSesion();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const PantallaInicio()),
+      (route) => false,
+    );
   }
 
   // ✅ NUEVO: carga nombre y foto reales del perfil. Si no hay userId
@@ -166,6 +268,15 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
+  Future<void> _verMiPerfil() async {
+    if (widget.userId.isEmpty) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PantallaMiPerfilComprador(userId: widget.userId)),
+    );
+    _cargarPerfilUsuario();
+  }
+
   Future<void> _cargarProductos() async {
     setState(() {
       _cargando = true;
@@ -176,7 +287,7 @@ class _HomeCompradorState extends State<HomeComprador> {
         categoria: _categoriaActiva,
         busqueda: _busquedaCtrl.text,
       );
-      setState(() => _productos = productos);
+      setState(() => _productos = _ordenarPorPreferencias(productos));
     } catch (e) {
       setState(() => _error = 'No se pudieron cargar los productos: $e');
     } finally {
@@ -193,8 +304,54 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
-  void _abrirPerfilArtesano(ArtesanoModelo artesano) {
-    // TODO: Navigator.push a PantallaPerfilArtesano(artesanoId: artesano.id)
+  // Conecta la tarjeta de "Artesanos destacados" con su perfil completo,
+  // cargando sus productos reales desde GET /artesanos/{nombre}.
+  Future<void> _abrirPerfilArtesano(ArtesanoModelo a) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+    );
+
+    var productos = <ModeloProductoResumen>[];
+    try {
+      final detalle = await ApiService.getDetalleArtesano(a.nombre);
+      productos = ((detalle['productos'] as List<dynamic>?) ?? [])
+          .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error cargando productos del artesano: $e');
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaPerfilArtesano(
+          artesano: ModeloArtesano(
+            nombre: a.nombre,
+            specialty: a.especialidad,
+            especialidad: a.especialidad,
+            ubicacion: a.provincia,
+            fotoUrl: a.fotoUrl,
+            bannerUrl: a.bannerEfectivo,
+            calificacion: a.rating,
+            totalResenas: a.totalResenas,
+            verificado: a.estaVerificado,
+            totalProductos: a.totalVentas,
+            anosEnCraftHub: a.anosExperiencia,
+            valoracionesPositivas: (a.rating / 5 * 100).round(),
+            ventasRealizadas: a.totalVentas,
+            descripcion: a.descripcion,
+            etiquetas: a.especialidades,
+            colecciones: productos.map((p) => p.coleccion).toSet().toList(),
+            productos: productos,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -219,10 +376,10 @@ class _HomeCompradorState extends State<HomeComprador> {
             nombre: _nombreUsuario,
             fotoUrl: _fotoUsuario,
             indiceActivo: _navIndice,
-            alSeleccionar: (i) => setState(() => _navIndice = i),
-            alCerrarSesion: () {
-              // 🔌 POST /api/auth/logout
-            },
+            alSeleccionar: (i) => i == 5 ? _abrirMensajes() : setState(() => _navIndice = i),
+            alCerrarSesion: () => _cerrarSesion(context),
+            tieneNotificacionMensajes: _tieneAnuncioSinLeer,
+            alTocarAvatar: _verMiPerfil,
           ),
 
           Expanded(
@@ -253,111 +410,52 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 4:
         return PantallaTutorialesComprador(userId: widget.userId);
       case 5:
-        return PantallaMensajesComprador();
+        return PantallaMensajesComprador(userId: widget.userId);
       default:
         return _buildContenido(oscuro);
     }
   }
 
   Widget _buildTopBar(bool oscuro) {
-    final border = oscuro
-        ? CraftHubColors.bordeOscuro
-        : CraftHubColors.bordeClaro;
-    final fondo = oscuro
-        ? CraftHubColors.fondoOscuro
-        : CraftHubColors.fondoClaro;
+    void abrirMapa() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) => PantallaMapa(
+            esOscuro: Theme.of(ctx).brightness == Brightness.dark,
+          ),
+        ),
+      );
+    }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-      decoration: BoxDecoration(color: fondo),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: TextField(
-                controller: _busquedaCtrl,
-                onChanged: (q) => _cargarProductos(),
-                style: GoogleFonts.poppins(fontSize: 13),
-                decoration: InputDecoration(
-                  hintText: 'Buscar productos, artesanos, provincias...',
-                  hintStyle: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: Colors.grey,
-                  ),
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                  filled: true,
-                  fillColor: oscuro ? CraftHubColors.panelOscuro : Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: BorderSide(color: border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: BorderSide(color: border, width: 0.8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                    borderSide: const BorderSide(
-                      color: CraftHubColors.vinoTinto,
-                      width: 1.2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-
-          _IconTopBar(
-            icono: Icons.chat_bubble_outline_rounded,
-            tooltip: 'Mensajes',
-            onTap: () {},
-          ),
-          _IconTopBar(
-            icono: Icons.calendar_month_outlined,
-            tooltip: 'Eventos',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      PantallaEventosComprador(userId: widget.userId),
-                ),
-              );
-            },
-          ),
-          _IconTopBar(
-            icono: Icons.notifications_none_rounded,
-            tooltip: 'Notificaciones',
-            tieneNotif: true,
-            onTap: () {},
-          ),
-          _IconTopBar(
-            icono: Icons.location_on_outlined,
-            tooltip: 'Mapa artesanos',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (ctx) => PantallaMapa(
-                    esOscuro: Theme.of(ctx).brightness == Brightness.dark,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          _IconTopBar(
-            icono: Theme.of(context).brightness == Brightness.dark
-                ? Icons.light_mode_outlined
-                : Icons.dark_mode_outlined,
-            tooltip: 'Cambiar tema',
-            onTap: () => context.read<GestorTema>().alternarTema(),
-          ),
-        ],
+    return TopbarFlotante(
+      controladorBusqueda: _busquedaCtrl,
+      alBuscar: (q) => _cargarProductos(),
+      tieneNotificaciones: true,
+      alPresionarUbicacion: abrirMapa,
+      alPresionarLogo: () => setState(() => _navIndice = 0),
+      alPresionarEventos: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PantallaEventosComprador(userId: widget.userId),
+        ),
       ),
+      itemsExplorar: [
+        ItemExplorar(icono: Icons.home_outlined, etiqueta: 'Inicio',
+            onTap: () => setState(() => _navIndice = 0)),
+        ItemExplorar(icono: Icons.shopping_bag_outlined, etiqueta: 'Carrito',
+            onTap: () => setState(() => _navIndice = 1)),
+        ItemExplorar(icono: Icons.storefront_outlined, etiqueta: 'Artesanos',
+            onTap: () => setState(() => _navIndice = 2)),
+        ItemExplorar(icono: Icons.favorite_border_rounded, etiqueta: 'Favoritos',
+            onTap: () => setState(() => _navIndice = 3)),
+        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: 'Tutoriales',
+            onTap: () => setState(() => _navIndice = 4)),
+        ItemExplorar(icono: Icons.chat_bubble_outline_rounded, etiqueta: 'Mensajes',
+            onTap: () => setState(() => _navIndice = 5)),
+        ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de artesanos',
+            onTap: abrirMapa),
+      ],
     );
   }
 
@@ -510,91 +608,6 @@ class _HomeCompradorState extends State<HomeComprador> {
 }
 
 // ── Widgets auxiliares ──────────────────────────────────────────────────────────────────────────
-
-class _IconTopBar extends StatefulWidget {
-  final IconData icono;
-  final String tooltip;
-  final VoidCallback onTap;
-  final bool tieneNotif;
-
-  const _IconTopBar({
-    required this.icono,
-    required this.tooltip,
-    required this.onTap,
-    this.tieneNotif = false,
-  });
-
-  @override
-  State<_IconTopBar> createState() => _IconTopBarState();
-}
-
-class _IconTopBarState extends State<_IconTopBar> {
-  bool _hover = false;
-  @override
-  Widget build(BuildContext context) {
-    final oscuro = Theme.of(context).brightness == Brightness.dark;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: Tooltip(
-        message: widget.tooltip,
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: Container(
-            margin: const EdgeInsets.only(left: 8),
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _hover
-                  ? (oscuro
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.05))
-                  : (oscuro ? CraftHubColors.panelOscuro : Colors.white),
-              border: Border.all(
-                color: oscuro
-                    ? CraftHubColors.bordeOscuro
-                    : CraftHubColors.bordeClaro,
-                width: 0.8,
-              ),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(
-                  widget.icono,
-                  size: 19,
-                  color: oscuro
-                      ? CraftHubColors.textoOscuro
-                      : const Color(0xFF5A4A42),
-                ),
-                if (widget.tieneNotif)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: CraftHubColors.vinoTinto,
-                        border: Border.all(
-                          color: oscuro
-                              ? CraftHubColors.fondoOscuro
-                              : CraftHubColors.fondoClaro,
-                          width: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _TarjetaArtesano extends StatefulWidget {
   final String nombre, fotoUrl;

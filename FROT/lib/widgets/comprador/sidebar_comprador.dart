@@ -7,6 +7,8 @@ class SidebarComprador extends StatelessWidget {
   final int indiceActivo;
   final Function(int) alSeleccionar;
   final VoidCallback alCerrarSesion;
+  final bool tieneNotificacionMensajes;
+  final VoidCallback? alTocarAvatar;
 
   const SidebarComprador({
     super.key,
@@ -15,17 +17,23 @@ class SidebarComprador extends StatelessWidget {
     required this.indiceActivo,
     required this.alSeleccionar,
     required this.alCerrarSesion,
+    this.tieneNotificacionMensajes = false,
+    this.alTocarAvatar,
   });
 
   static const double _ancho = 68.0;
+  static const int _indiceMensajes = 5;
 
+  // El orden y las etiquetas deben coincidir exactamente con el switch de
+  // _obtenerPantallaActual en inicio_comprador.dart (mismo índice = misma
+  // pantalla real que se muestra al seleccionarlo).
   static const _items = [
-    {'icono': Icons.home_outlined,          'label': 'Inicio'},
-    {'icono': Icons.shopping_cart_outlined, 'label': 'Mi carrito'},
-    {'icono': Icons.people_outline,         'label': 'Artesanos'},
-    {'icono': Icons.favorite_outline,       'label': 'Favoritos'},
-    {'icono': Icons.chat_bubble_outline,    'label': 'Mensajes'},
-    {'icono': Icons.history_rounded,        'label': 'Historial'},
+    {'icono': Icons.home_outlined,           'label': 'Inicio'},
+    {'icono': Icons.shopping_cart_outlined,  'label': 'Mi carrito'},
+    {'icono': Icons.people_outline,          'label': 'Artesanos'},
+    {'icono': Icons.favorite_outline,        'label': 'Favoritos'},
+    {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
+    {'icono': Icons.chat_bubble_outline,     'label': 'Mensajes'},
   ];
 
   String _iniciales(String valor) {
@@ -66,6 +74,7 @@ class SidebarComprador extends StatelessWidget {
                 label:  _items[i]['label'] as String,
                 activo: indiceActivo == i,
                 onTap:  () => alSeleccionar(i),
+                mostrarPunto: i == _indiceMensajes && tieneNotificacionMensajes,
               ),
             ),
           ),
@@ -95,21 +104,27 @@ class SidebarComprador extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: nombre,
+        message: 'Editar perfil',
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
           borderRadius: BorderRadius.circular(7),
         ),
         textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
-        child: ClipOval(
-          child: fotoUrl.isNotEmpty
-              ? Image.network(
-                  fotoUrl,
-                  width: 40, height: 40, fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
-                )
-              : _AvatarIniciales(texto: _iniciales(nombre)),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: alTocarAvatar,
+            child: ClipOval(
+              child: fotoUrl.isNotEmpty
+                  ? Image.network(
+                      fotoUrl,
+                      width: 40, height: 40, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _AvatarIniciales(texto: _iniciales(nombre)),
+                    )
+                  : _AvatarIniciales(texto: _iniciales(nombre)),
+            ),
+          ),
         ),
       ),
     );
@@ -145,6 +160,7 @@ class _ItemNav extends StatefulWidget {
   final bool activo;
   final VoidCallback onTap;
   final bool esLogout;
+  final bool mostrarPunto;
 
   const _ItemNav({
     required this.icono,
@@ -152,6 +168,7 @@ class _ItemNav extends StatefulWidget {
     required this.activo,
     required this.onTap,
     this.esLogout = false,
+    this.mostrarPunto = false,
   });
 
   @override
@@ -196,10 +213,29 @@ class _ItemNavState extends State<_ItemNav> {
                       : null),
             ),
             child: Center(
-              child: Icon(
-                widget.icono,
-                size: 19,
-                color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(
+                    widget.icono,
+                    size: 19,
+                    color: resaltado ? Colors.white : Colors.white.withValues(alpha: 0.6),
+                  ),
+                  if (widget.mostrarPunto)
+                    Positioned(
+                      top: -2,
+                      right: -3,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFE53935),
+                          border: Border.all(color: const Color(0xFF821515), width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

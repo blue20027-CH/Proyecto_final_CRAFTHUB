@@ -309,7 +309,7 @@ class _CeldaDiaState extends State<_CeldaDia> {
                 '${widget.numero}',
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 16.5,
+                  fontSize: 20,
                   fontWeight: widget.esHoy || widget.esSeleccionado
                       ? FontWeight.w700
                       : FontWeight.w500,

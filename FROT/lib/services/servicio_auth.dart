@@ -63,3 +63,52 @@ Future<Map<String, dynamic>?> loginConEmailYPassword(
   rethrow; // Reenviamos el error para que tu UI de Flutter pueda mostrar un SnackBar o alerta
 }
 }
+
+// ─── 2. REGISTRO CON EMAIL Y CONTRASEÑA ────────────────────
+// Endpoint FastAPI esperado: POST /api/auth/registro
+// Responde con la misma forma que el login (success, user_id, email, modo, perfil)
+Future<Map<String, dynamic>?> registrarConEmailYPassword({
+  required String nombre,
+  required String email,
+  required String password,
+  required String rol,
+  String? telefono,
+  String? provincia,
+  String? ubicacion,
+}) async {
+  final url = Uri.parse('$baseUrl/api/auth/registro');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'nombre': nombre,
+        'email': email,
+        'password': password,
+        'rol': rol,
+        'telefono': telefono,
+        'provincia': provincia,
+        'ubicacion': ubicacion,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return data;
+    } else if (response.statusCode == 400) {
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['detail'] ?? 'No se pudo completar el registro.');
+    } else if (response.statusCode == 422) {
+      throw Exception('Revisa que todos los campos tengan un formato válido.');
+    } else {
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['detail'] ?? 'Error en el servidor (${response.statusCode})');
+    }
+  } catch (e) {
+    debugPrint("Error en registrarConEmailYPassword: $e");
+    rethrow;
+  }
+}

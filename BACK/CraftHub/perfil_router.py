@@ -24,6 +24,8 @@ class ActualizarPerfilRequest(BaseModel):
     foto:         Optional[str] = None
     descripcion:  Optional[str] = None
     ubicacion:    Optional[str] = None
+    provincia:    Optional[str] = None
+    categoria:    Optional[str] = None
     telefono:     Optional[str] = None
 
 # ---------------------------------------------------------------------------
@@ -45,12 +47,15 @@ def obtener_perfil(user_id: str):
         iniciales = "".join([p[0].upper() for p in nombre.split()[:2]]) or "CH"
         return {
             "nombre":       nombre,
-            "email":        perfil.get("email") or "craft@crafthub.com",
+            "email":        perfil.get("email") or "",
             "foto":         perfil.get("foto") or perfil.get("ft") or "",
             "foto_portada": perfil.get("foto_portada") or "",
             "iniciales":    iniciales,
             "ubicacion":    perfil.get("ubicacion") or "",
+            "provincia":    perfil.get("provincia") or "",
+            "categoria":    perfil.get("categoria") or "",
             "telefono":     perfil.get("telefono") or "",
+            "descripcion":  perfil.get("descripcion") or "",
             "modo":         perfil.get("modo") or "comprador",
         }
     except HTTPException:

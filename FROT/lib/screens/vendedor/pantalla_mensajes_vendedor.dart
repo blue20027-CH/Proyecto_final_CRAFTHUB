@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
-import '../../widgets/vendedor/sidebar_vendedor.dart';
 import '../../widgets/chat/panel_conversaciones.dart';
 import '../../widgets/chat/panel_chat.dart';
+import '../../widgets/chat/banner_anuncio_crafthub.dart';
 
-// Layout desktop: [Sidebar] | [PanelConversaciones] | [PanelChat]
+// Contenido (sin Scaffold/Sidebar propios): se inserta dentro del switch de
+// _obtenerPantallaActual() en pantalla_dashoard_vendedor.dart, igual que
+// PantallaMensajesComprador se inserta en el switch de HomeComprador.
+// Layout desktop: [PanelConversaciones] | [PanelChat]
 // TODO al iniciar: GET /api/conversaciones/{vendedorId}
 // TODO en tiempo real: WS /ws/chat/{conversacionId}
 class PantallaMensajesVendedor extends StatefulWidget {
-  const PantallaMensajesVendedor({super.key});
+  final String userId;
+  const PantallaMensajesVendedor({super.key, this.userId = ''});
 
   @override
   State<PantallaMensajesVendedor> createState() =>
@@ -17,8 +21,6 @@ class PantallaMensajesVendedor extends StatefulWidget {
 }
 
 class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
-  int _indiceActivo = 4; // 4 = Mensajes en sidebar vendedor
-
   ConversacionModelo? _conversacionActiva;
   late List<ConversacionModelo> _conversaciones;
   List<MensajeModelo> _mensajesActivos = [];
@@ -135,45 +137,34 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
     });
   }
 
-  void _navegar(int index) {
-    if (index == _indiceActivo) return;
-    setState(() => _indiceActivo = index);
-    // 0=Dashboard, 1=Productos, 2=Pedidos, 3=Clientes, 4=Mensajes, 5=Reportes
-    final rutas = {0: '/vendedor', 1: '/inventario'};
-    if (rutas.containsKey(index)) {
-      Navigator.pushReplacementNamed(context, rutas[index]!);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: CraftHubColors.fondo(isDark),
-      body: Row(
+      body: Column(
         children: [
-          SidebarVendedor(
-            nombre: 'Rosa Martinez',
-            fotoUrl: 'https://i.pravatar.cc/150?img=5',
-            indiceActivo: _indiceActivo,
-            alSeleccionar: _navegar,
-            alCerrarSesion: () =>
-                Navigator.pushReplacementNamed(context, '/login'),
-          ),
-          PanelConversaciones(
-            conversaciones: _conversaciones,
-            idSeleccionado: _conversacionActiva?.id,
-            alSeleccionar: _seleccionar,
-          ),
+          BannerAnuncioCraftHub(userId: widget.userId),
           Expanded(
-            child: _conversacionActiva == null
-                ? _PantallaVacia(isDark: isDark)
-                : PanelChat(
-                    key: ValueKey(_conversacionActiva!.id),
-                    conversacion: _conversacionActiva!,
-                    mensajes: _mensajesActivos,
-                    misPublicaciones: _misPublicaciones,
-                  ),
+            child: Row(
+              children: [
+                PanelConversaciones(
+                  conversaciones: _conversaciones,
+                  idSeleccionado: _conversacionActiva?.id,
+                  alSeleccionar: _seleccionar,
+                ),
+                Expanded(
+                  child: _conversacionActiva == null
+                      ? _PantallaVacia(isDark: isDark)
+                      : PanelChat(
+                          key: ValueKey(_conversacionActiva!.id),
+                          conversacion: _conversacionActiva!,
+                          mensajes: _mensajesActivos,
+                          misPublicaciones: _misPublicaciones,
+                        ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

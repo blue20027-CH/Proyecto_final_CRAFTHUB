@@ -269,6 +269,16 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
   Widget _buildEncabezadoProximos(bool oscuro) {
     return Row(
       children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: CraftHubColors.vinoTintoSuave,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.event_available_outlined, size: 16, color: CraftHubColors.vinoTinto),
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             'Próximos eventos',
@@ -288,6 +298,19 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
       ],
     );
   }
+
+  BoxDecoration _decorTarjeta(bool oscuro) => BoxDecoration(
+        color: CraftHubColors.panel(oscuro),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: CraftHubColors.borde(oscuro)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      );
 
   Widget? _buildFiltroDiaChip(bool oscuro) {
     if (_diaSeleccionado == null) return null;
@@ -403,10 +426,20 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
         const SizedBox(height: 20),
         _buildCta(),
         const SizedBox(height: 28),
-        _buildEncabezadoProximos(oscuro),
-        const SizedBox(height: 12),
-        _buildFiltroDiaChip(oscuro) ?? const SizedBox.shrink(),
-        _buildListaEventos(oscuro, comoColumna: true),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: _decorTarjeta(oscuro),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildEncabezadoProximos(oscuro),
+              const SizedBox(height: 14),
+              _buildFiltroDiaChip(oscuro) ?? const SizedBox.shrink(),
+              _buildListaEventos(oscuro, comoColumna: true),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -431,14 +464,18 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
         const SizedBox(width: 24),
         Expanded(
           flex: 5,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildEncabezadoProximos(oscuro),
-              const SizedBox(height: 12),
-              _buildFiltroDiaChip(oscuro) ?? const SizedBox.shrink(),
-              Expanded(child: _buildListaEventos(oscuro)),
-            ],
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: _decorTarjeta(oscuro),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildEncabezadoProximos(oscuro),
+                const SizedBox(height: 14),
+                _buildFiltroDiaChip(oscuro) ?? const SizedBox.shrink(),
+                Expanded(child: _buildListaEventos(oscuro)),
+              ],
+            ),
           ),
         ),
       ],
