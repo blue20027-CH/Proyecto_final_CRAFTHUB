@@ -151,18 +151,24 @@ class _ModeloCategoria {
 }
 
 // Imagen representativa por categoría (para los chips de "explorar por
-// categoría"); si aparece una categoría nueva que no está aquí, se usa
-// una imagen genérica de respaldo.
+// categoría"). Usa las mismas imágenes locales que ya trae la app para estas
+// categorías reales (ver pantalla_gustos.dart) — así carga al instante y no
+// depende de que un enlace externo siga funcionando. Si aparece una
+// categoría real que todavía no tiene imagen local, cae a Unsplash como
+// respaldo temporal.
 const Map<String, String> _imagenPorCategoria = {
-  'Textiles':    'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=200',
-  'Cerámica':    'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=200',
+  'Vestir':      'assets/images/Categoria/vestir.png',
+  'Artesanía':   'assets/images/Categoria/artesania.png',
+  'Muebles':     'assets/images/Categoria/muebles.png',
+  'Joyería':     'assets/images/Categoria/joyeria.png',
+  'Alimentos':   'assets/images/Categoria/alimentos.png',
+  'Accesorios':  'assets/images/Categoria/accesorios.png',
+  'Calzado':     'assets/images/Categoria/calzado.png',
+  'Cerámica':    'assets/images/Categoria/ceramica.png',
+  'Instrumentos': 'assets/images/Categoria/instrumentos.png',
   'Madera':      'https://images.unsplash.com/photo-1611486212557-88be5ff6f941?w=200',
-  'Joyería':     'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200',
-  'Decoración':  'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200',
-  'Accesorios':  'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200',
 };
-const String _imagenCategoriaRespaldo =
-    'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200';
+const String _imagenCategoriaRespaldo = 'assets/images/Categoria/artesania.png';
 
 // ─────────────────────────────────────────────────────────────
 // PANTALLA MAPA

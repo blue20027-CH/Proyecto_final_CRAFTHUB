@@ -1209,11 +1209,11 @@ class _MiniaturasProductos extends StatelessWidget {
   }
 
   Widget _placeholderImg() => Container(
-    color: CraftHubColors.bordeClaro,
-    child: const Icon(
+    color: CraftHubColors.borde(esOscuro),
+    child: Icon(
       Icons.image_outlined,
       size: 16,
-      color: CraftHubColors.textoSecClaro,
+      color: CraftHubColors.textoSecundario(esOscuro),
     ),
   );
 }
@@ -1311,9 +1311,14 @@ class _TablaOrdenes extends StatelessWidget {
   static const _flexFecha = 2;
   static const _anchoAcciones = 92.0;
 
+  // Ancho mínimo bajo el cual las columnas (sobre todo el chip de Estado y
+  // la fecha) ya no caben cómodamente. Por debajo de esto, en vez de
+  // comprimirse y recortarse, la tabla se vuelve deslizable horizontalmente.
+  static const _anchoMinimoTabla = 980.0;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final tabla = Container(
       decoration: BoxDecoration(
         color: CraftHubColors.panel(esOscuro),
         borderRadius: BorderRadius.circular(14),
@@ -1335,6 +1340,17 @@ class _TablaOrdenes extends StatelessWidget {
         ],
       ),
     );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final ancho = constraints.maxWidth < _anchoMinimoTabla ? _anchoMinimoTabla : constraints.maxWidth;
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: constraints.maxWidth < _anchoMinimoTabla
+            ? const ClampingScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
+        child: SizedBox(width: ancho, child: tabla),
+      );
+    });
   }
 
   Widget _celdaTexto(
@@ -2053,16 +2069,17 @@ class _DialogoDetallePedido extends StatelessWidget {
                                   errorBuilder: (_, _, _) => Container(
                                     width: 40,
                                     height: 40,
-                                    color: CraftHubColors.bordeClaro,
+                                    color: CraftHubColors.borde(esOscuro),
                                   ),
                                 )
                               : Container(
                                   width: 40,
                                   height: 40,
-                                  color: CraftHubColors.bordeClaro,
-                                  child: const Icon(
+                                  color: CraftHubColors.borde(esOscuro),
+                                  child: Icon(
                                     Icons.image_outlined,
                                     size: 18,
+                                    color: colorSec,
                                   ),
                                 ),
                         ),

@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
+import 'avatar_contacto.dart';
 
 /// Tarjeta de conversacion en el panel izquierdo.
 class TarjetaConversacion extends StatelessWidget {
@@ -51,10 +52,10 @@ class TarjetaConversacion extends StatelessWidget {
           children: [
             Stack(
               children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundImage: NetworkImage(conversacion.avatarUrl),
-                  backgroundColor: CraftHubColors.bordeClaro,
+                AvatarContacto(
+                  nombre: conversacion.nombreContacto,
+                  avatarUrl: conversacion.avatarUrl,
+                  radio: 24,
                 ),
                 if (conversacion.enLinea)
                   Positioned(

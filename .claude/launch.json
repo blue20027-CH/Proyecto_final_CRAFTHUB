@@ -10,7 +10,7 @@
     {
       "name": "frontend",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd /d FROT && flutter run -d web-server --web-port=5173"],
+      "runtimeArgs": ["/c", "cd /d FROT && flutter run -d web-server --web-port=5173 --release"],
       "port": 5173
     }
   ]

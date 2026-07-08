@@ -24,6 +24,11 @@ class ChipCategoriaMapa extends StatefulWidget {
 class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
   bool _sobre = false;
 
+  Widget _imagenRespaldo() => Container(
+        color: CraftHubColors.bordeClaro,
+        child: const Icon(Icons.category_outlined, color: CraftHubColors.textoSecClaro),
+      );
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -61,15 +66,22 @@ class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
                 SizedBox(
                   height: 90,
                   width: double.infinity,
-                  child: Image.network(
-                    widget.imagenUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: CraftHubColors.bordeClaro,
-                      child: const Icon(Icons.category_outlined,
-                          color: CraftHubColors.textoSecClaro),
-                    ),
-                  ),
+                  // Las categorías reales (Vestir, Artesanía, Muebles, etc.)
+                  // usan imágenes locales empaquetadas con la app — más
+                  // rápidas y sin depender de que un enlace externo siga
+                  // vivo. Si llega una URL de red (categoría sin imagen
+                  // local todavía), se usa esa en su lugar.
+                  child: widget.imagenUrl.startsWith('assets/')
+                      ? Image.asset(
+                          widget.imagenUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _imagenRespaldo(),
+                        )
+                      : Image.network(
+                          widget.imagenUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _imagenRespaldo(),
+                        ),
                 ),
                 // Velo
                 Positioned.fill(

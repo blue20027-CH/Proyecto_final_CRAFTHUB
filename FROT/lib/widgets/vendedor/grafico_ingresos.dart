@@ -5,11 +5,13 @@ import '../../core/theme/app_theme.dart';
 class GraficoIngresos extends StatefulWidget {
   final List<double> valores;
   final List<String> etiquetas;
+  final bool esOscuro;
 
   const GraficoIngresos({
     super.key,
     required this.valores,
     required this.etiquetas,
+    this.esOscuro = false,
   });
 
   @override
@@ -21,7 +23,16 @@ class _GraficoIngresosState extends State<GraficoIngresos> {
 
   @override
   Widget build(BuildContext context) {
-    final maxVal = widget.valores.reduce((a, b) => a > b ? a : b);
+    // Un vendedor nuevo sin ventas todavía tiene todos los valores en 0.
+    // fl_chart necesita un intervalo > 0 para dibujar la cuadrícula — con
+    // maxVal = 0 el intervalo también sería 0, lo que cuelga el gráfico
+    // (y con él toda la pantalla) en vez de simplemente mostrarlo vacío.
+    final valorMasAlto = widget.valores.isEmpty
+        ? 0.0
+        : widget.valores.reduce((a, b) => a > b ? a : b);
+    final maxVal = valorMasAlto > 0 ? valorMasAlto : 100.0;
+    final colorTexto = CraftHubColors.textoSecundario(widget.esOscuro);
+    final colorGrid = CraftHubColors.borde(widget.esOscuro);
 
     return LineChart(
       LineChartData(
@@ -32,7 +43,7 @@ class _GraficoIngresosState extends State<GraficoIngresos> {
           drawVerticalLine: false,
           horizontalInterval: maxVal / 4,
           getDrawingHorizontalLine: (_) => FlLine(
-            color: CraftHubColors.bordeClaro,
+            color: colorGrid,
             strokeWidth: 1,
           ),
         ),
@@ -45,10 +56,10 @@ class _GraficoIngresosState extends State<GraficoIngresos> {
               interval: maxVal / 4,
               getTitlesWidget: (v, _) => Text(
                 v >= 1000 ? '\$${(v / 1000).toStringAsFixed(1)}k' : '\$${v.toInt()}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 10,
-                  color: CraftHubColors.textoSecClaro,
+                  color: colorTexto,
                 ),
               ),
             ),
@@ -85,10 +96,10 @@ class _GraficoIngresosState extends State<GraficoIngresos> {
                         )
                       : Text(
                           widget.etiquetas[i],
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 10,
-                            color: CraftHubColors.textoSecClaro,
+                            color: colorTexto,
                           ),
                         ),
                 );

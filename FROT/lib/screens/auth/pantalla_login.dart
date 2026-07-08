@@ -74,11 +74,12 @@ class _PantallaLoginState extends State<PantallaLogin> {
         final foto = (perfil['foto'] ?? perfil['foto_perfil'] ?? perfil['fotoUrl'] ?? perfil['avatar'] ?? '').toString();
 
         if (_modoSeleccionado == 'Vendedor') {
+          final esOscuroActual = context.read<GestorTema>().esModoOscuro;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (_) => HomeVendedor(
-                esOscuro: context.read<GestorTema>().esModoOscuro,
+                esOscuro: esOscuroActual,
                 nombreVendedor: nombre,
                 fotoPerfil: foto,
                 userId: userId,  // ✅ NUEVO: para tutoriales, mis-videos, etc.

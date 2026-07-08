@@ -69,6 +69,8 @@ flutter:
     - assets/images/Categoria/calzado.png
     - assets/images/Categoria/accesorios.png
     - assets/images/bolso.png
+    - assets/images/logos/
+    - assets/images/avatares/
 
   fonts:
     - family: Poppins

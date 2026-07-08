@@ -27,6 +27,11 @@ class ActualizarPerfilRequest(BaseModel):
     provincia:    Optional[str] = None
     categoria:    Optional[str] = None
     telefono:     Optional[str] = None
+    genero:       Optional[str] = None
+    fecha_nacimiento: Optional[str] = None
+    cedula:       Optional[str] = None
+    nombre_usuario: Optional[str] = None
+    ofrece_delivery: Optional[bool] = None
 
 # ---------------------------------------------------------------------------
 # ENDPOINTS
@@ -46,17 +51,22 @@ def obtener_perfil(user_id: str):
         nombre = perfil.get("nombre") or "Usuario CraftHub"
         iniciales = "".join([p[0].upper() for p in nombre.split()[:2]]) or "CH"
         return {
-            "nombre":       nombre,
-            "email":        perfil.get("email") or "",
-            "foto":         perfil.get("foto") or perfil.get("ft") or "",
-            "foto_portada": perfil.get("foto_portada") or "",
-            "iniciales":    iniciales,
-            "ubicacion":    perfil.get("ubicacion") or "",
-            "provincia":    perfil.get("provincia") or "",
-            "categoria":    perfil.get("categoria") or "",
-            "telefono":     perfil.get("telefono") or "",
-            "descripcion":  perfil.get("descripcion") or "",
-            "modo":         perfil.get("modo") or "comprador",
+            "nombre":            nombre,
+            "email":             perfil.get("email") or "",
+            "foto":              perfil.get("foto") or perfil.get("ft") or "",
+            "foto_portada":      perfil.get("foto_portada") or "",
+            "iniciales":         iniciales,
+            "ubicacion":         perfil.get("ubicacion") or "",
+            "provincia":         perfil.get("provincia") or "",
+            "categoria":         perfil.get("categoria") or "",
+            "telefono":          perfil.get("telefono") or "",
+            "descripcion":       perfil.get("descripcion") or "",
+            "modo":              perfil.get("modo") or perfil.get("rol") or "comprador",
+            "genero":            perfil.get("genero") or "",
+            "fecha_nacimiento":  perfil.get("fecha_nacimiento") or "",
+            "cedula":            perfil.get("cedula") or "",
+            "nombre_usuario":    perfil.get("nombre_usuario") or "",
+            "ofrece_delivery":   perfil.get("ofrece_delivery"),
         }
     except HTTPException:
         raise

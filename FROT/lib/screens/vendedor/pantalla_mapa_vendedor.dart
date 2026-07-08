@@ -646,10 +646,10 @@ class _CampoBusquedaMapa extends StatelessWidget {
           fontSize: 13,
           color: CraftHubColors.textoSecundario(esOscuro),
         ),
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.search_rounded,
           size: 18,
-          color: CraftHubColors.textoSecClaro,
+          color: CraftHubColors.textoSecundario(esOscuro),
         ),
         filled: true,
         fillColor: esOscuro
@@ -661,8 +661,8 @@ class _CampoBusquedaMapa extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: CraftHubColors.bordeClaro,
+          borderSide: BorderSide(
+            color: CraftHubColors.borde(esOscuro),
             width: 1,
           ),
         ),
@@ -719,7 +719,9 @@ class _TarjetaPedidoMapaState extends State<_TarjetaPedidoMapa> {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: resaltado
-                ? CraftHubColors.vinoTintoSuave
+                ? (widget.esOscuro
+                    ? CraftHubColors.vinoTinto.withValues(alpha: 0.16)
+                    : CraftHubColors.vinoTintoSuave)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             border: widget.seleccionado
