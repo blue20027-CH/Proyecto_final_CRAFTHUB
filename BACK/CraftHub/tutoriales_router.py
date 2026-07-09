@@ -64,7 +64,8 @@ def _tutorial_a_dict(t: dict, nombre_artesano: str = "CraftHub", foto_artesano: 
 @router.get("")
 def listar_tutoriales(categoria: Optional[str] = None):
     """
-    Tutoriales oficiales de CraftHub (creador_id es NULL).
+    Todos los tutoriales publicados (oficiales de CraftHub y los subidos por
+    artesanos), más recientes primero.
     🔗 FLUTTER: GET /api/tutoriales?categoria=X
     """
     try:
@@ -72,11 +73,26 @@ def listar_tutoriales(categoria: Optional[str] = None):
         if categoria and categoria.lower() not in ("todas", "all"):
             query = query.eq("categoria", categoria)
 
-        data = query.execute().data or []
-        print(f"[tutoriales] Total en BD: {len(data)}")
-        data_oficiales = [t for t in data if t.get("creador_id") is None]
-        print(f"[tutoriales] Oficiales (creador_id=NULL): {len(data_oficiales)}")
-        tutoriales = [_tutorial_a_dict(t, "CraftHub", "") for t in data_oficiales]
+        data = query.order("created_at", desc=True).execute().data or []
+
+        creador_ids = list({t["creador_id"] for t in data if t.get("creador_id")})
+        perfiles_por_id = {}
+        if creador_ids:
+            perfiles = (
+                supabase.table("perfiles")
+                .select("user_id, nombre, foto")
+                .in_("user_id", creador_ids)
+                .execute()
+                .data or []
+            )
+            perfiles_por_id = {p["user_id"]: p for p in perfiles}
+
+        tutoriales = []
+        for t in data:
+            perfil = perfiles_por_id.get(t.get("creador_id"))
+            nombre = (perfil or {}).get("nombre") or "CraftHub"
+            foto = (perfil or {}).get("foto") or ""
+            tutoriales.append(_tutorial_a_dict(t, nombre, foto))
         return {"tutoriales": tutoriales}
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Error cargando tutoriales: {ex}")

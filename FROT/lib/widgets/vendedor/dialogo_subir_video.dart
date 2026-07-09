@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
+import '../../services/api_service.dart';
 
-/// Diálogo modal para subir un nuevo tutorial de video.
-/// 🔌 POST /api/tutoriales/subir
-///   Body (multipart/form-data):
-///     - titulo: String
-///     - descripcion: String
-///     - categoria: String
-///     - video: File (mp4/mov/avi)
-///     - miniatura: File (jpg/png) [opcional]
-///   Response: { "id": String, "mensaje": String }
+/// Diálogo modal para publicar un nuevo tutorial (enlace de YouTube).
+/// 🔌 POST /api/tutoriales — ver ApiService.subirTutorial
 class DialogoSubirVideo extends StatefulWidget {
-  const DialogoSubirVideo({super.key});
+  final String userId;
+  const DialogoSubirVideo({super.key, required this.userId});
 
   @override
   State<DialogoSubirVideo> createState() => _DialogoSubirVideoState();
@@ -22,13 +16,10 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
   final _formKey = GlobalKey<FormState>();
   final _controladorTitulo = TextEditingController();
   final _controladorDescripcion = TextEditingController();
+  final _controladorYoutube = TextEditingController();
 
   String? _categoriaSeleccionada;
-  String? _rutaVideoSeleccionado;
-  String? _nombreArchivoVideo;
-  String? _rutaMiniaturaSeleccionada;
-  String? _nombreArchivoMiniatura;
-  bool _subiendoArchivo = false;
+  bool _subiendo = false;
 
   static const List<String> _categorias = [
     'Joyería',
@@ -45,45 +36,21 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
   void dispose() {
     _controladorTitulo.dispose();
     _controladorDescripcion.dispose();
+    _controladorYoutube.dispose();
     super.dispose();
   }
 
-  Future<void> _seleccionarVideo() async {
-    final resultado = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-      allowMultiple: false,
-    );
-    if (resultado != null && resultado.files.isNotEmpty) {
-      setState(() {
-        _rutaVideoSeleccionado = resultado.files.single.path;
-        _nombreArchivoVideo = resultado.files.single.name;
-      });
+  String? _validarYoutube(String? v) {
+    final url = (v ?? '').trim();
+    if (url.isEmpty) return 'El enlace de YouTube es requerido';
+    if (!url.contains('youtube.com/watch') && !url.contains('youtu.be/')) {
+      return 'Ingresa un enlace válido de YouTube';
     }
-  }
-
-  Future<void> _seleccionarMiniatura() async {
-    final resultado = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
-    );
-    if (resultado != null && resultado.files.isNotEmpty) {
-      setState(() {
-        _rutaMiniaturaSeleccionada = resultado.files.single.path;
-        _nombreArchivoMiniatura = resultado.files.single.name;
-      });
-    }
+    return null;
   }
 
   Future<void> _enviarFormulario() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_rutaVideoSeleccionado == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona un archivo de video.'),
-        ),
-      );
-      return;
-    }
     if (_categoriaSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor selecciona una categoría.')),
@@ -91,39 +58,25 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
       return;
     }
 
-    setState(() => _subiendoArchivo = true);
-
-    if (_rutaMiniaturaSeleccionada != null) {
-      // La miniatura está seleccionada y se usará en la integración real del backend.
+    setState(() => _subiendo = true);
+    try {
+      await ApiService.subirTutorial(
+        titulo: _controladorTitulo.text.trim(),
+        youtubeUrl: _controladorYoutube.text.trim(),
+        creadorId: widget.userId,
+        descripcion: _controladorDescripcion.text.trim(),
+        categoria: _categoriaSeleccionada!,
+      );
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo publicar el tutorial: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _subiendo = false);
     }
-
-    // 🔌 INTEGRACIÓN API – reemplazar el bloque de abajo con la llamada HTTP real:
-    // ─────────────────────────────────────────────────────────────────────────
-    // final request = http.MultipartRequest(
-    //   'POST',
-    //   Uri.parse('https://TU_BACKEND/api/tutoriales/subir'),
-    // );
-    // request.headers['Authorization'] = 'Bearer $tokenDelUsuario';
-    // request.fields['titulo'] = _controladorTitulo.text.trim();
-    // request.fields['descripcion'] = _controladorDescripcion.text.trim();
-    // request.fields['categoria'] = _categoriaSeleccionada!;
-    // request.files.add(await http.MultipartFile.fromPath('video', _rutaVideoSeleccionado!));
-    // if (_rutaMiniaturaSeleccionada != null) {
-    //   request.files.add(await http.MultipartFile.fromPath('miniatura', _rutaMiniaturaSeleccionada!));
-    // }
-    // final streamedResponse = await request.send();
-    // final response = await http.Response.fromStream(streamedResponse);
-    // if (response.statusCode == 201) {
-    //   final data = jsonDecode(response.body);
-    //   // data['id'] → ID del tutorial creado en el backend
-    // }
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // Simulación de subida (eliminar cuando conectes el backend)
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _subiendoArchivo = false);
-
-    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -194,75 +147,22 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                 ),
                 const SizedBox(height: 28),
 
-                // ── Selector de archivo de video ─────────────────────────────
+                // ── Enlace de YouTube ─────────────────────────────────────────
                 _LabelCampo(
-                  texto: 'Archivo de video *',
+                  texto: 'Enlace de YouTube *',
                   colorTexto: colorTexto,
                 ),
                 const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _seleccionarVideo,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: _rutaVideoSeleccionado != null
-                          ? CraftHubColors.vinoTintoSuave.withValues(
-                              alpha: esOscuro ? 0.15 : 0.5,
-                            )
-                          : CraftHubColors.fondo(esOscuro),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _rutaVideoSeleccionado != null
-                            ? CraftHubColors.vinoTinto
-                            : colorBorde,
-                        style: BorderStyle.solid,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          _rutaVideoSeleccionado != null
-                              ? Icons.check_circle_rounded
-                              : Icons.video_file_outlined,
-                          color: _rutaVideoSeleccionado != null
-                              ? CraftHubColors.vinoTinto
-                              : colorSec,
-                          size: 36,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _rutaVideoSeleccionado != null
-                              ? _nombreArchivoVideo!
-                              : 'Haz clic para seleccionar un video',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _rutaVideoSeleccionado != null
-                                ? CraftHubColors.vinoTinto
-                                : colorSec,
-                            fontSize: 13,
-                            fontWeight: _rutaVideoSeleccionado != null
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        if (_rutaVideoSeleccionado == null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              'Formatos: MP4, MOV, AVI (máx. 500 MB)',
-                              style: TextStyle(
-                                color: colorSec,
-                                fontSize: 11,
-                                fontFamily: 'Poppins',
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                _CampoTexto(
+                  controlador: _controladorYoutube,
+                  placeholder: 'https://www.youtube.com/watch?v=...',
+                  esOscuro: esOscuro,
+                  validador: _validarYoutube,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Sube tu video a YouTube y pega aquí el enlace.',
+                  style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins'),
                 ),
                 const SizedBox(height: 20),
 
@@ -350,63 +250,6 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                   validator: (v) =>
                       v == null ? 'Selecciona una categoría' : null,
                 ),
-                const SizedBox(height: 20),
-
-                // ── Miniatura (opcional) ──────────────────────────────────────
-                _LabelCampo(
-                  texto: 'Miniatura personalizada (opcional)',
-                  colorTexto: colorTexto,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: CraftHubColors.fondo(esOscuro),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: colorBorde),
-                        ),
-                        child: Text(
-                          _nombreArchivoMiniatura ??
-                              'Ningún archivo seleccionado',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: _nombreArchivoMiniatura != null
-                                ? colorTexto
-                                : colorSec,
-                            fontSize: 13,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    OutlinedButton.icon(
-                      onPressed: _seleccionarMiniatura,
-                      icon: const Icon(Icons.image_outlined, size: 16),
-                      label: const Text(
-                        'Explorar',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: CraftHubColors.vinoTinto,
-                        side: const BorderSide(color: CraftHubColors.vinoTinto),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 32),
 
                 // ── Botones de acción ─────────────────────────────────────────
@@ -414,7 +257,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _subiendoArchivo
+                        onPressed: _subiendo
                             ? null
                             : () => Navigator.of(context).pop(),
                         style: OutlinedButton.styleFrom(
@@ -435,7 +278,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                     Expanded(
                       flex: 2,
                       child: ElevatedButton(
-                        onPressed: _subiendoArchivo ? null : _enviarFormulario,
+                        onPressed: _subiendo ? null : _enviarFormulario,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: CraftHubColors.vinoTinto,
                           foregroundColor: Colors.white,
@@ -444,7 +287,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: _subiendoArchivo
+                        child: _subiendo
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,

@@ -86,10 +86,13 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
   }
 
   void _abrirDialogoSubirVideo() {
-    showDialog(
+    showDialog<bool>(
       context: context,
-      builder: (_) => const DialogoSubirVideo(),
-    ).then((_) => _cargarMisVideos());
+      builder: (_) => DialogoSubirVideo(userId: widget.userId),
+    ).then((publicado) {
+      _cargarMisVideos();
+      if (publicado == true) _cargarTutoriales();
+    });
   }
 
   // Punto único de navegación al detalle del video: usado tanto desde la

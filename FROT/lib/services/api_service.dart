@@ -296,6 +296,9 @@ class ApiService {
         'duracion': duracion,
       }),
     );
+    if (response.statusCode != 200) {
+      throw Exception('Error al subir el tutorial: ${response.statusCode} ${response.body}');
+    }
     return jsonDecode(response.body);
   }
 
