@@ -867,6 +867,9 @@ class _PinPedido extends StatelessWidget {
           ),
           child: Text(
             punto.estadoLabel,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.visible,
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 9.5,
