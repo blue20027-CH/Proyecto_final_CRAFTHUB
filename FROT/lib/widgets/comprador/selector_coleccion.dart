@@ -22,6 +22,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     final etiqueta = widget.coleccionSeleccionada ?? 'Todas las colecciones';
 
     return MouseRegion(
@@ -29,7 +30,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
       onExit:  (_) => setState(() => _sobreEl = false),
       child: PopupMenuButton<String?>(
         onSelected: widget.alSeleccionar,
-        color: CraftHubColors.panelClaro,
+        color: CraftHubColors.panel(esOscuro),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         offset: const Offset(0, 42),
         itemBuilder: (_) => [
@@ -44,7 +45,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
                 fontWeight: FontWeight.w500,
                 color: widget.coleccionSeleccionada == null
                     ? CraftHubColors.vinoTinto
-                    : CraftHubColors.textoClaro,
+                    : CraftHubColors.textoPrincipal(esOscuro),
               ),
             ),
           ),
@@ -59,7 +60,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
                 fontSize: 13,
                 color: widget.coleccionSeleccionada == c
                     ? CraftHubColors.vinoTinto
-                    : CraftHubColors.textoClaro,
+                    : CraftHubColors.textoPrincipal(esOscuro),
               ),
             ),
           )),
@@ -69,13 +70,13 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: _sobreEl
-                ? CraftHubColors.vinoTintoSuave
-                : CraftHubColors.panelClaro,
+                ? CraftHubColors.vinoTintoSuave.withValues(alpha: esOscuro ? 0.15 : 1)
+                : CraftHubColors.panel(esOscuro),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: _sobreEl
                   ? CraftHubColors.vinoTinto.withValues(alpha: 0.4)
-                  : CraftHubColors.bordeClaro,
+                  : CraftHubColors.borde(esOscuro),
               width: 1.2,
             ),
           ),
@@ -90,12 +91,12 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
                   fontWeight: FontWeight.w500,
                   color: widget.coleccionSeleccionada != null
                       ? CraftHubColors.vinoTinto
-                      : CraftHubColors.textoClaro,
+                      : CraftHubColors.textoPrincipal(esOscuro),
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 18, color: CraftHubColors.textoSecClaro),
+              Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 18, color: CraftHubColors.textoSecundario(esOscuro)),
             ],
           ),
         ),

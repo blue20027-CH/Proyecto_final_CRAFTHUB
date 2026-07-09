@@ -28,6 +28,7 @@ class _TarjetaProductoPerfilState extends State<TarjetaProductoPerfil> {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return MouseRegion(
       onEnter: (_) => setState(() => _sobreEl = true),
       onExit:  (_) => setState(() => _sobreEl = false),
@@ -44,9 +45,9 @@ class _TarjetaProductoPerfilState extends State<TarjetaProductoPerfil> {
                 widget.imagenUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => Container(
-                  color: CraftHubColors.bordeClaro,
-                  child: const Icon(Icons.image_outlined,
-                      color: CraftHubColors.textoSecClaro, size: 36),
+                  color: CraftHubColors.borde(esOscuro),
+                  child: Icon(Icons.image_outlined,
+                      color: CraftHubColors.textoSecundario(esOscuro), size: 36),
                 ),
               ),
 
@@ -125,7 +126,7 @@ class _TarjetaProductoPerfilState extends State<TarjetaProductoPerfil> {
                       size: 16,
                       color: widget.esFavorito
                           ? CraftHubColors.vinoTinto
-                          : CraftHubColors.textoSecClaro,
+                          : CraftHubColors.textoSecundario(esOscuro),
                     ),
                   ),
                 ),

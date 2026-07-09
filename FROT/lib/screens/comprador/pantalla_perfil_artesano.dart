@@ -123,9 +123,10 @@ class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
   @override
   Widget build(BuildContext context) {
     final a = widget.artesano;
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: CraftHubColors.fondoClaro,
+      backgroundColor: CraftHubColors.fondo(esOscuro),
       body: Column(
         children: [
           // ── BANNER + INFO SUPERIOR ──────────────────────────────────
@@ -202,6 +203,7 @@ class _SeccionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       height: 240,
       child: Stack(
@@ -249,11 +251,11 @@ class _SeccionBanner extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CraftHubColors.panel(esOscuro),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: Colors.black.withValues(alpha: esOscuro ? 0.25 : 0.04),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -274,7 +276,7 @@ class _SeccionBanner extends StatelessWidget {
                             height: 84,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
+                              border: Border.all(color: CraftHubColors.panel(esOscuro), width: 3),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.08),
@@ -288,11 +290,11 @@ class _SeccionBanner extends StatelessWidget {
                                 artesano.fotoUrl,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, _, _) => Container(
-                                  color: CraftHubColors.bordeClaro,
-                                  child: const Icon(
-                                    Icons.person, 
+                                  color: CraftHubColors.borde(esOscuro),
+                                  child: Icon(
+                                    Icons.person,
                                     size: 40,
-                                    color: CraftHubColors.textoSecClaro,
+                                    color: CraftHubColors.textoSecundario(esOscuro),
                                   ),
                                 ),
                               ),
@@ -326,35 +328,35 @@ class _SeccionBanner extends StatelessWidget {
                         children: [
                           Text(
                             artesano.nombre,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
-                              color: CraftHubColors.textoClaro,
+                              color: CraftHubColors.textoPrincipal(esOscuro),
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             artesano.especialidad,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
-                              color: CraftHubColors.textoSecClaro,
+                              color: CraftHubColors.textoSecundario(esOscuro),
                             ),
                           ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[600]),
+                              Icon(Icons.location_on_outlined, size: 14, color: CraftHubColors.textoSecundario(esOscuro)),
                               const SizedBox(width: 4),
-                              Text(artesano.ubicacion, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                              Text(artesano.ubicacion, style: TextStyle(fontSize: 12, color: CraftHubColors.textoSecundario(esOscuro))),
                               const SizedBox(width: 16),
                               const Icon(Icons.star_rounded, size: 14, color: Color(0xFFD4A843)),
                               const SizedBox(width: 4),
                               Text(
                                 '${artesano.calificacion} (${artesano.totalResenas} reseñas)',
-                                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                style: TextStyle(fontSize: 12, color: CraftHubColors.textoSecundario(esOscuro)),
                               ),
                             ],
                           ),
@@ -477,11 +479,12 @@ class _BotonAccionState extends State<_BotonAccion> {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     final colorFondo = widget.esPrimario
         ? (_sobre ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto)
-        : (_sobre ? Colors.grey[50] : Colors.white);
-    final colorTexto = widget.esPrimario ? Colors.white : CraftHubColors.textoClaro;
-    final colorBorde = widget.esPrimario ? Colors.transparent : CraftHubColors.bordeClaro;
+        : (_sobre ? (esOscuro ? CraftHubColors.panelOscuro2 : Colors.grey[50]!) : CraftHubColors.panel(esOscuro));
+    final colorTexto = widget.esPrimario ? Colors.white : CraftHubColors.textoPrincipal(esOscuro);
+    final colorBorde = widget.esPrimario ? Colors.transparent : CraftHubColors.borde(esOscuro);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _sobre = true),
@@ -530,13 +533,14 @@ class _SeccionEstadisticas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      margin: const EdgeInsets.fromLTRB(44, 60, 44, 20), 
+      margin: const EdgeInsets.fromLTRB(44, 60, 44, 20),
       padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         // Corregido: border debe estar contenido obligatoriamente dentro de un BoxDecoration
         border: Border(
-          bottom: BorderSide(color: CraftHubColors.bordeClaro, width: 1),
+          bottom: BorderSide(color: CraftHubColors.borde(esOscuro), width: 1),
         ),
       ),
       child: Row(
@@ -580,10 +584,11 @@ class _StatNumerico extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icono, size: 20, color: CraftHubColors.textoSecClaro.withValues(alpha: 0.7)),
+        Icon(icono, size: 20, color: CraftHubColors.textoSecundario(esOscuro).withValues(alpha: 0.7)),
         const SizedBox(width: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,19 +596,19 @@ class _StatNumerico extends StatelessWidget {
           children: [
             Text(
               valor,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoClaro,
+                color: CraftHubColors.textoPrincipal(esOscuro),
               ),
             ),
             Text(
               etiqueta,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11,
-                color: CraftHubColors.textoSecClaro,
+                color: CraftHubColors.textoSecundario(esOscuro),
               ),
             ),
           ],
@@ -622,16 +627,17 @@ class _PanelIzquierdo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     final primerNombre = artesano.nombre.split(' ').first;
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CraftHubColors.panel(esOscuro),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: CraftHubColors.bordeClaro),
+        border: Border.all(color: CraftHubColors.borde(esOscuro)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3)),
+          BoxShadow(color: Colors.black.withValues(alpha: esOscuro ? 0.25 : 0.04), blurRadius: 10, offset: const Offset(0, 3)),
         ],
       ),
       child: Column(
@@ -651,35 +657,35 @@ class _PanelIzquierdo extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               'Sobre $primerNombre',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoClaro,
+                color: CraftHubColors.textoPrincipal(esOscuro),
               ),
             ),
           ]),
           const SizedBox(height: 12),
           Text(
             artesano.descripcion,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 13,
               height: 1.6,
-              color: CraftHubColors.textoSecClaro,
+              color: CraftHubColors.textoSecundario(esOscuro),
             ),
           ),
           const SizedBox(height: 18),
-          Divider(color: CraftHubColors.bordeClaro, height: 1),
+          Divider(color: CraftHubColors.borde(esOscuro), height: 1),
           const SizedBox(height: 18),
-          const Text(
+          Text(
             'ESPECIALIDADES',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.6,
-              color: CraftHubColors.textoSecClaro,
+              color: CraftHubColors.textoSecundario(esOscuro),
             ),
           ),
           const SizedBox(height: 10),
@@ -694,7 +700,7 @@ class _PanelIzquierdo extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFAF6F0),
+              color: esOscuro ? CraftHubColors.panelOscuro2 : const Color(0xFFFAF6F0),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: CraftHubColors.vinoTinto.withValues(alpha: 0.12)),
             ),
@@ -712,7 +718,7 @@ class _PanelIzquierdo extends StatelessWidget {
                   child: const Icon(Icons.local_shipping_outlined, size: 17, color: CraftHubColors.vinoTinto),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -722,16 +728,16 @@ class _PanelIzquierdo extends StatelessWidget {
                           fontFamily: 'Poppins',
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: CraftHubColors.textoClaro,
+                          color: CraftHubColors.textoPrincipal(esOscuro),
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         'Entregas rápidas y seguras a cualquier provincia.',
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 11,
-                          color: CraftHubColors.textoSecClaro,
+                          color: CraftHubColors.textoSecundario(esOscuro),
                         ),
                       ),
                     ],
@@ -752,19 +758,20 @@ class _EtiquetaChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4EFEA),
+        color: esOscuro ? CraftHubColors.panelOscuro2 : const Color(0xFFF4EFEA),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         texto,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Poppins',
           fontSize: 11,
           fontWeight: FontWeight.w500,
-          color: CraftHubColors.textoClaro,
+          color: CraftHubColors.textoPrincipal(esOscuro),
         ),
       ),
     );
@@ -797,6 +804,7 @@ class _PanelProductos extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -804,26 +812,26 @@ class _PanelProductos extends StatelessWidget {
           children: [
             Text(
               tituloProductos,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoClaro,
+                color: CraftHubColors.textoPrincipal(esOscuro),
               ),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF4EFEA),
+                color: esOscuro ? CraftHubColors.panelOscuro2 : const Color(0xFFF4EFEA),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '$totalProductos productos',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
-                  color: CraftHubColors.textoSecClaro,
+                  color: CraftHubColors.textoSecundario(esOscuro),
                 ),
               ),
             ),
@@ -838,7 +846,7 @@ class _PanelProductos extends StatelessWidget {
         const SizedBox(height: 20),
 
         productos.isEmpty
-            ? const SizedBox(
+            ? SizedBox(
                 height: 200,
                 child: Center(
                   child: Text(
@@ -846,7 +854,7 @@ class _PanelProductos extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
-                      color: CraftHubColors.textoSecClaro,
+                      color: CraftHubColors.textoSecundario(esOscuro),
                     ),
                   ),
                 ),

@@ -306,8 +306,11 @@ class ApiService {
     ));
     final response = await request.send();
     final body = await response.stream.bytesToString();
+    if (response.statusCode != 200) {
+      throw Exception('Error al subir la imagen: ${response.statusCode} $body');
+    }
     final data = jsonDecode(body);
-    return data['url'] ?? '';
+    return (data['url'] ?? '').toString();
   }
 
   static Future<Map<String, dynamic>> subirTutorial({

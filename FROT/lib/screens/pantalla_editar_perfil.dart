@@ -84,11 +84,20 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
   }
 
   Future<void> _cambiarFoto({required bool esBanner}) async {
-    final resultado = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      withData: true,
-      allowMultiple: false,
-    );
+    FilePickerResult? resultado;
+    try {
+      resultado = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        withData: true,
+        allowMultiple: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo abrir el selector de imágenes: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+      return;
+    }
     if (resultado == null || resultado.files.isEmpty) return;
     final archivo = resultado.files.single;
     final bytes = archivo.bytes;
