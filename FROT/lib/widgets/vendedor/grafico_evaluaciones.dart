@@ -6,12 +6,14 @@ class GraficoEvaluaciones extends StatefulWidget {
   final Map<int, int> distribucion; // estrella -> cantidad
   final double promedio;
   final int total;
+  final bool esOscuro;
 
   const GraficoEvaluaciones({
     super.key,
     required this.distribucion,
     required this.promedio,
     required this.total,
+    this.esOscuro = false,
   });
 
   @override
@@ -25,6 +27,9 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
   Widget build(BuildContext context) {
     final totalComentarios =
         widget.distribucion.values.fold(0, (a, b) => a + b);
+    final colorTexto = CraftHubColors.textoPrincipal(widget.esOscuro);
+    final colorSec = CraftHubColors.textoSecundario(widget.esOscuro);
+    final colorBorde = CraftHubColors.borde(widget.esOscuro);
 
     return Row(
       children: [
@@ -34,11 +39,11 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
           children: [
             Text(
               widget.promedio.toStringAsFixed(1),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 48,
                 fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoClaro,
+                color: colorTexto,
               ),
             ),
             Row(
@@ -61,19 +66,19 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
             const SizedBox(height: 4),
             Text(
               'Excelente',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: CraftHubColors.textoClaro,
+                color: colorTexto,
               ),
             ),
             Text(
               'Basado en ${widget.total} opiniones',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 10,
-                color: CraftHubColors.textoSecClaro,
+                color: colorSec,
               ),
             ),
           ],
@@ -111,7 +116,7 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
                   CraftHubColors.vinoTintoClaro,
                   const Color(0xFFD4A843),
                   const Color(0xFFE0C87A),
-                  CraftHubColors.bordeClaro,
+                  colorBorde,
                 ];
 
                 return PieChartSectionData(
@@ -146,10 +151,10 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
                       width: 70,
                       child: Text(
                         '$estrellas estrellas',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,
-                          color: CraftHubColors.textoSecClaro,
+                          color: colorSec,
                         ),
                       ),
                     ),
@@ -160,13 +165,13 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
                         child: LinearProgressIndicator(
                           value: porcentaje,
                           minHeight: 6,
-                          backgroundColor: CraftHubColors.bordeClaro,
+                          backgroundColor: colorBorde,
                           valueColor: AlwaysStoppedAnimation(
                             estrellas >= 4
                                 ? CraftHubColors.vinoTinto
                                 : estrellas == 3
                                     ? const Color(0xFFD4A843)
-                                    : CraftHubColors.bordeClaro,
+                                    : colorBorde,
                           ),
                         ),
                       ),
@@ -177,11 +182,11 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
                       child: Text(
                         '${(porcentaje * 100).toInt()}%',
                         textAlign: TextAlign.right,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: CraftHubColors.textoClaro,
+                          color: colorTexto,
                         ),
                       ),
                     ),

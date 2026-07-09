@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/carrito_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../screens/comprador/pantalla_pago.dart';
 
 class PanelResumenPedido extends StatelessWidget {
   const PanelResumenPedido({super.key});
@@ -207,7 +208,15 @@ class PanelResumenPedido extends StatelessWidget {
             // ── Botón principal: Proceder al pago ─────────────
             _BotonProcederPago(
               alPresionar: () {
-                debugPrint('Navegando a pasarela de pago...');
+                if (provider.userId.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Inicia sesión para continuar con tu compra')),
+                  );
+                  return;
+                }
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => PantallaPago(userId: provider.userId)),
+                );
               },
             ),
             const SizedBox(height: 12),

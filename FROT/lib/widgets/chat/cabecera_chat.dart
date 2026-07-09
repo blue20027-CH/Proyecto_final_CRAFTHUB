@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
+import 'avatar_contacto.dart';
 
 class CabeceraChat extends StatelessWidget {
   final ConversacionModelo conversacion;
@@ -19,10 +20,10 @@ class CabeceraChat extends StatelessWidget {
         children: [
           Stack(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundImage: NetworkImage(conversacion.avatarUrl),
-                backgroundColor: CraftHubColors.bordeClaro,
+              AvatarContacto(
+                nombre: conversacion.nombreContacto,
+                avatarUrl: conversacion.avatarUrl,
+                radio: 22,
               ),
               if (conversacion.enLinea)
                 Positioned(

@@ -308,20 +308,26 @@ def historial_pedidos(comprador_id: str):
 # ---------------------------------------------------------------------------
 # HELPERS DE NOTIFICACIONES  (equivalente a screens/notificaciones.py)
 # ---------------------------------------------------------------------------
-ESTADOS = ["pendiente", "en proceso", "enviado", "entregado"]
+ESTADOS = ["pendiente", "en proceso", "enviado", "entregado", "cancelado"]
 
 def _estado_normal(valor: str) -> str:
     texto = (valor or "pendiente").strip().lower()
-    if texto in ["preparando", "proceso", "procesando"]:
+    if texto in ["preparando", "proceso", "procesando", "aceptada", "aceptado"]:
         return "en proceso"
     if texto in ["camino", "en camino"]:
         return "enviado"
+    if texto in ["cancelada", "cancelado", "cancelar"]:
+        return "cancelado"
+    if texto in ["completada", "completado"]:
+        return "entregado"
     if texto not in ESTADOS:
         return "pendiente"
     return texto
 
 def _paso_indice(estado: str) -> int:
     e = _estado_normal(estado)
+    if e == "cancelado":
+        return -1
     if e in ("pendiente", "en proceso"):
         return 0
     if e == "enviado":
@@ -335,6 +341,7 @@ def _mensaje_comprador(estado: str) -> str:
         "en proceso": "Tu pedido se está preparando",
         "enviado":    "Tu pedido está en camino",
         "entregado":  "Tu pedido fue entregado",
+        "cancelado":  "Tu pedido fue cancelado",
     }
     return mensajes.get(e, "Tu pedido fue recibido")
 
@@ -345,6 +352,7 @@ def _mensaje_vendedor(estado: str) -> str:
         "en proceso": "Pedido en preparación",
         "enviado":    "Pedido enviado",
         "entregado":  "Venta completada",
+        "cancelado":  "Pedido cancelado",
     }
     return mensajes.get(e, "Nueva venta")
 

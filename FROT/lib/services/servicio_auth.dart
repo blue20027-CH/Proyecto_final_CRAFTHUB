@@ -75,6 +75,11 @@ Future<Map<String, dynamic>?> registrarConEmailYPassword({
   String? telefono,
   String? provincia,
   String? ubicacion,
+  String? genero,
+  String? fechaNacimiento,
+  String? cedula,
+  String? nombreUsuario,
+  bool? ofreceDelivery,
 }) async {
   final url = Uri.parse('$baseUrl/api/auth/registro');
 
@@ -92,6 +97,11 @@ Future<Map<String, dynamic>?> registrarConEmailYPassword({
         'telefono': telefono,
         'provincia': provincia,
         'ubicacion': ubicacion,
+        'genero': genero,
+        'fecha_nacimiento': fechaNacimiento,
+        'cedula': cedula,
+        'nombre_usuario': nombreUsuario,
+        'ofrece_delivery': ofreceDelivery,
       }),
     );
 

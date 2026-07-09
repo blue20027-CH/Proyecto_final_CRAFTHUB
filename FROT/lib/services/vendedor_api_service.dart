@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/modelo_producto_inventario.dart';
+import '../models/pedido_vendedor_model.dart';
 import '../widgets/vendedor/tarjeta_producto_ranking.dart';
 
 class DatosDashboardVendedor {
@@ -177,5 +178,84 @@ class VendedorApiService {
       productos: productos,
       estadisticas: data['estadisticas'] as Map<String, dynamic>? ?? {},
     );
+  }
+
+  /// 🔗 GET /api/vendedor/{nombreVendedor}/pedidos?estado=&q=
+  static Future<RespuestaPedidosVendedor> cargarPedidos(
+    String nombreVendedor, {
+    String? estado,
+    String? q,
+  }) async {
+    final params = <String, String>{};
+    if (estado != null && estado.isNotEmpty) params['estado'] = estado;
+    if (q != null && q.isNotEmpty) params['q'] = q;
+
+    final uri = Uri.parse('$baseUrl/api/vendedor/${Uri.encodeComponent(nombreVendedor)}/pedidos')
+        .replace(queryParameters: params.isEmpty ? null : params);
+    final response = await http.get(uri).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['detail'] ?? 'Error cargando las órdenes del vendedor');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final pedidos = ((data['pedidos'] as List?) ?? [])
+        .map((item) => PedidoVendedor.fromJson(item as Map<String, dynamic>))
+        .toList();
+
+    return RespuestaPedidosVendedor(
+      pedidos: pedidos,
+      estadisticas: EstadisticasPedidosVendedor.fromJson(
+        data['estadisticas'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
+
+  /// 🔗 PATCH /api/vendedor/pedidos/{pedidoId}/estado
+  static Future<String> actualizarEstadoPedido({
+    required String pedidoId,
+    required String nombreVendedor,
+    required String nuevoEstado,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/vendedor/pedidos/${Uri.encodeComponent(pedidoId)}/estado');
+    final response = await http
+        .patch(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'estado': nuevoEstado, 'nombre_vendedor': nombreVendedor}),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['detail'] ?? 'No se pudo actualizar el estado del pedido');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return (data['estado_label'] ?? '').toString();
+  }
+
+  /// 🔗 GET /api/vendedor/{nombreVendedor}/pedidos/mapa?estado=
+  static Future<List<PuntoMapaPedido>> cargarPedidosMapa(
+    String nombreVendedor, {
+    String? estado,
+  }) async {
+    final params = <String, String>{};
+    if (estado != null && estado.isNotEmpty) params['estado'] = estado;
+
+    final uri = Uri.parse('$baseUrl/api/vendedor/${Uri.encodeComponent(nombreVendedor)}/pedidos/mapa')
+        .replace(queryParameters: params.isEmpty ? null : params);
+    final response = await http.get(uri).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['detail'] ?? 'Error cargando el mapa de pedidos');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ((data['pedidos'] as List?) ?? [])
+        .map((item) => PuntoMapaPedido.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 }

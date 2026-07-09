@@ -1,12 +1,67 @@
+import math
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 from supabase_client import supabase
+from pedidos_router import _estado_normal, _get_coords
 
 router = APIRouter(prefix="/api/vendedor", tags=["Vendedor"])
+
+# ---------------------------------------------------------------------------
+# ESTADOS DE PEDIDO (vocabulario del vendedor) ↔ ESTADOS CANÓNICOS (BD)
+# ---------------------------------------------------------------------------
+ESTADO_VENDEDOR_A_CANONICO = {
+    "pendiente":  "pendiente",
+    "aceptada":   "en proceso",
+    "aceptado":   "en proceso",
+    "en proceso": "en proceso",
+    "enviado":    "enviado",
+    "en camino":  "enviado",
+    "completada": "entregado",
+    "completado": "entregado",
+    "entregado":  "entregado",
+    "cancelada":  "cancelado",
+    "cancelado":  "cancelado",
+}
+
+ESTADOS_CANONICOS_VALIDOS = {"pendiente", "en proceso", "enviado", "entregado", "cancelado"}
+
+
+def _canonizar_estado_vendedor(estado: str) -> str:
+    return ESTADO_VENDEDOR_A_CANONICO.get((estado or "").strip().lower(), "pendiente")
+
+
+def _vendedor_estado_label(estado: str) -> str:
+    """Etiqueta mostrada en la tabla de órdenes del vendedor."""
+    return {
+        "pendiente":  "Pendiente",
+        "en proceso": "Aceptada",
+        "enviado":    "Enviado",
+        "entregado":  "Completada",
+        "cancelado":  "Cancelada",
+    }.get(estado, "Pendiente")
+
+
+def _mapa_estado_label(estado: str) -> str:
+    """Etiqueta mostrada en los pines del mapa del vendedor."""
+    return {
+        "pendiente":  "Pendiente",
+        "en proceso": "Aceptada",
+        "enviado":    "En camino",
+        "entregado":  "Entregado",
+        "cancelado":  "Cancelado",
+    }.get(estado, "Pendiente")
+
+
+def _formato_orden_id(pedido_id) -> str:
+    texto = str(pedido_id)
+    if texto.isdigit():
+        return f"#CH-{int(texto):06d}"
+    return f"#CH-{texto.replace('-', '')[:6].upper()}"
 
 
 def _comentarios_de_vendedor(productos: list) -> list:
@@ -255,3 +310,246 @@ def registrar_visita_perfil(data: dict):
         return {"success": True}
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Error registrando la visita: {ex}")
+
+
+# ─── PEDIDOS DEL VENDEDOR (pantalla "Mis Órdenes") ───────────────────────────
+
+class ActualizarEstadoPedidoRequest(BaseModel):
+    estado: str
+    nombre_vendedor: str
+
+
+def _items_propios(pedido: dict, nombres_prods: set) -> list:
+    return [it for it in (pedido.get("productos") or []) if it.get("nombre") in nombres_prods]
+
+
+@router.get("/{nombre_vendedor}/pedidos")
+def pedidos_vendedor(nombre_vendedor: str, estado: Optional[str] = None, q: Optional[str] = None):
+    """
+    Lista de órdenes que contienen productos del vendedor, con estadísticas.
+    🔗 FLUTTER: GET /api/vendedor/{nombre_vendedor}/pedidos?estado=&q=
+    """
+    try:
+        prod_resp = (
+            supabase.table("productos")
+            .select("*")
+            .eq("creador", nombre_vendedor)
+            .execute()
+        )
+        productos_vendedor = prod_resp.data or []
+        nombres_prods = {p.get("nombre") for p in productos_vendedor if p.get("nombre")}
+        imagenes_prod = {
+            p.get("nombre"): (p.get("imagen_url") or p.get("imagen") or p.get("img") or "")
+            for p in productos_vendedor
+        }
+
+        todos = (
+            supabase.table("pedidos")
+            .select("*")
+            .order("created_at", desc=True)
+            .execute()
+            .data
+            or []
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error cargando pedidos del vendedor: {ex}")
+
+    ahora = datetime.now(timezone.utc)
+    hace_30 = ahora - timedelta(days=30)
+
+    total_ordenes = 0
+    nuevas_ordenes = 0
+    completadas = 0
+    canceladas = 0
+    ingresos_totales = 0.0
+    filas = []
+
+    estado_filtro = _canonizar_estado_vendedor(estado) if estado else None
+    texto_busqueda = (q or "").strip().lower()
+
+    for pedido in todos:
+        items = _items_propios(pedido, nombres_prods)
+        if not items:
+            continue
+
+        total_ordenes += 1
+        estado_item = _estado_normal(items[0].get("estado") or pedido.get("estado"))
+        subtotal = sum(
+            _precio_float(it.get("precio")) * _cantidad_int(it.get("cantidad") or 1)
+            for it in items
+        )
+
+        try:
+            fecha = datetime.fromisoformat((pedido.get("created_at") or "").replace("Z", "+00:00"))
+        except Exception:
+            fecha = None
+
+        if fecha is not None and fecha >= hace_30:
+            if estado_item == "pendiente":
+                nuevas_ordenes += 1
+            elif estado_item == "entregado":
+                completadas += 1
+                ingresos_totales += subtotal
+            elif estado_item == "cancelado":
+                canceladas += 1
+
+        orden_id = _formato_orden_id(pedido.get("id"))
+        cliente_nombre = pedido.get("comprador_nombre") or "Cliente"
+
+        if estado_filtro and estado_item != estado_filtro:
+            continue
+        if texto_busqueda and texto_busqueda not in orden_id.lower() and texto_busqueda not in cliente_nombre.lower():
+            continue
+
+        filas.append({
+            "id": pedido.get("id"),
+            "orden": orden_id,
+            "cliente_nombre": cliente_nombre,
+            "cliente_id": pedido.get("comprador_id"),
+            "ubicacion": pedido.get("direccion") or "Panamá",
+            "telefono": pedido.get("telefono"),
+            "productos": [
+                {
+                    "nombre": it.get("nombre") or "Producto",
+                    "imagen_url": it.get("img") or it.get("imagen") or imagenes_prod.get(it.get("nombre"), ""),
+                    "cantidad": _cantidad_int(it.get("cantidad") or 1),
+                }
+                for it in items
+            ],
+            "cantidad_productos": len(items),
+            "total": round(subtotal, 2),
+            "estado": estado_item,
+            "estado_label": _vendedor_estado_label(estado_item),
+            "fecha": pedido.get("created_at"),
+        })
+
+    return {
+        "pedidos": filas,
+        "estadisticas": {
+            "total_ordenes": total_ordenes,
+            "nuevas_ordenes": nuevas_ordenes,
+            "completadas": completadas,
+            "canceladas": canceladas,
+            "ingresos_totales": round(ingresos_totales, 2),
+        },
+    }
+
+
+@router.patch("/pedidos/{pedido_id}/estado")
+def actualizar_estado_pedido(pedido_id: str, req: ActualizarEstadoPedidoRequest):
+    """
+    Actualiza el estado de los ítems de un pedido que pertenecen a este vendedor.
+    🔗 FLUTTER: PATCH /api/vendedor/pedidos/{pedido_id}/estado
+    Body: { "estado": "Aceptada" | "Enviado" | "Completada" | "Cancelada" | "Pendiente", "nombre_vendedor": "..." }
+    """
+    nuevo_estado = _canonizar_estado_vendedor(req.estado)
+    if nuevo_estado not in ESTADOS_CANONICOS_VALIDOS:
+        raise HTTPException(status_code=400, detail="Estado inválido.")
+
+    try:
+        resp = supabase.table("pedidos").select("*").eq("id", pedido_id).execute()
+        if not resp.data:
+            raise HTTPException(status_code=404, detail="Pedido no encontrado.")
+        pedido = resp.data[0]
+
+        prod_resp = (
+            supabase.table("productos").select("nombre").eq("creador", req.nombre_vendedor).execute()
+        )
+        nombres_prods = {p.get("nombre") for p in (prod_resp.data or [])}
+
+        productos = pedido.get("productos") or []
+        actualizado = False
+        for item in productos:
+            if item.get("nombre") in nombres_prods:
+                item["estado"] = nuevo_estado
+                actualizado = True
+
+        if not actualizado:
+            raise HTTPException(status_code=403, detail="Este pedido no contiene productos de este vendedor.")
+
+        supabase.table("pedidos").update({"productos": productos}).eq("id", pedido_id).execute()
+
+        # Si todos los ítems del pedido (de todos los vendedores involucrados)
+        # comparten ahora el mismo estado, se refleja también en el pedido.
+        estados_unicos = {it.get("estado") for it in productos}
+        if len(estados_unicos) == 1:
+            supabase.table("pedidos").update({"estado": nuevo_estado}).eq("id", pedido_id).execute()
+
+        return {"success": True, "estado": nuevo_estado, "estado_label": _vendedor_estado_label(nuevo_estado)}
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+
+@router.get("/{nombre_vendedor}/pedidos/mapa")
+def pedidos_vendedor_mapa(nombre_vendedor: str, estado: Optional[str] = None):
+    """
+    Puntos georreferenciados de los pedidos del vendedor para el mapa de seguimiento.
+    🔗 FLUTTER: GET /api/vendedor/{nombre_vendedor}/pedidos/mapa?estado=
+    """
+    try:
+        prod_resp = supabase.table("productos").select("nombre").eq("creador", nombre_vendedor).execute()
+        nombres_prods = {p.get("nombre") for p in (prod_resp.data or [])}
+        todos = (
+            supabase.table("pedidos")
+            .select("*")
+            .order("created_at", desc=True)
+            .execute()
+            .data
+            or []
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error cargando el mapa de pedidos: {ex}")
+
+    estado_filtro = _canonizar_estado_vendedor(estado) if estado else None
+    ocupadas: dict = {}
+    puntos = []
+
+    for pedido in todos:
+        items = _items_propios(pedido, nombres_prods)
+        if not items:
+            continue
+
+        estado_item = _estado_normal(items[0].get("estado") or pedido.get("estado"))
+
+        if estado_filtro:
+            if estado_item != estado_filtro:
+                continue
+        elif estado_item == "cancelado":
+            # Por defecto no saturamos el mapa con pedidos cancelados.
+            continue
+
+        ubicacion = pedido.get("direccion") or "Panamá"
+        lat, lng = _get_coords(ubicacion)
+
+        # Pequeño desplazamiento determinístico para que los pines de una
+        # misma ciudad no queden exactamente superpuestos.
+        clave = ubicacion.lower()
+        n = ocupadas.get(clave, 0)
+        ocupadas[clave] = n + 1
+        angulo = n * 0.9
+        radio = 0.01 * (1 + n // 8)
+        lat += radio * math.cos(angulo)
+        lng += radio * math.sin(angulo)
+
+        subtotal = sum(
+            _precio_float(it.get("precio")) * _cantidad_int(it.get("cantidad") or 1)
+            for it in items
+        )
+
+        puntos.append({
+            "id": pedido.get("id"),
+            "orden": _formato_orden_id(pedido.get("id")),
+            "cliente_nombre": pedido.get("comprador_nombre") or "Cliente",
+            "ubicacion": ubicacion,
+            "lat": lat,
+            "lng": lng,
+            "estado": estado_item,
+            "estado_label": _mapa_estado_label(estado_item),
+            "total": round(subtotal, 2),
+            "telefono": pedido.get("telefono"),
+            "fecha": pedido.get("created_at"),
+        })
+
+    return {"pedidos": puntos}

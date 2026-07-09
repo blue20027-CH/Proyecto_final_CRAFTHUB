@@ -10,6 +10,7 @@ import '../../core/favoritos_provider.dart';
 import '../../models/detalle_producto_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
+import 'pantalla_pago.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // PANTALLA DETALLE DE PRODUCTO
@@ -84,6 +85,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
   bool _cargando = true;
   String? _error;
   bool _agregandoAlCarrito = false;
+  bool _comprandoAhora = false;
   String _ordenComentarios = 'Más recientes';
   String? _mensajeToast;
 
@@ -291,6 +293,36 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
     }
   }
 
+  // Añade el producto al carrito y lleva directo a la pasarela de pago,
+  // sin pasar por la pantalla de carrito. No se puede comprar sin sesión.
+  Future<void> _comprarAhora() async {
+    if (_detalle == null || _comprandoAhora) return;
+    if (widget.userId.isEmpty) {
+      _mostrarToast('Inicia sesión para comprar este producto');
+      return;
+    }
+    setState(() => _comprandoAhora = true);
+    try {
+      await context.read<CarritoProvider>().agregarItem(
+            productoId: int.tryParse(_detalle!.id) ?? 0,
+            nombreProducto: _detalle!.nombre,
+            precio: _detalle!.precio,
+            imagenUrl: _detalle!.imagenUrl,
+            artesano: _detalle!.creador,
+          );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PantallaPago(userId: widget.userId)),
+      );
+    } catch (e) {
+      debugPrint('Error en compra directa: $e');
+      _mostrarToast('No se pudo procesar la compra');
+    } finally {
+      if (mounted) setState(() => _comprandoAhora = false);
+    }
+  }
+
   void _mostrarToast(String mensaje) {
     setState(() => _mensajeToast = mensaje);
     Future.delayed(const Duration(seconds: 2), () {
@@ -400,9 +432,11 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
                         detalle: detalle,
                         oscuro: oscuro,
                         agregandoAlCarrito: _agregandoAlCarrito,
+                        comprandoAhora: _comprandoAhora,
                         favorito: favorito,
                         estaLogueado: widget.userId.isNotEmpty,
                         onAgregarAlCarrito: _agregarAlCarrito,
+                        onComprarAhora: _comprarAhora,
                         onToggleFavorito: _alternarFavorito,
                       ),
                     ),
@@ -447,9 +481,11 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
             detalle: detalle,
             oscuro: oscuro,
             agregandoAlCarrito: _agregandoAlCarrito,
+            comprandoAhora: _comprandoAhora,
             favorito: favorito,
             estaLogueado: widget.userId.isNotEmpty,
             onAgregarAlCarrito: _agregarAlCarrito,
+            onComprarAhora: _comprarAhora,
             onToggleFavorito: _alternarFavorito,
           ),
           const SizedBox(height: 28),
@@ -710,18 +746,22 @@ class _PanelInformacion extends StatelessWidget {
   final ProductoDetalleModelo detalle;
   final bool oscuro;
   final bool agregandoAlCarrito;
+  final bool comprandoAhora;
   final bool favorito;
   final bool estaLogueado;
   final VoidCallback onAgregarAlCarrito;
+  final VoidCallback onComprarAhora;
   final VoidCallback onToggleFavorito;
 
   const _PanelInformacion({
     required this.detalle,
     required this.oscuro,
     required this.agregandoAlCarrito,
+    required this.comprandoAhora,
     required this.favorito,
     required this.estaLogueado,
     required this.onAgregarAlCarrito,
+    required this.onComprarAhora,
     required this.onToggleFavorito,
   });
 
@@ -797,35 +837,22 @@ class _PanelInformacion extends StatelessWidget {
         const SizedBox(height: 10),
         _FilaSpec(icono: Icons.straighten_rounded, etiqueta: 'Dimensiones', valor: detalle.dimensiones, oscuro: oscuro),
         const SizedBox(height: 22),
-        if (!estaLogueado)
-          Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: CraftHubColors.advertencia.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CraftHubColors.advertencia.withValues(alpha: 0.4)),
-            ),
-            child: Row(children: [
-              const Icon(Icons.lock_outline_rounded, size: 16, color: CraftHubColors.advertencia),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('Inicia sesión para añadir este producto al carrito.',
-                    style: GoogleFonts.poppins(fontSize: 12, color: textoPrincipal)),
-              ),
-            ]),
-          ),
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: [
-            _BotonAgregarCarrito(
-              cargando: agregandoAlCarrito,
-              estaLogueado: estaLogueado,
-              onTap: onAgregarAlCarrito,
-            ),
-            _BotonMeGusta(activo: favorito, onTap: onToggleFavorito),
-          ],
+          children: estaLogueado
+              ? [
+                  _BotonComprarAhora(cargando: comprandoAhora, estaLogueado: true, onTap: onComprarAhora),
+                  _BotonAgregarCarrito(cargando: agregandoAlCarrito, estaLogueado: true, onTap: onAgregarAlCarrito),
+                  _BotonMeGusta(activo: favorito, onTap: onToggleFavorito),
+                ]
+              : [
+                  // Sin sesión: un solo mensaje claro en vez de repetirlo en
+                  // cada botón — "Me gusta" sigue disponible porque guardar
+                  // favoritos no requiere haber iniciado sesión.
+                  _BotonComprarAhora(cargando: false, estaLogueado: false, onTap: onComprarAhora),
+                  _BotonMeGusta(activo: favorito, onTap: onToggleFavorito),
+                ],
         ),
       ],
     );
@@ -861,6 +888,68 @@ class _FilaSpec extends StatelessWidget {
   }
 }
 
+class _BotonComprarAhora extends StatefulWidget {
+  final bool cargando;
+  final bool estaLogueado;
+  final VoidCallback onTap;
+  const _BotonComprarAhora({
+    required this.cargando,
+    required this.estaLogueado,
+    required this.onTap,
+  });
+
+  @override
+  State<_BotonComprarAhora> createState() => _BotonComprarAhoraState();
+}
+
+class _BotonComprarAhoraState extends State<_BotonComprarAhora> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bloqueado = !widget.estaLogueado;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.cargando ? null : widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+          decoration: BoxDecoration(
+            color: bloqueado
+                ? Colors.grey.withValues(alpha: _hover ? 0.55 : 0.45)
+                : (_hover ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto),
+            borderRadius: BorderRadius.circular(50),
+            boxShadow: bloqueado
+                ? null
+                : [BoxShadow(color: CraftHubColors.vinoTinto.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 3))],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.cargando)
+                const SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              else
+                Icon(bloqueado ? Icons.lock_outline_rounded : Icons.bolt_rounded,
+                    size: 17, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(bloqueado ? 'Inicia sesión para comprar' : 'Comprar ahora',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13.5, fontWeight: FontWeight.w600, color: Colors.white)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _BotonAgregarCarrito extends StatefulWidget {
   final bool cargando;
   final bool estaLogueado;
@@ -881,6 +970,7 @@ class _BotonAgregarCarritoState extends State<_BotonAgregarCarrito> {
   @override
   Widget build(BuildContext context) {
     final bloqueado = !widget.estaLogueado;
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -891,27 +981,28 @@ class _BotonAgregarCarritoState extends State<_BotonAgregarCarrito> {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
           decoration: BoxDecoration(
-            color: bloqueado
-                ? Colors.grey.withValues(alpha: _hover ? 0.55 : 0.45)
-                : (_hover ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto),
+            color: _hover ? CraftHubColors.vinoTintoSuave : Colors.transparent,
             borderRadius: BorderRadius.circular(50),
+            border: Border.all(color: bloqueado ? CraftHubColors.borde(oscuro) : CraftHubColors.vinoTinto),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (widget.cargando)
-                const SizedBox(
+                SizedBox(
                   width: 15,
                   height: 15,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: CraftHubColors.vinoTinto),
                 )
               else
                 Icon(bloqueado ? Icons.lock_outline_rounded : Icons.shopping_bag_outlined,
-                    size: 17, color: Colors.white),
+                    size: 17, color: bloqueado ? CraftHubColors.textoSecundario(oscuro) : CraftHubColors.vinoTinto),
               const SizedBox(width: 8),
-              Text(bloqueado ? 'Inicia sesión para comprar' : 'Añadir al carrito',
+              Text(bloqueado ? 'Inicia sesión' : 'Añadir al carrito',
                   style: GoogleFonts.poppins(
-                      fontSize: 13.5, fontWeight: FontWeight.w600, color: Colors.white)),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: bloqueado ? CraftHubColors.textoSecundario(oscuro) : CraftHubColors.vinoTinto)),
             ],
           ),
         ),

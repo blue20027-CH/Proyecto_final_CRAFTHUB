@@ -28,11 +28,16 @@ class SidebarVendedor extends StatelessWidget {
   // menú "Explorar" del topbar y que el switch de _obtenerPantallaActual en
   // pantalla_dashoard_vendedor.dart) — así ningún ítem lleva a un callejón
   // sin salida.
+  // Índices: 0=Dashboard, 1=Productos, 2=Tutoriales, 3=Mensajes,
+  // 4=Pedidos, 5=Mapa (mismo orden que el switch de _obtenerPantallaActual
+  // y el menú "Explorar" del topbar en pantalla_dashoard_vendedor.dart).
   static const _items = [
     {'icono': Icons.dashboard_outlined,      'label': 'Dashboard'},
     {'icono': Icons.inventory_2_outlined,    'label': 'Productos'},
     {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
     {'icono': Icons.forum_outlined,          'label': 'Mensajes'},
+    {'icono': Icons.receipt_long_outlined,   'label': 'Pedidos'},
+    {'icono': Icons.map_outlined,            'label': 'Mapa'},
   ];
 
   @override

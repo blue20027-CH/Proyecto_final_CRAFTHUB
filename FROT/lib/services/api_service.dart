@@ -120,7 +120,41 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(pedido),
     );
-    return jsonDecode(response.body);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(data['detail'] ?? 'No se pudo completar el pago.');
+    }
+    return data;
+  }
+
+  /// 🔗 GET /api/pagos/metodos — métodos de pago disponibles (Tarjeta,
+  /// Transferencia, Yappy, PayPal, Banistmo).
+  static Future<List<Map<String, dynamic>>> getMetodosPago() async {
+    final response = await http.get(Uri.parse('$baseUrl/api/pagos/metodos'));
+    if (response.statusCode != 200) {
+      throw Exception('No se pudieron cargar los métodos de pago.');
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ((data['metodos'] as List?) ?? []).cast<Map<String, dynamic>>();
+  }
+
+  /// 🔗 POST /api/pagos/resumen — subtotal, envío y total antes de pagar.
+  static Future<Map<String, dynamic>> resumenPedido({
+    required List<Map<String, dynamic>> carrito,
+    required String ubicacionComprador,
+  }) async {
+    final uri = Uri.parse('$baseUrl/api/pagos/resumen').replace(
+      queryParameters: {'ubicacion_comprador': ubicacionComprador},
+    );
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(carrito),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('No se pudo calcular el resumen del pedido.');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
   static Future<Map<String, dynamic>> getPerfil(String userId) async {

@@ -17,6 +17,17 @@ class PantallaRegistroVendedor extends StatefulWidget {
   
 }
 
+// Convierte "DD/MM/AAAA" (formato que muestra el selector de fecha) al
+// formato ISO "AAAA-MM-DD" que espera la columna `date` en Supabase.
+String? _fechaNacimientoIso(String texto) {
+  final partes = texto.trim().split('/');
+  if (partes.length != 3) return null;
+  final dia = partes[0].padLeft(2, '0');
+  final mes = partes[1].padLeft(2, '0');
+  final anio = partes[2];
+  return '$anio-$mes-$dia';
+}
+
 class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
   // Controladores de texto
   final _ctrlNombres = TextEditingController();
@@ -64,6 +75,11 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
         telefono: _ctrlTelefono.text.trim().isEmpty ? null : _ctrlTelefono.text.trim(),
         provincia: _provincia,
         ubicacion: _ctrlUbicacion.text.trim().isEmpty ? null : _ctrlUbicacion.text.trim(),
+        genero: _genero,
+        fechaNacimiento: _fechaNacimientoIso(_ctrlFechaNacimiento.text),
+        cedula: _ctrlId.text.trim().isEmpty ? null : _ctrlId.text.trim(),
+        nombreUsuario: _ctrlUsuario.text.trim().isEmpty ? null : _ctrlUsuario.text.trim(),
+        ofreceDelivery: _ofrecDelivery,
       );
 
       if (respuesta == null || respuesta['success'] != true) {

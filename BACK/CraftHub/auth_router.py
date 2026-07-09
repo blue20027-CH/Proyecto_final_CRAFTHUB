@@ -30,6 +30,11 @@ class RegistroRequest(BaseModel):
     provincia: Optional[str] = None
     ubicacion: Optional[str] = None  # detalle: ciudad/corregimiento
     rol: str = "Comprador"  # "Comprador" | "Vendedor"
+    genero: Optional[str] = None  # "masculino" | "femenino" | "otro"
+    fecha_nacimiento: Optional[str] = None  # "YYYY-MM-DD"
+    cedula: Optional[str] = None
+    nombre_usuario: Optional[str] = None  # nombre del taller / usuario público
+    ofrece_delivery: Optional[bool] = None
 
 # ---------------------------------------------------------------------------
 # ENDPOINTS
@@ -120,6 +125,11 @@ def registro(req: RegistroRequest):
         "provincia": req.provincia,
         "ubicacion": req.ubicacion.strip() if req.ubicacion else None,
         "rol": req.rol,
+        "genero": req.genero,
+        "fecha_nacimiento": req.fecha_nacimiento,
+        "cedula": req.cedula.strip() if req.cedula else None,
+        "nombre_usuario": req.nombre_usuario.strip() if req.nombre_usuario else None,
+        "ofrece_delivery": req.ofrece_delivery,
     }
 
     try:

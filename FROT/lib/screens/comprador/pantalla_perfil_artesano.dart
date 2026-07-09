@@ -126,55 +126,59 @@ class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
 
     return Scaffold(
       backgroundColor: CraftHubColors.fondoClaro,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ── BANNER + INFO SUPERIOR ──────────────────────────────────
-            _SeccionBanner(
-              artesano: a,
-              onVolver: () => Navigator.maybePop(context),
-              esPropio: widget.esPropio,
-              onEditar: widget.onEditar,
-            ),
+      body: Column(
+        children: [
+          // ── BANNER + INFO SUPERIOR ──────────────────────────────────
+          _SeccionBanner(
+            artesano: a,
+            onVolver: () => Navigator.maybePop(context),
+            esPropio: widget.esPropio,
+            onEditar: widget.onEditar,
+          ),
 
-            // ── CUERPO: stats + contenido ───────────────────────────────
-            _SeccionEstadisticas(artesano: a),
+          // ── CUERPO: stats + contenido ───────────────────────────────
+          _SeccionEstadisticas(artesano: a),
 
-            // ── CONTENIDO PRINCIPAL ─────────────────────────────────────
-            Padding(
+          // ── CONTENIDO PRINCIPAL ─────────────────────────────────────
+          // El panel izquierdo queda fijo en pantalla (no forma parte del
+          // scroll) para que la info del artesano no "desaparezca" mientras
+          // se navega por su catálogo de productos, que sí se desplaza
+          // dentro de su propio scroll independiente.
+          Expanded(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Panel izquierdo: descripción + delivery
                   SizedBox(
                     width: 260,
-                    child: _PanelIzquierdo(artesano: a),
+                    child: SingleChildScrollView(child: _PanelIzquierdo(artesano: a)),
                   ),
-                  const SizedBox(width: 32), 
-                  // Panel derecho: grid de productos
+                  const SizedBox(width: 32),
                   Expanded(
-                    child: _PanelProductos(
-                      tituloProductos: _tituloProductos,
-                      totalProductos: _productosFiltrados.length,
-                      colecciones: a.colecciones,
-                      coleccionSeleccionada: _coleccionSeleccionada,
-                      productos: _productosFiltrados,
-                      favoritos: _favoritos,
-                      alSeleccionarColeccion: (c) =>
-                          setState(() => _coleccionSeleccionada = c),
-                      alToggleFavorito: (id) => setState(() {
-                        _favoritos.contains(id)
-                            ? _favoritos.remove(id)
-                            : _favoritos.add(id);
-                      }),
+                    child: SingleChildScrollView(
+                      child: _PanelProductos(
+                        tituloProductos: _tituloProductos,
+                        totalProductos: _productosFiltrados.length,
+                        colecciones: a.colecciones,
+                        coleccionSeleccionada: _coleccionSeleccionada,
+                        productos: _productosFiltrados,
+                        favoritos: _favoritos,
+                        alSeleccionarColeccion: (c) =>
+                            setState(() => _coleccionSeleccionada = c),
+                        alToggleFavorito: (id) => setState(() {
+                          _favoritos.contains(id)
+                              ? _favoritos.remove(id)
+                              : _favoritos.add(id);
+                        }),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -620,77 +624,124 @@ class _PanelIzquierdo extends StatelessWidget {
   Widget build(BuildContext context) {
     final primerNombre = artesano.nombre.split(' ').first;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Sobre $primerNombre',
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: CraftHubColors.textoClaro,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          artesano.descripcion,
-          style: const TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 13,
-            height: 1.6,
-            color: CraftHubColors.textoSecClaro,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: artesano.etiquetas
-              .map((e) => _EtiquetaChip(texto: e))
-              .toList(),
-        ),
-        const SizedBox(height: 32),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAF6F0), 
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.local_shipping_outlined, size: 18, color: CraftHubColors.vinoTinto),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Envíos a todo Panamá',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: CraftHubColors.textoClaro,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Entregas rápidas y seguras a cualquier provincia.',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        color: CraftHubColors.textoSecClaro,
-                      ),
-                    ),
-                  ],
-                ),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: CraftHubColors.bordeClaro),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: CraftHubColors.vinoTintoSuave,
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
+              child: const Icon(Icons.person_outline_rounded, size: 16, color: CraftHubColors.vinoTinto),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Sobre $primerNombre',
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: CraftHubColors.textoClaro,
+              ),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          Text(
+            artesano.descripcion,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              height: 1.6,
+              color: CraftHubColors.textoSecClaro,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 18),
+          Divider(color: CraftHubColors.bordeClaro, height: 1),
+          const SizedBox(height: 18),
+          const Text(
+            'ESPECIALIDADES',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+              color: CraftHubColors.textoSecClaro,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: artesano.etiquetas
+                .map((e) => _EtiquetaChip(texto: e))
+                .toList(),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF6F0),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: CraftHubColors.vinoTinto.withValues(alpha: 0.12)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: CraftHubColors.vinoTinto.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.local_shipping_outlined, size: 17, color: CraftHubColors.vinoTinto),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Envíos a todo Panamá',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: CraftHubColors.textoClaro,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Entregas rápidas y seguras a cualquier provincia.',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: CraftHubColors.textoSecClaro,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
