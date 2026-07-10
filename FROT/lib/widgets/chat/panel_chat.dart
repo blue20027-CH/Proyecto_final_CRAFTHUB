@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
+import '../../services/chat_api_service.dart';
 import 'burbuja_mensaje.dart';
 import 'cabecera_chat.dart';
 import 'barra_input_chat.dart';
 import 'modal_compartir_publicacion.dart';
 
-// TODO al montar: GET /api/mensajes/{conversacionId}
 // TODO en tiempo real: WS /ws/chat/{conversacionId}
 class PanelChat extends StatefulWidget {
   final ConversacionModelo conversacion;
   final List<MensajeModelo> mensajes;
   final List<PublicacionCompartidaModelo> misPublicaciones;
+  final String usuarioId;
+  final String usuarioNombre;
 
   const PanelChat({
     super.key,
     required this.conversacion,
     required this.mensajes,
     this.misPublicaciones = const [],
+    required this.usuarioId,
+    required this.usuarioNombre,
   });
 
   @override
@@ -65,9 +69,27 @@ class _PanelChatState extends State<PanelChat> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _bajar());
   }
 
+  Future<void> _enviarYPersistir(MensajeModelo optimista, String contenido, TipoMensaje tipo, {String? publicacionId}) async {
+    _agregar(optimista);
+    try {
+      await ChatApiService.enviarMensaje(
+        conversacionId: widget.conversacion.id,
+        autorId: widget.usuarioId,
+        autorNombre: widget.usuarioNombre,
+        contenido: contenido,
+        tipo: tipo,
+        publicacionId: publicacionId,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo guardar el mensaje: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
+  }
+
   void _onTexto(String texto) {
-    // TODO: POST /api/mensajes {conversacionId, contenido, tipo: "texto"}
-    _agregar(
+    _enviarYPersistir(
       MensajeModelo(
         id: 'local_${DateTime.now().millisecondsSinceEpoch}',
         contenido: texto,
@@ -76,11 +98,14 @@ class _PanelChatState extends State<PanelChat> {
         hora: DateTime.now(),
         leido: false,
       ),
+      texto,
+      TipoMensaje.texto,
     );
   }
 
   void _onImagen(String path) {
-    // TODO: POST /api/mensajes/imagen (multipart) -> URL -> enviar mensaje
+    // TODO: subir la imagen a Supabase Storage y usar esa URL como contenido
+    // (por ahora la imagen solo se ve localmente en esta sesión).
     _agregar(
       MensajeModelo(
         id: 'img_${DateTime.now().millisecondsSinceEpoch}',
@@ -98,8 +123,7 @@ class _PanelChatState extends State<PanelChat> {
       builder: (_) => ModalCompartirPublicacion(
         publicaciones: widget.misPublicaciones,
         alCompartir: (pub) {
-          // TODO: POST /api/mensajes {conversacionId, tipo: "publicacion", publicacionId: pub.id}
-          _agregar(
+          _enviarYPersistir(
             MensajeModelo(
               id: 'pub_${DateTime.now().millisecondsSinceEpoch}',
               contenido: pub.imagenUrl,
@@ -108,6 +132,9 @@ class _PanelChatState extends State<PanelChat> {
               hora: DateTime.now(),
               publicacion: pub,
             ),
+            pub.imagenUrl,
+            TipoMensaje.publicacion,
+            publicacionId: pub.id,
           );
         },
       ),

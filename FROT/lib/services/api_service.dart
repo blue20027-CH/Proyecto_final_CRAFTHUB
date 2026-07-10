@@ -107,6 +107,16 @@ class ApiService {
     }
   }
 
+  static Future<void> marcarNotificacionLeida(String notificacionId) async {
+    try {
+      await http.patch(
+        Uri.parse('$baseUrl/api/notificaciones/$notificacionId/leida'),
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Silencioso: no bloquea la interacción del usuario.
+    }
+  }
+
   static Future<Map<String, dynamic>> getNotificacionesComprador(String compradorId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/pagos/notificaciones/comprador/$compradorId'),

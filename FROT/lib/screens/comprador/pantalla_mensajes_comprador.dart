@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
-import '../../widgets/comprador/sidebar_comprador.dart';
+import '../../services/chat_api_service.dart';
 import '../../widgets/chat/panel_conversaciones.dart';
 import '../../widgets/chat/panel_chat.dart';
 import '../../widgets/chat/banner_anuncio_crafthub.dart';
 
 // Layout desktop: [Sidebar] | [PanelConversaciones] | [PanelChat]
-// TODO al iniciar: GET /api/conversaciones/{compradorId}
-// TODO en tiempo real: WS /ws/chat/{conversacionId}
+// 🔌 Backend: BACK/CraftHub/chat_router.py
 class PantallaMensajesComprador extends StatefulWidget {
   final String userId;
-  const PantallaMensajesComprador({super.key, this.userId = ''});
+  final String nombreComprador;
+  const PantallaMensajesComprador({super.key, this.userId = '', this.nombreComprador = ''});
 
   @override
   State<PantallaMensajesComprador> createState() =>
@@ -19,25 +19,82 @@ class PantallaMensajesComprador extends StatefulWidget {
 }
 
 class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
-  int _indiceActivo = 4; // 4 = Mensajes en sidebar comprador
-
   ConversacionModelo? _conversacionActiva;
-  late List<ConversacionModelo> _conversaciones;
+  List<ConversacionModelo> _conversaciones = [];
   List<MensajeModelo> _mensajesActivos = [];
+  bool _cargandoConversaciones = true;
+  bool _cargandoMensajes = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    // TODO: reemplazar con GET /api/conversaciones/{compradorId}
-    _conversaciones = mockConversaciones();
+    _cargarConversaciones();
   }
 
-  void _seleccionar(ConversacionModelo conv) {
+  Future<void> _cargarConversaciones() async {
+    if (widget.userId.isEmpty) {
+      setState(() => _cargandoConversaciones = false);
+      return;
+    }
+    setState(() {
+      _cargandoConversaciones = true;
+      _error = null;
+    });
+    try {
+      final lista = await ChatApiService.cargarConversaciones(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _conversaciones = lista;
+        _cargandoConversaciones = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+        _cargandoConversaciones = false;
+      });
+    }
+  }
+
+  Future<void> _seleccionar(ConversacionModelo conv) async {
     setState(() {
       _conversacionActiva = conv;
-      // TODO: GET /api/mensajes/{conv.id}
-      _mensajesActivos = conv.id == 'c1' ? mockMensajesRosa() : [];
+      _cargandoMensajes = true;
+      _mensajesActivos = [];
     });
+    try {
+      final mensajes = await ChatApiService.cargarMensajes(conv.id, widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _mensajesActivos = mensajes;
+        _cargandoMensajes = false;
+        _conversaciones = _conversaciones
+            .map((c) => c.id == conv.id
+                ? ConversacionModelo(
+                    id: c.id,
+                    nombreContacto: c.nombreContacto,
+                    idContacto: c.idContacto,
+                    rolContacto: c.rolContacto,
+                    avatarUrl: c.avatarUrl,
+                    ultimoMensaje: c.ultimoMensaje,
+                    horaUltimo: c.horaUltimo,
+                    mensajesNoLeidos: 0,
+                    enLinea: c.enLinea,
+                  )
+                : c)
+            .toList();
+      });
+      if (conv.mensajesNoLeidos > 0) {
+        ChatApiService.marcarMensajesLeidos(conv.id, widget.userId);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _cargandoMensajes = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudieron cargar los mensajes: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
   }
 
   @override
@@ -51,25 +108,36 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
           Expanded(
             child: Row(
               children: [
-                PanelConversaciones(
-                  conversaciones: _conversaciones,
-                  idSeleccionado: _conversacionActiva?.id,
-                  alSeleccionar: _seleccionar,
-                ),
+                _cargandoConversaciones
+                    ? const SizedBox(
+                        width: 320,
+                        child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+                      )
+                    : PanelConversaciones(
+                        conversaciones: _conversaciones,
+                        idSeleccionado: _conversacionActiva?.id,
+                        alSeleccionar: _seleccionar,
+                      ),
                 Expanded(
-                  child: _conversacionActiva == null
-                      ? _PantallaVacia(
-                          isDark: isDark,
-                          icono: Icons.forum_outlined,
-                          titulo: 'Tus mensajes',
-                          subtitulo:
-                              'Selecciona una conversación para chatear\ncon un artesano.',
-                        )
-                      : PanelChat(
-                          key: ValueKey(_conversacionActiva!.id),
-                          conversacion: _conversacionActiva!,
-                          mensajes: _mensajesActivos,
-                        ),
+                  child: _error != null
+                      ? _PantallaError(isDark: isDark, mensaje: _error!, alReintentar: _cargarConversaciones)
+                      : _conversacionActiva == null
+                          ? _PantallaVacia(
+                              isDark: isDark,
+                              icono: Icons.forum_outlined,
+                              titulo: 'Tus mensajes',
+                              subtitulo:
+                                  'Selecciona una conversación para chatear\ncon un artesano.',
+                            )
+                          : _cargandoMensajes
+                              ? const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto))
+                              : PanelChat(
+                                  key: ValueKey(_conversacionActiva!.id),
+                                  conversacion: _conversacionActiva!,
+                                  mensajes: _mensajesActivos,
+                                  usuarioId: widget.userId,
+                                  usuarioNombre: widget.nombreComprador,
+                                ),
                 ),
               ],
             ),
@@ -130,6 +198,34 @@ class _PantallaVacia extends StatelessWidget {
                 height: 1.5,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PantallaError extends StatelessWidget {
+  final bool isDark;
+  final String mensaje;
+  final VoidCallback alReintentar;
+  const _PantallaError({required this.isDark, required this.mensaje, required this.alReintentar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: isDark ? CraftHubColors.fondoOscuro : const Color(0xFFF5EFE9),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 44, color: CraftHubColors.error),
+            const SizedBox(height: 12),
+            Text(mensaje,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(isDark))),
+            const SizedBox(height: 14),
+            TextButton(onPressed: alReintentar, child: const Text('Reintentar')),
           ],
         ),
       ),

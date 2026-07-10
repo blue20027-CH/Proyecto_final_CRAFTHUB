@@ -23,6 +23,7 @@ import 'pantalla_eventos_vendedor.dart';
 import 'pantalla_mensajes_vendedor.dart';
 import 'pantalla_ordenes_vendedor.dart';
 import 'pantalla_mapa_vendedor.dart';
+import 'pantalla_proveedores.dart';
 
 class HomeVendedor extends StatefulWidget {
   final bool esOscuro;
@@ -45,11 +46,23 @@ class HomeVendedor extends StatefulWidget {
 class _HomeVendedorState extends State<HomeVendedor> {
   int _navIndice = 0;
   String? _pedidoResaltadoMapa;
+  String? _contactoChatPendiente;
+  String? _contactoIdChatPendiente;
+  String _rolChatPendiente = 'Cliente';
   final TextEditingController _busquedaCtrl = TextEditingController();
   bool _tieneAnuncioSinLeer = false;
   bool _tieneNotificacionSinLeer = false;
   late String _fotoPerfilActual;
   String _genero = '';
+
+  void _abrirChatCon(String nombreContacto, {String? idContacto, String rol = 'Cliente'}) {
+    setState(() {
+      _navIndice = 3;
+      _contactoChatPendiente = nombreContacto;
+      _contactoIdChatPendiente = idContacto;
+      _rolChatPendiente = rol;
+    });
+  }
 
   @override
   void initState() {
@@ -162,84 +175,24 @@ class _HomeVendedorState extends State<HomeVendedor> {
 
   void _mostrarNotificaciones() {
     final esOscuro = Theme.of(context).brightness == Brightness.dark;
-    final colorTexto = CraftHubColors.textoPrincipal(esOscuro);
-    final colorSec = CraftHubColors.textoSecundario(esOscuro);
-    final colorBorde = CraftHubColors.borde(esOscuro);
-
-    showDialog(
+    showGeneralDialog(
       context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: CraftHubColors.panel(esOscuro),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420, maxHeight: 480),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Text('Notificaciones',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
-                            fontWeight: FontWeight.w700, color: colorTexto)),
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(Icons.close_rounded, size: 20, color: colorTexto),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-                Flexible(
-                  child: FutureBuilder<Map<String, dynamic>>(
-                    future: ApiService.getNotificacionesUsuario(widget.userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
-                        );
-                      }
-                      final notifs = (snapshot.data?['notificaciones'] as List<dynamic>? ?? []);
-                      if (notifs.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Center(
-                            child: Text('No tienes notificaciones todavía.',
-                                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: colorSec)),
-                          ),
-                        );
-                      }
-                      return ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: notifs.length,
-                        separatorBuilder: (_, _) => Divider(color: colorBorde, height: 16),
-                        itemBuilder: (_, i) {
-                          final n = notifs[i] as Map<String, dynamic>;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text((n['titulo'] ?? 'CraftHub').toString(),
-                                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w700, color: colorTexto)),
-                              const SizedBox(height: 3),
-                              Text((n['mensaje'] ?? '').toString(),
-                                  style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: colorSec)),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+      barrierDismissible: true,
+      barrierLabel: 'Notificaciones',
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (_, _, _) => _PanelNotificaciones(userId: widget.userId, esOscuro: esOscuro),
+      transitionBuilder: (_, animation, _, child) {
+        final curva = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+        return FadeTransition(
+          opacity: curva,
+          child: SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0.06, 0), end: Offset.zero).animate(curva),
+            child: child,
           ),
-        ),
-      ),
-    );
-    setState(() => _tieneNotificacionSinLeer = false);
-    ApiService.marcarNotificacionesLeidas(widget.userId);
+        );
+      },
+    ).then((_) => _revisarNotificaciones());
   }
 
   @override
@@ -329,7 +282,17 @@ class _HomeVendedorState extends State<HomeVendedor> {
       case 2:
         return PantallaTutoriales(userId: widget.userId);
       case 3:
-        return PantallaMensajesVendedor(userId: widget.userId);
+        return PantallaMensajesVendedor(
+          userId: widget.userId,
+          nombreVendedor: widget.nombreVendedor,
+          contactoInicial: _contactoChatPendiente,
+          contactoIdInicial: _contactoIdChatPendiente,
+          rolContactoInicial: _rolChatPendiente,
+          alConsumirContactoInicial: () {
+            _contactoChatPendiente = null;
+            _contactoIdChatPendiente = null;
+          },
+        );
       case 4:
         return PantallaOrdenesVendedor(
           esOscuro: oscuro,
@@ -338,12 +301,20 @@ class _HomeVendedorState extends State<HomeVendedor> {
             _pedidoResaltadoMapa = idPedido;
             _navIndice = 5;
           }),
+          alAbrirChat: (nombreCliente, idCliente) =>
+              _abrirChatCon(nombreCliente, idContacto: idCliente, rol: 'Cliente'),
         );
       case 5:
         return PantallaMapaVendedor(
           esOscuro: oscuro,
           nombreVendedor: widget.nombreVendedor,
           pedidoResaltado: _pedidoResaltadoMapa,
+        );
+      case 6:
+        return PantallaProveedores(
+          esOscuro: oscuro,
+          nombreVendedor: widget.nombreVendedor,
+          alAbrirChat: (nombreContacto) => _abrirChatCon(nombreContacto, rol: 'Proveedor'),
         );
       default:
         return _ContenidoDashboard(
@@ -384,8 +355,410 @@ class _HomeVendedorState extends State<HomeVendedor> {
             onTap: () => setState(() => _navIndice = 4)),
         ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de pedidos',
             onTap: () => setState(() => _navIndice = 5)),
+        ItemExplorar(icono: Icons.groups_2_outlined, etiqueta: 'Proveedores',
+            onTap: () => setState(() => _navIndice = 6)),
       ],
     );
+  }
+}
+
+// ── PANEL DE NOTIFICACIONES ──────────────────────────────────────────────────
+
+class _PanelNotificaciones extends StatefulWidget {
+  final String userId;
+  final bool esOscuro;
+
+  const _PanelNotificaciones({required this.userId, required this.esOscuro});
+
+  @override
+  State<_PanelNotificaciones> createState() => _PanelNotificacionesState();
+}
+
+class _PanelNotificacionesState extends State<_PanelNotificaciones> {
+  List<Map<String, dynamic>> _notifs = [];
+  bool _cargando = true;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargar();
+  }
+
+  Future<void> _cargar() async {
+    try {
+      final data = await ApiService.getNotificacionesUsuario(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _notifs = (data['notificaciones'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+        _cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = true;
+        _cargando = false;
+      });
+    }
+  }
+
+  void _marcarUnaLeida(Map<String, dynamic> n) {
+    if (n['leida'] == true) return;
+    final id = n['id']?.toString();
+    setState(() => n['leida'] = true);
+    if (id != null && id.isNotEmpty) ApiService.marcarNotificacionLeida(id);
+  }
+
+  void _marcarTodasLeidas() {
+    setState(() {
+      for (final n in _notifs) {
+        n['leida'] = true;
+      }
+    });
+    ApiService.marcarNotificacionesLeidas(widget.userId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final esOscuro = widget.esOscuro;
+    final colorSec = CraftHubColors.textoSecundario(esOscuro);
+    final noLeidas = _notifs.where((n) => n['leida'] != true).toList();
+    final leidas = _notifs.where((n) => n['leida'] == true).toList();
+
+    return Dialog(
+      alignment: Alignment.topRight,
+      backgroundColor: CraftHubColors.panel(esOscuro),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      insetPadding: const EdgeInsets.only(top: 96, right: 24, bottom: 24, left: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460, maxHeight: 600),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 18, 10, 16),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [CraftHubColors.vinoTinto, CraftHubColors.vinoTintoOscuro],
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.16), shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.notifications_rounded, size: 18, color: Colors.white),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text('Notificaciones',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
+                            fontWeight: FontWeight.w700, color: Colors.white)),
+                    if (noLeidas.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text('${noLeidas.length} nuevas',
+                            style: const TextStyle(fontFamily: 'Poppins', fontSize: 11,
+                                fontWeight: FontWeight.w700, color: Colors.white)),
+                      ),
+                    ],
+                    const Spacer(),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => Navigator.pop(context),
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(Icons.close_rounded, size: 20, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: _cargando
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 60),
+                        child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+                      )
+                    : _error
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 60),
+                            child: Center(
+                              child: Text('No se pudieron cargar las notificaciones.',
+                                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: colorSec)),
+                            ),
+                          )
+                        : _notifs.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 60),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      Icon(Icons.notifications_off_outlined, size: 34, color: colorSec),
+                                      const SizedBox(height: 10),
+                                      Text('No tienes notificaciones todavía.',
+                                          style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: colorSec)),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : ListView(
+                                padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+                                shrinkWrap: true,
+                                children: [
+                                  if (noLeidas.isNotEmpty) ...[
+                                    _EncabezadoSeccion(texto: 'NUEVAS', cantidad: noLeidas.length, destacar: true, esOscuro: esOscuro),
+                                    for (int i = 0; i < noLeidas.length; i++)
+                                      _FilaNotificacion(
+                                        key: ValueKey(noLeidas[i]['id'] ?? 'nl$i'),
+                                        n: noLeidas[i],
+                                        esOscuro: esOscuro,
+                                        indice: i,
+                                        alTocar: () => _marcarUnaLeida(noLeidas[i]),
+                                      ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  if (leidas.isNotEmpty) ...[
+                                    _EncabezadoSeccion(texto: 'LEÍDAS', cantidad: leidas.length, destacar: false, esOscuro: esOscuro),
+                                    for (int i = 0; i < leidas.length; i++)
+                                      _FilaNotificacion(
+                                        key: ValueKey(leidas[i]['id'] ?? 'l$i'),
+                                        n: leidas[i],
+                                        esOscuro: esOscuro,
+                                        indice: noLeidas.length + i,
+                                        alTocar: null,
+                                      ),
+                                  ],
+                                ],
+                              ),
+              ),
+              if (!_cargando && noLeidas.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: _marcarTodasLeidas,
+                      icon: const Icon(Icons.done_all_rounded, size: 16, color: CraftHubColors.vinoTinto),
+                      label: const Text('Marcar todas como leídas',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
+                              fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto)),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EncabezadoSeccion extends StatelessWidget {
+  final String texto;
+  final int cantidad;
+  final bool destacar;
+  final bool esOscuro;
+
+  const _EncabezadoSeccion({
+    required this.texto,
+    required this.cantidad,
+    required this.destacar,
+    required this.esOscuro,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorSec = CraftHubColors.textoSecundario(esOscuro);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
+      child: Row(
+        children: [
+          Text(
+            texto,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.7,
+              color: destacar ? CraftHubColors.vinoTinto : colorSec,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text('($cantidad)', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: colorSec)),
+        ],
+      ),
+    );
+  }
+}
+
+Map<String, dynamic> _metaNotificacion(String tipo, String titulo) {
+  final t = tipo.toLowerCase();
+  final ti = titulo.toLowerCase();
+  if (t == 'venta' || ti.contains('venta')) {
+    return {'icono': Icons.shopping_bag_rounded, 'color': CraftHubColors.exito};
+  }
+  if (ti.contains('favorito') || ti.contains('gustó') || ti.contains('gusto')) {
+    return {'icono': Icons.favorite_rounded, 'color': CraftHubColors.vinoTinto};
+  }
+  if (ti.contains('mensaje') || ti.contains('chat')) {
+    return {'icono': Icons.chat_bubble_rounded, 'color': CraftHubColors.info};
+  }
+  if (ti.contains('cancel')) {
+    return {'icono': Icons.cancel_rounded, 'color': CraftHubColors.error};
+  }
+  return {'icono': Icons.campaign_rounded, 'color': CraftHubColors.advertencia};
+}
+
+String _tiempoRelativoNotificacion(String? iso) {
+  if (iso == null || iso.isEmpty) return 'Ahora';
+  final fecha = DateTime.tryParse(iso);
+  if (fecha == null) return 'Ahora';
+  final diff = DateTime.now().toUtc().difference(fecha.toUtc());
+  if (diff.inMinutes < 1) return 'Ahora';
+  if (diff.inMinutes < 60) return 'hace ${diff.inMinutes}m';
+  if (diff.inHours < 24) return 'hace ${diff.inHours}h';
+  if (diff.inDays < 7) return 'hace ${diff.inDays}d';
+  return 'hace ${(diff.inDays / 7).floor()}sem';
+}
+
+class _FilaNotificacion extends StatefulWidget {
+  final Map<String, dynamic> n;
+  final bool esOscuro;
+  final int indice;
+  final VoidCallback? alTocar;
+
+  const _FilaNotificacion({
+    super.key,
+    required this.n,
+    required this.esOscuro,
+    required this.indice,
+    this.alTocar,
+  });
+
+  @override
+  State<_FilaNotificacion> createState() => _FilaNotificacionState();
+}
+
+class _FilaNotificacionState extends State<_FilaNotificacion> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = widget.n;
+    final esOscuro = widget.esOscuro;
+    final colorTexto = CraftHubColors.textoPrincipal(esOscuro);
+    final colorSec = CraftHubColors.textoSecundario(esOscuro);
+    final titulo = (n['titulo'] ?? 'CraftHub').toString();
+    final mensaje = (n['mensaje'] ?? '').toString();
+    final tipo = (n['tipo'] ?? '').toString();
+    final leida = n['leida'] == true;
+    final meta = _metaNotificacion(tipo, titulo);
+    final IconData icono = meta['icono'] as IconData;
+    final Color color = meta['color'] as Color;
+    final tiempo = _tiempoRelativoNotificacion(n['created_at']?.toString());
+
+    final fondoHover = esOscuro ? CraftHubColors.panelOscuro2 : CraftHubColors.vinoTintoSuave;
+    final fondoBase = leida ? Colors.transparent : color.withValues(alpha: esOscuro ? 0.11 : 0.07);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: widget.alTocar != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: GestureDetector(
+        onTap: widget.alTocar,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: _hover ? fondoHover : fondoBase,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Opacity(
+            opacity: leida ? 0.6 : 1,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 3,
+                  height: 36,
+                  margin: const EdgeInsets.only(right: 9),
+                  decoration: BoxDecoration(
+                    color: !leida ? color : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(color: color.withValues(alpha: 0.14), shape: BoxShape.circle),
+                  alignment: Alignment.center,
+                  child: Icon(icono, size: 17, color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              titulo,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: colorTexto,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            tiempo,
+                            style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: colorSec),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        mensaje,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: colorSec, height: 1.3),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!leida) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn(delay: (widget.indice * 40).ms, duration: 260.ms).slideY(begin: 0.08, end: 0, duration: 260.ms);
   }
 }
 

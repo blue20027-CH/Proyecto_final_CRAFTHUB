@@ -410,7 +410,7 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 4:
         return PantallaTutorialesComprador(userId: widget.userId);
       case 5:
-        return PantallaMensajesComprador(userId: widget.userId);
+        return PantallaMensajesComprador(userId: widget.userId, nombreComprador: _nombreUsuario);
       default:
         return _buildContenido(oscuro);
     }

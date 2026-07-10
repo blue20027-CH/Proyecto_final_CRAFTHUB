@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
+import '../../services/chat_api_service.dart';
 import '../../widgets/chat/panel_conversaciones.dart';
 import '../../widgets/chat/panel_chat.dart';
 import '../../widgets/chat/banner_anuncio_crafthub.dart';
@@ -9,11 +10,28 @@ import '../../widgets/chat/banner_anuncio_crafthub.dart';
 // _obtenerPantallaActual() en pantalla_dashoard_vendedor.dart, igual que
 // PantallaMensajesComprador se inserta en el switch de HomeComprador.
 // Layout desktop: [PanelConversaciones] | [PanelChat]
-// TODO al iniciar: GET /api/conversaciones/{vendedorId}
-// TODO en tiempo real: WS /ws/chat/{conversacionId}
+// 🔌 Backend: BACK/CraftHub/chat_router.py
 class PantallaMensajesVendedor extends StatefulWidget {
   final String userId;
-  const PantallaMensajesVendedor({super.key, this.userId = ''});
+  final String nombreVendedor;
+
+  /// Nombre de contacto con el que se debe abrir (o crear) una conversación
+  /// apenas se entra a esta pantalla — usado cuando se llega aquí desde el
+  /// botón "Chatear" de Proveedores o el ícono de chat de Mis Órdenes.
+  final String? contactoInicial;
+  final String? contactoIdInicial;
+  final String? rolContactoInicial;
+  final VoidCallback? alConsumirContactoInicial;
+
+  const PantallaMensajesVendedor({
+    super.key,
+    this.userId = '',
+    this.nombreVendedor = '',
+    this.contactoInicial,
+    this.contactoIdInicial,
+    this.rolContactoInicial,
+    this.alConsumirContactoInicial,
+  });
 
   @override
   State<PantallaMensajesVendedor> createState() =>
@@ -22,8 +40,11 @@ class PantallaMensajesVendedor extends StatefulWidget {
 
 class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
   ConversacionModelo? _conversacionActiva;
-  late List<ConversacionModelo> _conversaciones;
+  List<ConversacionModelo> _conversaciones = [];
   List<MensajeModelo> _mensajesActivos = [];
+  bool _cargandoConversaciones = true;
+  bool _cargandoMensajes = false;
+  String? _error;
 
   // Publicaciones del vendedor para compartir en chat
   // TODO: GET /api/productos/mios?vendedorId={id}
@@ -56,85 +77,105 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
   @override
   void initState() {
     super.initState();
-    // TODO: reemplazar con GET /api/conversaciones/{vendedorId}
-    _conversaciones = _convsMock();
+    _cargarConversaciones();
   }
 
-  // Las conversaciones del vendedor muestran a sus compradores
-  List<ConversacionModelo> _convsMock() => [
-    ConversacionModelo(
-      id: 'vc1',
-      nombreContacto: 'Maria Lopez',
-      rolContacto: 'Compradora',
-      avatarUrl: 'assets/images/avatares/maria.jpg',
-      ultimoMensaje: 'Me encanto el bolso tejido...',
-      horaUltimo: DateTime.now().subtract(const Duration(minutes: 10)),
-      mensajesNoLeidos: 2,
-      enLinea: true,
-    ),
-    ConversacionModelo(
-      id: 'vc2',
-      nombreContacto: 'Jorge Herrera',
-      rolContacto: 'Comprador',
-      avatarUrl: 'assets/images/avatares/jorge.jpg',
-      ultimoMensaje: 'Tienen envio a Chiriqui?',
-      horaUltimo: DateTime.now().subtract(const Duration(hours: 5)),
-      mensajesNoLeidos: 1,
-      enLinea: false,
-    ),
-    ConversacionModelo(
-      id: 'vc3',
-      nombreContacto: 'Valentina Cruz',
-      rolContacto: 'Compradora',
-      avatarUrl: 'assets/images/avatares/valentina.jpg',
-      ultimoMensaje: 'Muchas gracias, quedo precioso.',
-      horaUltimo: DateTime.now().subtract(const Duration(hours: 20)),
-      mensajesNoLeidos: 0,
-      enLinea: true,
-    ),
-    ConversacionModelo(
-      id: 'vc4',
-      nombreContacto: 'Andres Rios',
-      rolContacto: 'Comprador',
-      avatarUrl: 'assets/images/avatares/andres.jpg',
-      ultimoMensaje: 'Perfecto, hago el pedido ahora.',
-      horaUltimo: DateTime.now().subtract(const Duration(days: 1)),
-      mensajesNoLeidos: 0,
-      enLinea: false,
-    ),
-    ConversacionModelo(
-      id: 'vc5',
-      nombreContacto: 'Paola Jimenez',
-      rolContacto: 'Compradora',
-      avatarUrl: 'assets/images/avatares/paola.jpg',
-      ultimoMensaje: 'El precio incluye el envio?',
-      horaUltimo: DateTime.now().subtract(const Duration(days: 3)),
-      mensajesNoLeidos: 0,
-      enLinea: false,
-    ),
-  ];
+  Future<void> _cargarConversaciones() async {
+    if (widget.userId.isEmpty) {
+      setState(() => _cargandoConversaciones = false);
+      return;
+    }
+    setState(() {
+      _cargandoConversaciones = true;
+      _error = null;
+    });
+    try {
+      final lista = await ChatApiService.cargarConversaciones(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _conversaciones = lista;
+        _cargandoConversaciones = false;
+      });
 
-  void _seleccionar(ConversacionModelo conv) {
+      final contacto = widget.contactoInicial?.trim();
+      if (contacto != null && contacto.isNotEmpty) {
+        final idContacto = widget.contactoIdInicial;
+        widget.alConsumirContactoInicial?.call();
+        await _abrirConversacionCon(contacto, widget.rolContactoInicial ?? 'Cliente', idContacto: idContacto);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+        _cargandoConversaciones = false;
+      });
+    }
+  }
+
+  // Busca (o crea en el backend) la conversación con ese contacto y la deja
+  // seleccionada — usado al llegar desde "Chatear" en Proveedores o el
+  // ícono de chat en Mis Órdenes.
+  Future<void> _abrirConversacionCon(String nombreContacto, String rolContacto, {String? idContacto}) async {
+    try {
+      final conv = await ChatApiService.abrirConversacion(
+        usuarioId: widget.userId,
+        usuarioNombre: widget.nombreVendedor,
+        contactoId: idContacto,
+        contactoNombre: nombreContacto,
+        contactoRol: rolContacto,
+      );
+      if (!mounted) return;
+      final yaExiste = _conversaciones.any((c) => c.id == conv.id);
+      setState(() {
+        if (!yaExiste) _conversaciones = [conv, ..._conversaciones];
+      });
+      await _seleccionar(conv);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo abrir el chat: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
+  }
+
+  Future<void> _seleccionar(ConversacionModelo conv) async {
     setState(() {
       _conversacionActiva = conv;
-      // TODO: GET /api/mensajes/{conv.id}
-      // Invertimos esMio para mostrar desde perspectiva del vendedor
-      _mensajesActivos = conv.id == 'vc1'
-          ? mockMensajesRosa()
-                .map(
-                  (m) => MensajeModelo(
-                    id: m.id,
-                    contenido: m.contenido,
-                    tipo: m.tipo,
-                    esMio: !m.esMio,
-                    hora: m.hora,
-                    leido: m.leido,
-                    publicacion: m.publicacion,
-                  ),
-                )
-                .toList()
-          : [];
+      _cargandoMensajes = true;
+      _mensajesActivos = [];
     });
+    try {
+      final mensajes = await ChatApiService.cargarMensajes(conv.id, widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _mensajesActivos = mensajes;
+        _cargandoMensajes = false;
+        _conversaciones = _conversaciones
+            .map((c) => c.id == conv.id
+                ? ConversacionModelo(
+                    id: c.id,
+                    nombreContacto: c.nombreContacto,
+                    idContacto: c.idContacto,
+                    rolContacto: c.rolContacto,
+                    avatarUrl: c.avatarUrl,
+                    ultimoMensaje: c.ultimoMensaje,
+                    horaUltimo: c.horaUltimo,
+                    mensajesNoLeidos: 0,
+                    enLinea: c.enLinea,
+                  )
+                : c)
+            .toList();
+      });
+      if (conv.mensajesNoLeidos > 0) {
+        ChatApiService.marcarMensajesLeidos(conv.id, widget.userId);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _cargandoMensajes = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudieron cargar los mensajes: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
   }
 
   @override
@@ -148,20 +189,31 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
           Expanded(
             child: Row(
               children: [
-                PanelConversaciones(
-                  conversaciones: _conversaciones,
-                  idSeleccionado: _conversacionActiva?.id,
-                  alSeleccionar: _seleccionar,
-                ),
+                _cargandoConversaciones
+                    ? const SizedBox(
+                        width: 320,
+                        child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
+                      )
+                    : PanelConversaciones(
+                        conversaciones: _conversaciones,
+                        idSeleccionado: _conversacionActiva?.id,
+                        alSeleccionar: _seleccionar,
+                      ),
                 Expanded(
-                  child: _conversacionActiva == null
-                      ? _PantallaVacia(isDark: isDark)
-                      : PanelChat(
-                          key: ValueKey(_conversacionActiva!.id),
-                          conversacion: _conversacionActiva!,
-                          mensajes: _mensajesActivos,
-                          misPublicaciones: _misPublicaciones,
-                        ),
+                  child: _error != null
+                      ? _PantallaError(isDark: isDark, mensaje: _error!, alReintentar: _cargarConversaciones)
+                      : _conversacionActiva == null
+                          ? _PantallaVacia(isDark: isDark)
+                          : _cargandoMensajes
+                              ? const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto))
+                              : PanelChat(
+                                  key: ValueKey(_conversacionActiva!.id),
+                                  conversacion: _conversacionActiva!,
+                                  mensajes: _mensajesActivos,
+                                  misPublicaciones: _misPublicaciones,
+                                  usuarioId: widget.userId,
+                                  usuarioNombre: widget.nombreVendedor,
+                                ),
                 ),
               ],
             ),
@@ -217,6 +269,34 @@ class _PantallaVacia extends StatelessWidget {
                 height: 1.5,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PantallaError extends StatelessWidget {
+  final bool isDark;
+  final String mensaje;
+  final VoidCallback alReintentar;
+  const _PantallaError({required this.isDark, required this.mensaje, required this.alReintentar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: isDark ? CraftHubColors.fondoOscuro : const Color(0xFFF5EFE9),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 44, color: CraftHubColors.error),
+            const SizedBox(height: 12),
+            Text(mensaje,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(isDark))),
+            const SizedBox(height: 14),
+            TextButton(onPressed: alReintentar, child: const Text('Reintentar')),
           ],
         ),
       ),

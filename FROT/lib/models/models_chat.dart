@@ -26,6 +26,28 @@ class PublicacionCompartidaModelo {
   // TODO: factory PublicacionCompartidaModelo.fromJson(Map<String, dynamic> json) { ... }
 }
 
+TipoMensaje tipoMensajeDesdeTexto(String? valor) {
+  switch (valor) {
+    case 'imagen':
+      return TipoMensaje.imagen;
+    case 'publicacion':
+      return TipoMensaje.publicacion;
+    default:
+      return TipoMensaje.texto;
+  }
+}
+
+String tipoMensajeATexto(TipoMensaje tipo) {
+  switch (tipo) {
+    case TipoMensaje.imagen:
+      return 'imagen';
+    case TipoMensaje.publicacion:
+      return 'publicacion';
+    case TipoMensaje.texto:
+      return 'texto';
+  }
+}
+
 class MensajeModelo {
   final String id;
   final String contenido;
@@ -44,13 +66,23 @@ class MensajeModelo {
     this.leido = false,
     this.publicacion,
   });
-  // TODO: factory MensajeModelo.fromJson(Map<String, dynamic> json) { ... }
-  // TODO: Map<String, dynamic> toJson() { ... }
+
+  factory MensajeModelo.fromJson(Map<String, dynamic> json) {
+    return MensajeModelo(
+      id: (json['id'] ?? '').toString(),
+      contenido: (json['contenido'] ?? '').toString(),
+      tipo: tipoMensajeDesdeTexto(json['tipo']?.toString()),
+      esMio: json['es_mio'] == true,
+      hora: DateTime.tryParse((json['hora'] ?? '').toString())?.toLocal() ?? DateTime.now(),
+      leido: json['leido'] == true,
+    );
+  }
 }
 
 class ConversacionModelo {
   final String id;
   final String nombreContacto;
+  final String? idContacto;
   final String rolContacto;
   final String avatarUrl;
   final String ultimoMensaje;
@@ -61,6 +93,7 @@ class ConversacionModelo {
   const ConversacionModelo({
     required this.id,
     required this.nombreContacto,
+    this.idContacto,
     required this.rolContacto,
     required this.avatarUrl,
     required this.ultimoMensaje,
@@ -68,7 +101,19 @@ class ConversacionModelo {
     this.mensajesNoLeidos = 0,
     this.enLinea = false,
   });
-  // TODO: factory ConversacionModelo.fromJson(Map<String, dynamic> json) { ... }
+
+  factory ConversacionModelo.fromJson(Map<String, dynamic> json) {
+    return ConversacionModelo(
+      id: (json['id'] ?? '').toString(),
+      nombreContacto: (json['nombre_contacto'] ?? 'Usuario CraftHub').toString(),
+      idContacto: json['id_contacto']?.toString(),
+      rolContacto: (json['rol_contacto'] ?? 'Cliente').toString(),
+      avatarUrl: '',
+      ultimoMensaje: (json['ultimo_mensaje'] ?? '').toString(),
+      horaUltimo: DateTime.tryParse((json['ultimo_mensaje_hora'] ?? '').toString())?.toLocal() ?? DateTime.now(),
+      mensajesNoLeidos: int.tryParse((json['mensajes_no_leidos'] ?? 0).toString()) ?? 0,
+    );
+  }
 }
 
 // ─── DATOS MOCK (reemplazar con llamadas reales al backend) ──────────────────

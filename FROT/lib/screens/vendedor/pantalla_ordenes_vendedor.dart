@@ -6,7 +6,6 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../models/pedido_vendedor_model.dart';
@@ -107,11 +106,17 @@ class PantallaOrdenesVendedor extends StatefulWidget {
   /// id del pedido para que la pantalla del mapa lo resalte.
   final ValueChanged<String>? alVerEnMapa;
 
+  /// Se invoca cuando el vendedor quiere chatear con el cliente de un pedido;
+  /// recibe el nombre (y el id, si se conoce) del cliente para abrir/crear
+  /// esa conversación.
+  final void Function(String nombreCliente, String? idCliente)? alAbrirChat;
+
   const PantallaOrdenesVendedor({
     super.key,
     required this.esOscuro,
     required this.nombreVendedor,
     this.alVerEnMapa,
+    this.alAbrirChat,
   });
 
   @override
@@ -205,6 +210,12 @@ class _PantallaOrdenesVendedorState extends State<PantallaOrdenesVendedor> {
     }).toList();
 
     lista.sort((a, b) {
+      // Las canceladas siempre quedan al final, sin importar el orden
+      // elegido — ya no son relevantes para el día a día del vendedor.
+      final aCancelada = a.estado == EstadoPedido.cancelada;
+      final bCancelada = b.estado == EstadoPedido.cancelada;
+      if (aCancelada != bCancelada) return aCancelada ? 1 : -1;
+
       switch (_orden) {
         case 'antiguos':
           return (a.fecha ?? DateTime(2000)).compareTo(
@@ -271,17 +282,7 @@ class _PantallaOrdenesVendedorState extends State<PantallaOrdenesVendedor> {
 
   void _verEnMapa(PedidoVendedor pedido) => widget.alVerEnMapa?.call(pedido.id);
 
-  Future<void> _llamarCliente(String telefono) async {
-    final uri = Uri(scheme: 'tel', path: telefono);
-    try {
-      await launchUrl(uri);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo iniciar la llamada a $telefono')),
-      );
-    }
-  }
+  void _abrirChat(PedidoVendedor pedido) => widget.alAbrirChat?.call(pedido.clienteNombre, pedido.clienteId);
 
   void _verDetalle(PedidoVendedor pedido) {
     showDialog(
@@ -294,9 +295,10 @@ class _PantallaOrdenesVendedorState extends State<PantallaOrdenesVendedor> {
           Navigator.of(context).pop();
           _verEnMapa(pedido);
         },
-        alLlamar: pedido.telefono != null && pedido.telefono!.isNotEmpty
-            ? () => _llamarCliente(pedido.telefono!)
-            : null,
+        alChatear: () {
+          Navigator.of(context).pop();
+          _abrirChat(pedido);
+        },
       ),
     );
   }
@@ -1063,62 +1065,65 @@ class _ChipEstado extends StatelessWidget {
       );
     }
 
-    return PopupMenuButton<String>(
-      tooltip: 'Cambiar estado',
-      offset: const Offset(0, 34),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      onSelected: alCambiarEstado,
-      itemBuilder: (_) => EstadoPedido.todos.map((e) {
-        final c = colorEstadoPedido(e);
-        return PopupMenuItem<String>(
-          value: e,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: PopupMenuButton<String>(
+        tooltip: 'Cambiar estado',
+        offset: const Offset(0, 34),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        onSelected: alCambiarEstado,
+        itemBuilder: (_) => EstadoPedido.todos.map((e) {
+          final c = colorEstadoPedido(e);
+          return PopupMenuItem<String>(
+            value: e,
+            child: Row(
+              children: [
+                Icon(iconoEstadoPedido(e), size: 16, color: c),
+                const SizedBox(width: 10),
+                Text(
+                  EstadoPedido.etiqueta(e),
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13,
+                    color: e == pedido.estado ? c : null,
+                    fontWeight: e == pedido.estado
+                        ? FontWeight.w700
+                        : FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
+          ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(iconoEstadoPedido(e), size: 16, color: c),
-              const SizedBox(width: 10),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
               Text(
-                EstadoPedido.etiqueta(e),
+                pedido.estadoLabel,
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 13,
-                  color: e == pedido.estado ? c : null,
-                  fontWeight: e == pedido.estado
-                      ? FontWeight.w700
-                      : FontWeight.w400,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: color,
                 ),
               ),
+              const SizedBox(width: 2),
+              Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: color),
             ],
           ),
-        );
-      }).toList(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              pedido.estadoLabel,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: color),
-          ],
         ),
       ),
     );
@@ -1927,14 +1932,14 @@ class _DialogoDetallePedido extends StatelessWidget {
   final bool esOscuro;
   final ValueChanged<String> alCambiarEstado;
   final VoidCallback alVerEnMapa;
-  final VoidCallback? alLlamar;
+  final VoidCallback? alChatear;
 
   const _DialogoDetallePedido({
     required this.pedido,
     required this.esOscuro,
     required this.alCambiarEstado,
     required this.alVerEnMapa,
-    required this.alLlamar,
+    this.alChatear,
   });
 
   @override
@@ -2027,11 +2032,11 @@ class _DialogoDetallePedido extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (alLlamar != null)
+                  if (alChatear != null)
                     _BotonIcono(
-                      icono: Icons.call_outlined,
-                      tooltip: 'Llamar al cliente',
-                      onTap: alLlamar,
+                      icono: Icons.forum_outlined,
+                      tooltip: 'Chatear con el cliente',
+                      onTap: alChatear,
                       esOscuro: esOscuro,
                     ),
                 ],

@@ -244,10 +244,11 @@ def crear_pedido(req: PedidoRequest):
         try:
             resp = supabase.table("perfiles").select("user_id").eq("nombre", creador).execute()
             if resp.data:
+                comprador = req.comprador_nombre or "Un cliente"
                 supabase.table("notificaciones").insert({
                     "user_id": resp.data[0].get("user_id"),
                     "titulo":  "Nueva venta",
-                    "mensaje": f"Vendiste {item['cantidad']}x {item['nombre']}. Preparalo para enviarlo antes de 24 horas.",
+                    "mensaje": f"{comprador} compró {item['cantidad']}x {item['nombre']}. Preparalo para enviarlo antes de 24 horas.",
                     "tipo":    "venta",
                     "leida":   False,
                 }).execute()
