@@ -43,6 +43,7 @@ flutter:
 
   assets:
     - assets/images/logo_crafthub.png
+    - assets/images/logo_crafthub_dark.png
     - assets/images/fondo_inicio.png
     - assets/images/rol_back.png 
     - assets/images/banderas/Panama.png

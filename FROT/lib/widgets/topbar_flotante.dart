@@ -1,8 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
 import '../main.dart';
+import '../models/artesano_modelo.dart';
+import '../services/api_service.dart';
+import 'comprador/tarjeta_producto.dart' show ProductoModelo;
+import '../screens/comprador/pantalla_detalle_producto.dart';
+import '../screens/navegacion_artesano.dart';
 
 // Un ítem del menú desplegable "Explorar" (secciones de la app).
 class ItemExplorar {
@@ -14,14 +20,25 @@ class ItemExplorar {
 
 // ──────────────────────────────────────────────────────────────────────────
 // TOPBAR FLOTANTE — barra superior tipo "cápsula" compartida por comprador
-// y vendedor: botón de búsqueda + campo + "Explorar" + accesos rápidos +
-// logo de CraftHub en la esquina.
+// y vendedor: botón de búsqueda + campo (con sugerencias en vivo debajo,
+// del mismo ancho que la cápsula) + "Explorar"/"Crear producto" + accesos
+// rápidos + logo de CraftHub en la esquina.
 // ──────────────────────────────────────────────────────────────────────────
-class TopbarFlotante extends StatelessWidget {
+class TopbarFlotante extends StatefulWidget {
   final TextEditingController controladorBusqueda;
   final ValueChanged<String>? alBuscar;
+
+  /// Id del usuario actual (comprador o vendedor); se usa para abrir el
+  /// detalle de un producto sugerido igual que en la pantalla de inicio.
+  final String userId;
+
   final List<ItemExplorar> itemsExplorar;
-  final VoidCallback? alPresionarMensajes;
+  final bool mostrarExplorar;
+
+  /// Si se provee, reemplaza el botón "Explorar" por uno de "Crear producto"
+  /// (solo vendedor).
+  final VoidCallback? alCrearProducto;
+
   final VoidCallback? alPresionarEventos;
   final VoidCallback? alPresionarNotificaciones;
   final bool tieneNotificaciones;
@@ -32,8 +49,10 @@ class TopbarFlotante extends StatelessWidget {
     super.key,
     required this.controladorBusqueda,
     this.alBuscar,
+    this.userId = '',
     this.itemsExplorar = const [],
-    this.alPresionarMensajes,
+    this.mostrarExplorar = true,
+    this.alCrearProducto,
     this.alPresionarEventos,
     this.alPresionarNotificaciones,
     this.tieneNotificaciones = true,
@@ -42,98 +61,390 @@ class TopbarFlotante extends StatelessWidget {
   });
 
   @override
+  State<TopbarFlotante> createState() => _TopbarFlotanteState();
+}
+
+class _TopbarFlotanteState extends State<TopbarFlotante> {
+  final LayerLink _link = LayerLink();
+  final GlobalKey _capsulaKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
+  Timer? _debounce;
+  bool _buscando = false;
+  List<ProductoModelo> _productosSugeridos = [];
+  List<ArtesanoModelo> _artesanosSugeridos = [];
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _cerrarSugerencias();
+    super.dispose();
+  }
+
+  void _onCambioTexto(String texto) {
+    widget.alBuscar?.call(texto);
+    _debounce?.cancel();
+    final q = texto.trim();
+    if (q.length < 2) {
+      _cerrarSugerencias();
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 350), () => _buscarSugerencias(q));
+  }
+
+  Future<void> _buscarSugerencias(String q) async {
+    setState(() => _buscando = true);
+    _mostrarSugerencias();
+    try {
+      final resultados = await Future.wait([
+        ApiService.getProductos(busqueda: q),
+        ApiService.getArtesanos(limite: 60),
+      ]);
+      if (!mounted) return;
+      final ql = q.toLowerCase();
+      final artesanos = (resultados[1] as List<ArtesanoModelo>).where((a) {
+        return a.nombre.toLowerCase().contains(ql) ||
+            a.especialidad.toLowerCase().contains(ql) ||
+            a.provincia.toLowerCase().contains(ql);
+      }).take(4).toList();
+      setState(() {
+        _productosSugeridos = (resultados[0] as List<ProductoModelo>).take(5).toList();
+        _artesanosSugeridos = artesanos;
+        _buscando = false;
+      });
+      _mostrarSugerencias();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _buscando = false);
+    }
+  }
+
+  void _mostrarSugerencias() {
+    _overlayEntry?.remove();
+    final capsulaBox = _capsulaKey.currentContext?.findRenderObject() as RenderBox?;
+    final ancho = capsulaBox?.size.width ?? 400.0;
+    final alto = capsulaBox?.size.height ?? 68.0;
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
+
+    _overlayEntry = OverlayEntry(
+      builder: (_) => Positioned(
+        width: ancho,
+        child: CompositedTransformFollower(
+          link: _link,
+          showWhenUnlinked: false,
+          targetAnchor: Alignment.bottomLeft,
+          followerAnchor: Alignment.topLeft,
+          offset: Offset(0, alto + 8),
+          child: TapRegion(
+            onTapOutside: (_) => _cerrarSugerencias(),
+            child: _PanelSugerencias(
+              cargando: _buscando,
+              productos: _productosSugeridos,
+              artesanos: _artesanosSugeridos,
+              esOscuro: esOscuro,
+              alSeleccionarProducto: _abrirProducto,
+              alSeleccionarArtesano: _abrirArtesano,
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _cerrarSugerencias() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _abrirProducto(ProductoModelo p) {
+    _cerrarSugerencias();
+    widget.controladorBusqueda.clear();
+    PantallaDetalleProducto.mostrar(
+      context,
+      productoId: p.id,
+      productoPrevisualizado: p,
+      userId: widget.userId,
+    );
+  }
+
+  void _abrirArtesano(ArtesanoModelo a) {
+    _cerrarSugerencias();
+    widget.controladorBusqueda.clear();
+    abrirPerfilArtesano(context, a);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
     final colorPanel = CraftHubColors.panel(oscuro);
-    final colorBorde = CraftHubColors.borde(oscuro);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-      child: SizedBox(
-        height: 64,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: ColoredBox(
-                  color: colorPanel,
-                  child: Row(
-                    children: [
-                      // ── Botón de búsqueda (círculo vino tinto flotando en la cápsula) ──
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: _BotonBusqueda(
-                          onTap: () => alBuscar?.call(controladorBusqueda.text),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // ── Cápsula: búsqueda + botón de acción principal ──
+          Expanded(
+            child: CompositedTransformTarget(
+              link: _link,
+              child: SizedBox(
+                key: _capsulaKey,
+                height: 68,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(34),
+                  child: ColoredBox(
+                    color: colorPanel,
+                    child: Row(
+                      children: [
+                        // ── Botón de búsqueda (círculo vino tinto flotando en la cápsula) ──
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12),
+                          child: _BotonBusqueda(
+                            onTap: () => _onCambioTexto(widget.controladorBusqueda.text),
+                          ),
                         ),
-                      ),
-                      // ── Campo de búsqueda ──
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          child: TextField(
-                            controller: controladorBusqueda,
-                            onChanged: alBuscar,
-                            style: GoogleFonts.poppins(
-                                fontSize: 13.5, color: CraftHubColors.textoPrincipal(oscuro)),
-                            decoration: InputDecoration(
-                              isCollapsed: true,
-                              border: InputBorder.none,
-                              hintText: 'Buscar productos, artesanos, provincias...',
-                              hintStyle: GoogleFonts.poppins(
-                                  fontSize: 13.5, color: CraftHubColors.textoSecundario(oscuro)),
+                        // ── Campo de búsqueda ──
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: TextField(
+                              controller: widget.controladorBusqueda,
+                              onChanged: _onCambioTexto,
+                              textInputAction: TextInputAction.search,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13.5, color: CraftHubColors.textoPrincipal(oscuro)),
+                              decoration: InputDecoration(
+                                isCollapsed: true,
+                                border: InputBorder.none,
+                                hintText: 'Buscar productos, artesanos, provincias...',
+                                hintStyle: GoogleFonts.poppins(
+                                    fontSize: 13.5, color: CraftHubColors.textoSecundario(oscuro)),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      // ── Explorar ──
-                      _BotonExplorar(oscuro: oscuro, items: itemsExplorar),
-                      const SizedBox(width: 12),
-                      // ── Separador ──
-                      Container(width: 1, height: 26, color: colorBorde),
-                      const SizedBox(width: 4),
-                      // ── Accesos rápidos ──
-                      _IconTopbarFlotante(
-                        icono: Icons.chat_bubble_outline_rounded,
-                        tooltip: 'Mensajes',
-                        onTap: alPresionarMensajes ?? () {},
-                      ),
-                      _IconTopbarFlotante(
-                        icono: Icons.calendar_month_outlined,
-                        tooltip: 'Eventos',
-                        onTap: alPresionarEventos ?? () {},
-                      ),
-                      _IconTopbarFlotante(
-                        icono: Icons.notifications_none_rounded,
-                        tooltip: 'Notificaciones',
-                        tieneNotif: tieneNotificaciones,
-                        onTap: alPresionarNotificaciones ?? () {},
-                      ),
-                      _IconTopbarFlotante(
-                        icono: Icons.location_on_outlined,
-                        tooltip: 'Mapa de artesanos',
-                        onTap: alPresionarUbicacion ?? () {},
-                      ),
-                      _IconTopbarFlotante(
-                        icono: oscuro ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                        tooltip: 'Cambiar tema',
-                        onTap: () => context.read<GestorTema>().alternarTema(),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
+                        // ── Botón de acción: Crear producto (vendedor) o Explorar ──
+                        if (widget.alCrearProducto != null)
+                          _BotonCrearProducto(oscuro: oscuro, onTap: widget.alCrearProducto!)
+                        else if (widget.mostrarExplorar)
+                          _BotonExplorar(oscuro: oscuro, items: widget.itemsExplorar),
+                        const SizedBox(width: 10),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
-            // ── Logo CraftHub ──
-            _LogoTopbar(onTap: alPresionarLogo),
+          ),
+          const SizedBox(width: 12),
+          // ── Accesos rápidos (fuera de la cápsula, cada uno con su propio círculo) ──
+          _IconTopbarFlotante(
+            icono: Icons.calendar_month_outlined,
+            tooltip: 'Eventos',
+            onTap: widget.alPresionarEventos ?? () {},
+          ),
+          _IconTopbarFlotante(
+            icono: Icons.notifications_none_rounded,
+            tooltip: 'Notificaciones',
+            tieneNotif: widget.tieneNotificaciones,
+            onTap: widget.alPresionarNotificaciones ?? () {},
+          ),
+          if (widget.alPresionarUbicacion != null)
+            _IconTopbarFlotante(
+              icono: Icons.location_on_outlined,
+              tooltip: 'Mapa de artesanos',
+              onTap: widget.alPresionarUbicacion!,
+            ),
+          _IconTopbarFlotante(
+            icono: oscuro ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            tooltip: 'Cambiar tema',
+            onTap: () => context.read<GestorTema>().alternarTema(),
+          ),
+          const SizedBox(width: 6),
+          // ── Logo CraftHub ──
+          _LogoTopbar(onTap: widget.alPresionarLogo),
+        ],
+      ),
+    );
+  }
+}
+
+// ── PANEL DE SUGERENCIAS (aparece debajo de la cápsula, mismo ancho) ─────
+class _PanelSugerencias extends StatelessWidget {
+  final bool cargando;
+  final List<ProductoModelo> productos;
+  final List<ArtesanoModelo> artesanos;
+  final bool esOscuro;
+  final ValueChanged<ProductoModelo> alSeleccionarProducto;
+  final ValueChanged<ArtesanoModelo> alSeleccionarArtesano;
+
+  const _PanelSugerencias({
+    required this.cargando,
+    required this.productos,
+    required this.artesanos,
+    required this.esOscuro,
+    required this.alSeleccionarProducto,
+    required this.alSeleccionarArtesano,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorTexto = CraftHubColors.textoPrincipal(esOscuro);
+    final colorSec = CraftHubColors.textoSecundario(esOscuro);
+    final sinResultados = !cargando && productos.isEmpty && artesanos.isEmpty;
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxHeight: 380),
+        decoration: BoxDecoration(
+          color: CraftHubColors.panel(esOscuro),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: CraftHubColors.borde(esOscuro)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: esOscuro ? 0.4 : 0.14), blurRadius: 22, offset: const Offset(0, 10)),
           ],
+        ),
+        child: cargando
+            ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 28),
+                child: Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto, strokeWidth: 2.4)),
+              )
+            : sinResultados
+                ? Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('Sin resultados.',
+                        style: GoogleFonts.poppins(fontSize: 13, color: colorSec)),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shrinkWrap: true,
+                    children: [
+                      if (artesanos.isNotEmpty) ...[
+                        _EtiquetaSeccion(texto: 'Artesanos', esOscuro: esOscuro),
+                        ...artesanos.map((a) => _FilaSugerencia(
+                              imagenUrl: a.fotoUrl,
+                              icono: Icons.storefront_outlined,
+                              titulo: a.nombre,
+                              subtitulo: '${a.especialidad} · ${a.provincia}',
+                              colorTexto: colorTexto,
+                              colorSec: colorSec,
+                              onTap: () => alSeleccionarArtesano(a),
+                            )),
+                      ],
+                      if (productos.isNotEmpty) ...[
+                        _EtiquetaSeccion(texto: 'Productos', esOscuro: esOscuro),
+                        ...productos.map((p) => _FilaSugerencia(
+                              imagenUrl: p.imagenUrl,
+                              icono: Icons.shopping_bag_outlined,
+                              titulo: p.nombre,
+                              subtitulo: '\$${p.precio.toStringAsFixed(2)} · ${p.artesano}',
+                              colorTexto: colorTexto,
+                              colorSec: colorSec,
+                              onTap: () => alSeleccionarProducto(p),
+                            )),
+                      ],
+                    ],
+                  ),
+      ),
+    );
+  }
+}
+
+class _EtiquetaSeccion extends StatelessWidget {
+  final String texto;
+  final bool esOscuro;
+  const _EtiquetaSeccion({required this.texto, required this.esOscuro});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Text(
+        texto.toUpperCase(),
+        style: GoogleFonts.poppins(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: CraftHubColors.vinoTinto,
         ),
       ),
     );
   }
+}
+
+class _FilaSugerencia extends StatefulWidget {
+  final String imagenUrl;
+  final IconData icono;
+  final String titulo;
+  final String subtitulo;
+  final Color colorTexto;
+  final Color colorSec;
+  final VoidCallback onTap;
+
+  const _FilaSugerencia({
+    required this.imagenUrl,
+    required this.icono,
+    required this.titulo,
+    required this.subtitulo,
+    required this.colorTexto,
+    required this.colorSec,
+    required this.onTap,
+  });
+
+  @override
+  State<_FilaSugerencia> createState() => _FilaSugerenciaState();
+}
+
+class _FilaSugerenciaState extends State<_FilaSugerencia> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: InkWell(
+        onTap: widget.onTap,
+        child: Container(
+          color: _hover ? CraftHubColors.vinoTintoSuave.withValues(alpha: 0.5) : Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: widget.imagenUrl.isNotEmpty
+                    ? Image.network(widget.imagenUrl, width: 38, height: 38, fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _respaldo())
+                    : _respaldo(),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.titulo, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: widget.colorTexto)),
+                    Text(widget.subtitulo, maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(fontSize: 11.5, color: widget.colorSec)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _respaldo() => Container(
+        width: 38,
+        height: 38,
+        color: CraftHubColors.vinoTintoSuave,
+        alignment: Alignment.center,
+        child: Icon(widget.icono, size: 17, color: CraftHubColors.vinoTinto),
+      );
 }
 
 // ── BOTÓN DE BÚSQUEDA (círculo vino tinto) ───────────────────────────────
@@ -227,6 +538,55 @@ class _BotonExplorar extends StatelessWidget {
   }
 }
 
+// ── BOTÓN "CREAR PRODUCTO" (vendedor) ─────────────────────────────────────
+class _BotonCrearProducto extends StatefulWidget {
+  final bool oscuro;
+  final VoidCallback onTap;
+  const _BotonCrearProducto({required this.oscuro, required this.onTap});
+
+  @override
+  State<_BotonCrearProducto> createState() => _BotonCrearProductoState();
+}
+
+class _BotonCrearProductoState extends State<_BotonCrearProducto> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: _hover ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto,
+            borderRadius: BorderRadius.circular(50),
+            boxShadow: [
+              BoxShadow(
+                  color: CraftHubColors.vinoTinto.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3)),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+              const SizedBox(width: 6),
+              Text('Crear producto',
+                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── ÍCONO CIRCULAR DE ACCESO RÁPIDO ──────────────────────────────────────
 class _IconTopbarFlotante extends StatefulWidget {
   final IconData icono;
@@ -309,6 +669,7 @@ class _LogoTopbarState extends State<_LogoTopbar> {
 
   @override
   Widget build(BuildContext context) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -321,9 +682,9 @@ class _LogoTopbarState extends State<_LogoTopbar> {
             duration: const Duration(milliseconds: 160),
             scale: _hover ? 1.05 : 1.0,
             child: Image.asset(
-              'assets/images/logo_crafthub.png',
-              width: 44,
-              height: 44,
+              CraftHubColors.logoPath(oscuro),
+              width: 36,
+              height: 36,
               fit: BoxFit.contain,
             ),
           ),

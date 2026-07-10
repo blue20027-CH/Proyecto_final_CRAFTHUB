@@ -62,6 +62,11 @@ class CraftHubColors {
   /// Devuelve el color de borde según el tema activo
   static Color borde(bool esOscuro) =>
       esOscuro ? bordeOscuro : bordeClaro;
+
+  /// Devuelve la ruta del logo de CraftHub según el tema activo
+  static String logoPath(bool esOscuro) => esOscuro
+      ? 'assets/images/logo_crafthub_dark.png'
+      : 'assets/images/logo_crafthub.png';
 }
 
 class CraftHubTheme {

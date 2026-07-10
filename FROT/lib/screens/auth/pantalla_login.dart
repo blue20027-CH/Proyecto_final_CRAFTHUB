@@ -281,7 +281,7 @@ class _PanelLogin extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/images/logo_crafthub.png',
+              CraftHubColors.logoPath(esOscuro),
               width: 44,
               height: 44,
               fit: BoxFit.contain,

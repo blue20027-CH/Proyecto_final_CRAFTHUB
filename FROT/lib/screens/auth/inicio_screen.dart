@@ -280,7 +280,7 @@ class _SeccionLogo extends StatelessWidget {
       children: [
         // Logo insertado como imagen
         Image.asset(
-          'assets/images/logo_crafthub.png',
+          CraftHubColors.logoPath(esOscuro),
           width: 90,
           height: 90,
           fit: BoxFit.contain,

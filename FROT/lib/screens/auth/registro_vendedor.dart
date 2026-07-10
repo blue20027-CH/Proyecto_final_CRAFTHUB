@@ -550,7 +550,7 @@ class _Encabezado extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/images/logo_crafthub.png',
+              CraftHubColors.logoPath(esOscuro),
               width: 30,
               height: 30,
             ),

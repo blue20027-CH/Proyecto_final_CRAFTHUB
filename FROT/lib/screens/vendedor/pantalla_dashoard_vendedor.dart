@@ -17,6 +17,7 @@ import '../../services/api_service.dart';
 import '../../widgets/topbar_flotante.dart';
 import '../auth/inicio_screen.dart';
 import '../pantalla_editar_perfil.dart';
+import '../../models/modelo_producto_inventario.dart';
 import '../comprador/pantalla_perfil_artesano.dart';
 import '../../models/artesano_modelo.dart' show bannerPorCategoria;
 import 'pantalla_eventos_vendedor.dart';
@@ -49,6 +50,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
   String? _contactoChatPendiente;
   String? _contactoIdChatPendiente;
   String _rolChatPendiente = 'Cliente';
+  int _productosRefreshTick = 0;
   final TextEditingController _busquedaCtrl = TextEditingController();
   bool _tieneAnuncioSinLeer = false;
   bool _tieneNotificacionSinLeer = false;
@@ -278,7 +280,10 @@ class _HomeVendedorState extends State<HomeVendedor> {
           alVerPedidos: () => setState(() => _navIndice = 4),
         );
       case 1:
-        return PantallaInventario(nombreVendedor: widget.nombreVendedor);
+        return PantallaInventario(
+          key: ValueKey('inventario_$_productosRefreshTick'),
+          nombreVendedor: widget.nombreVendedor,
+        );
       case 2:
         return PantallaTutoriales(userId: widget.userId);
       case 3:
@@ -330,6 +335,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
   Widget _buildTopBar(bool oscuro) {
     return TopbarFlotante(
       controladorBusqueda: _busquedaCtrl,
+      userId: widget.userId,
       tieneNotificaciones: _tieneNotificacionSinLeer,
       alPresionarNotificaciones: widget.userId.isEmpty ? null : _mostrarNotificaciones,
       alPresionarLogo: () => setState(() => _navIndice = 0),
@@ -342,23 +348,20 @@ class _HomeVendedorState extends State<HomeVendedor> {
           ),
         ),
       ),
-      itemsExplorar: [
-        ItemExplorar(icono: Icons.dashboard_outlined, etiqueta: 'Dashboard',
-            onTap: () => setState(() => _navIndice = 0)),
-        ItemExplorar(icono: Icons.inventory_2_outlined, etiqueta: 'Productos',
-            onTap: () => setState(() => _navIndice = 1)),
-        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: 'Tutoriales',
-            onTap: () => setState(() => _navIndice = 2)),
-        ItemExplorar(icono: Icons.forum_outlined, etiqueta: 'Mensajes',
-            onTap: _abrirMensajes),
-        ItemExplorar(icono: Icons.receipt_long_outlined, etiqueta: 'Pedidos',
-            onTap: () => setState(() => _navIndice = 4)),
-        ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de pedidos',
-            onTap: () => setState(() => _navIndice = 5)),
-        ItemExplorar(icono: Icons.groups_2_outlined, etiqueta: 'Proveedores',
-            onTap: () => setState(() => _navIndice = 6)),
-      ],
+      alCrearProducto: _crearProductoDesdeTopbar,
     );
+  }
+
+  Future<void> _crearProductoDesdeTopbar() async {
+    final creado = await showDialog<ProductoInventario>(
+      context: context,
+      builder: (_) => DialogoNuevoProducto(nombreVendedor: widget.nombreVendedor),
+    );
+    if (creado == null || !mounted) return;
+    setState(() {
+      _navIndice = 1;
+      _productosRefreshTick++;
+    });
   }
 }
 
