@@ -122,30 +122,42 @@ class _TopbarFlotanteState extends State<TopbarFlotante> {
     _overlayEntry?.remove();
     final capsulaBox = _capsulaKey.currentContext?.findRenderObject() as RenderBox?;
     final ancho = capsulaBox?.size.width ?? 400.0;
-    final alto = capsulaBox?.size.height ?? 68.0;
     final esOscuro = Theme.of(context).brightness == Brightness.dark;
 
     _overlayEntry = OverlayEntry(
-      builder: (_) => Positioned(
-        width: ancho,
-        child: CompositedTransformFollower(
-          link: _link,
-          showWhenUnlinked: false,
-          targetAnchor: Alignment.bottomLeft,
-          followerAnchor: Alignment.topLeft,
-          offset: Offset(0, alto + 8),
-          child: TapRegion(
-            onTapOutside: (_) => _cerrarSugerencias(),
-            child: _PanelSugerencias(
-              cargando: _buscando,
-              productos: _productosSugeridos,
-              artesanos: _artesanosSugeridos,
-              esOscuro: esOscuro,
-              alSeleccionarProducto: _abrirProducto,
-              alSeleccionarArtesano: _abrirArtesano,
+      builder: (_) => Stack(
+        children: [
+          // Velo que oscurece el resto de la pantalla para que el panel de
+          // sugerencias no se confunda con el contenido de fondo.
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _cerrarSugerencias,
+              child: Container(color: Colors.black.withValues(alpha: esOscuro ? 0.45 : 0.22)),
             ),
           ),
-        ),
+          Positioned(
+            width: ancho,
+            child: CompositedTransformFollower(
+              link: _link,
+              showWhenUnlinked: false,
+              targetAnchor: Alignment.bottomLeft,
+              followerAnchor: Alignment.topLeft,
+              offset: const Offset(0, 4),
+              child: TapRegion(
+                onTapOutside: (_) => _cerrarSugerencias(),
+                child: _PanelSugerencias(
+                  cargando: _buscando,
+                  productos: _productosSugeridos,
+                  artesanos: _artesanosSugeridos,
+                  esOscuro: esOscuro,
+                  alSeleccionarProducto: _abrirProducto,
+                  alSeleccionarArtesano: _abrirArtesano,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
     Overlay.of(context).insert(_overlayEntry!);

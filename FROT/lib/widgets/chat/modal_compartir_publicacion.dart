@@ -2,48 +2,25 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models_chat.dart';
 
-/// Modal para compartir un producto propio en el chat.
-/// TODO: cargar lista real con GET /api/productos/mios?userId={id}
+/// Modal para compartir una publicación en el chat: del lado vendedor son
+/// sus propios productos (GET /api/vendedor/{nombreVendedor}/productos), del
+/// lado comprador son sus favoritos (FavoritosProvider) — ver
+/// pantalla_mensajes_vendedor.dart y pantalla_mensajes_comprador.dart.
 class ModalCompartirPublicacion extends StatelessWidget {
   final List<PublicacionCompartidaModelo> publicaciones;
   final ValueChanged<PublicacionCompartidaModelo> alCompartir;
-
-  static final _mock = [
-    PublicacionCompartidaModelo(
-      id: 'p1',
-      titulo: 'Bolso tejido iraca',
-      imagenUrl: 'https://i.imgur.com/ZWRiMCb.jpeg',
-      precio: 45.00,
-      artesano: 'Rosa Martinez',
-    ),
-    PublicacionCompartidaModelo(
-      id: 'p2',
-      titulo: 'Mola Guna Yala',
-      imagenUrl:
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      precio: 38.00,
-      artesano: 'Rosa Martinez',
-    ),
-    PublicacionCompartidaModelo(
-      id: 'p3',
-      titulo: 'Cesta de fibra natural',
-      imagenUrl:
-          'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      precio: 22.50,
-      artesano: 'Rosa Martinez',
-    ),
-  ];
+  final String tituloVacio;
 
   const ModalCompartirPublicacion({
     super.key,
     required this.alCompartir,
     this.publicaciones = const [],
+    this.tituloVacio = 'No tienes nada para compartir todavía.',
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final lista = publicaciones.isEmpty ? _mock : publicaciones;
     return Dialog(
       backgroundColor: CraftHubColors.panel(isDark),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -79,20 +56,33 @@ class ModalCompartirPublicacion extends StatelessWidget {
             const Divider(height: 1),
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 400),
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                shrinkWrap: true,
-                itemCount: lista.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (_, i) => _Tarjeta(
-                  pub: lista[i],
-                  isDark: isDark,
-                  alCompartir: () {
-                    Navigator.pop(context);
-                    alCompartir(lista[i]);
-                  },
-                ),
-              ),
+              child: publicaciones.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Text(
+                        tituloVacio,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          color: CraftHubColors.textoSecundario(isDark),
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      shrinkWrap: true,
+                      itemCount: publicaciones.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (_, i) => _Tarjeta(
+                        pub: publicaciones[i],
+                        isDark: isDark,
+                        alCompartir: () {
+                          Navigator.pop(context);
+                          alCompartir(publicaciones[i]);
+                        },
+                      ),
+                    ),
             ),
           ],
         ),

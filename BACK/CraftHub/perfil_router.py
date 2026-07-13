@@ -32,6 +32,7 @@ class ActualizarPerfilRequest(BaseModel):
     cedula:       Optional[str] = None
     nombre_usuario: Optional[str] = None
     ofrece_delivery: Optional[bool] = None
+    idioma:       Optional[str] = None
 
 # ---------------------------------------------------------------------------
 # ENDPOINTS
@@ -67,6 +68,7 @@ def obtener_perfil(user_id: str):
             "cedula":            perfil.get("cedula") or "",
             "nombre_usuario":    perfil.get("nombre_usuario") or "",
             "ofrece_delivery":   perfil.get("ofrece_delivery"),
+            "idioma":            perfil.get("idioma") or "es",
         }
     except HTTPException:
         raise

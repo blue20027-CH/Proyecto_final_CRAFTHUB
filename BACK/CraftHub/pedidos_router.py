@@ -10,6 +10,7 @@ from pydantic import BaseModel
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from supabase_client import supabase
+from auth_router import _verificar_password
 
 router = APIRouter(prefix="/api/pagos", tags=["Pagos"])
 
@@ -69,6 +70,11 @@ class PedidoRequest(BaseModel):
     datos_tarjeta:     Optional[DatosTarjeta]      = None
     datos_transferencia: Optional[DatosTransferencia] = None
     datos_billetera:   Optional[DatosBilletera]    = None
+    # Pago con una tarjeta ya guardada (ver tarjetas_router.py): en vez de
+    # datos_tarjeta, el comprador manda el id de la tarjeta guardada + su
+    # contraseña, que se reverifica server-side antes de crear el pedido.
+    tarjeta_guardada_id: Optional[str] = None
+    password_confirmacion: Optional[str] = None
 
 # ---------------------------------------------------------------------------
 # HELPERS DE ENVÍO  (equivalente a screens/envio.py)
@@ -154,8 +160,11 @@ def crear_pedido(req: PedidoRequest):
         raise HTTPException(status_code=400, detail="El carrito está vacío.")
 
     # Validar datos según método
-    if req.metodo_pago == "Tarjeta" and not req.datos_tarjeta:
+    usa_tarjeta_guardada = bool(req.tarjeta_guardada_id)
+    if req.metodo_pago == "Tarjeta" and not req.datos_tarjeta and not usa_tarjeta_guardada:
         raise HTTPException(status_code=400, detail="Faltan datos de la tarjeta.")
+    if usa_tarjeta_guardada and not req.password_confirmacion:
+        raise HTTPException(status_code=400, detail="Debes confirmar tu contraseña para pagar con esta tarjeta.")
     if req.metodo_pago == "Transferencia" and not req.datos_transferencia:
         raise HTTPException(status_code=400, detail="Faltan datos de la transferencia.")
     if req.metodo_pago in ("Yappy", "PayPal", "Banistmo") and not req.datos_billetera:
@@ -167,7 +176,34 @@ def crear_pedido(req: PedidoRequest):
     total = round(subtotal + envio, 2)
 
     # Armar datos_pago según método
-    if req.metodo_pago == "Tarjeta":
+    if req.metodo_pago == "Tarjeta" and usa_tarjeta_guardada:
+        # Pago con tarjeta guardada: se reautentica al comprador con su
+        # contraseña ANTES de tocar la base de datos de pedidos/stock.
+        tarjeta_resp = (
+            supabase.table("tarjetas_guardadas")
+            .select("*")
+            .eq("id", req.tarjeta_guardada_id)
+            .execute()
+        )
+        if not tarjeta_resp.data:
+            raise HTTPException(status_code=404, detail="La tarjeta guardada ya no existe.")
+        tarjeta = tarjeta_resp.data[0]
+        if tarjeta.get("user_id") != req.comprador_id:
+            raise HTTPException(status_code=403, detail="Esta tarjeta no pertenece a tu cuenta.")
+
+        perfil_resp = supabase.table("perfiles").select("email").eq("user_id", req.comprador_id).execute()
+        email_comprador = perfil_resp.data[0].get("email") if perfil_resp.data else None
+        if not email_comprador:
+            raise HTTPException(status_code=400, detail="No se pudo verificar tu cuenta para este pago.")
+
+        _verificar_password(email_comprador, req.password_confirmacion)
+
+        datos_pago = {
+            "nombre_tarjeta": tarjeta["nombre_titular"],
+            "ultimos_4":      tarjeta["ultimos_4"],
+            "vence":          f'{int(tarjeta["mes_vencimiento"]):02d}/{str(tarjeta["anio_vencimiento"])[-2:]}',
+        }
+    elif req.metodo_pago == "Tarjeta":
         datos_pago = {
             "nombre_tarjeta": req.datos_tarjeta.nombre_tarjeta,
             "ultimos_4":      req.datos_tarjeta.numero[-4:],
@@ -300,7 +336,13 @@ def historial_pedidos(comprador_id: str):
     🔗 FLUTTER: GET /api/pagos/historial/{comprador_id}
     """
     try:
-        resp = supabase.table("pedidos").select("*").eq("comprador_id", comprador_id).execute()
+        resp = (
+            supabase.table("pedidos")
+            .select("*")
+            .eq("comprador_id", comprador_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
         return {"pedidos": resp.data}
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))

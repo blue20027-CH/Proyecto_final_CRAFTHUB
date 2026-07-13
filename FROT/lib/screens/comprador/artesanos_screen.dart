@@ -23,7 +23,12 @@ const List<String> _provincias = [
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class ArtesanosScreen extends StatefulWidget {
-  const ArtesanosScreen({super.key});
+  // Se invoca al presionar "Enviar mensaje" (aquí o en el perfil completo
+  // del artesano) para que la pantalla contenedora (inicio_comprador.dart)
+  // cambie a la pestaña de Mensajes y abra la conversación con ese vendedor.
+  final void Function(String? contactoId, String contactoNombre)? onEnviarMensaje;
+
+  const ArtesanosScreen({super.key, this.onEnviarMensaje});
 
   @override
   State<ArtesanosScreen> createState() => _ArtesanosScreenState();
@@ -200,6 +205,10 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
             colecciones: categorias,
             productos: productos,
           ),
+          onEnviarMensaje: widget.onEnviarMensaje == null
+              ? null
+              : () => widget.onEnviarMensaje!(
+                  artesanoActual.id.isEmpty ? null : artesanoActual.id, artesanoActual.nombre),
         ),
       ),
     );
@@ -208,8 +217,9 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
   }
 },
                       alEnviarMensaje: () {
-                        // ðŸ”Œ Navigator.pushNamed(context, '/chat',
-                        //       arguments: artesano.id)
+                        final artesanoActual = _artesanosFiltrados[_artesanoSeleccionado];
+                        widget.onEnviarMensaje?.call(
+                            artesanoActual.id.isEmpty ? null : artesanoActual.id, artesanoActual.nombre);
                       },
                     ),
                   ),

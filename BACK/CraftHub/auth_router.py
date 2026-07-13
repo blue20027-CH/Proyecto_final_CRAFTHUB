@@ -22,6 +22,17 @@ class LoginRequest(BaseModel):
     modo: str = "Comprador"  # "Comprador" | "Vendedor"
 
 
+class VerificarPasswordRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class CambiarPasswordRequest(BaseModel):
+    email: EmailStr
+    password_actual: str
+    password_nueva: str = Field(..., min_length=6)
+
+
 class RegistroRequest(BaseModel):
     nombre: str = Field(..., min_length=1)
     email: EmailStr
@@ -35,6 +46,34 @@ class RegistroRequest(BaseModel):
     cedula: Optional[str] = None
     nombre_usuario: Optional[str] = None  # nombre del taller / usuario público
     ofrece_delivery: Optional[bool] = None
+
+# ---------------------------------------------------------------------------
+# HELPERS
+# ---------------------------------------------------------------------------
+
+def _verificar_password(email: str, password: str) -> None:
+    """
+    Confirma que email/password corresponden a una cuenta válida en
+    Supabase Auth. Lanza HTTPException (401/400) si no se puede verificar.
+    Reutilizado por /api/auth/verificar-password, tarjetas_router.py y
+    pedidos_router.py para reautenticar al usuario antes de acciones
+    sensibles: agregar/eliminar/marcar predeterminada una tarjeta guardada,
+    o pagar con una tarjeta guardada en el checkout.
+    """
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": email,
+            "password": password,
+        })
+        user = response.user
+    except Exception as ex:
+        msg = str(ex)
+        if "Invalid login credentials" in msg:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Contraseña incorrecta.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error: {msg}")
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No se pudo verificar tu contraseña.")
 
 # ---------------------------------------------------------------------------
 # ENDPOINTS
@@ -147,6 +186,66 @@ def registro(req: RegistroRequest):
         "modo": req.rol,
         "perfil": perfil_data,
     }
+
+
+@router.post("/verificar-password")
+def verificar_password(req: VerificarPasswordRequest):
+    """
+    Reautentica al usuario (confirma su contraseña) antes de una acción
+    sensible: agregar/eliminar/marcar predeterminada una tarjeta guardada,
+    o pagar con una tarjeta guardada en el checkout.
+    🔗 FLUTTER: POST /api/auth/verificar-password
+    Body: { "email": "...", "password": "..." }
+    """
+    _verificar_password(req.email, req.password)
+    return {"success": True}
+
+
+@router.patch("/cambiar-password")
+def cambiar_password(req: CambiarPasswordRequest):
+    """
+    Cambia la contraseña de la cuenta. Reautentica con la contraseña actual
+    antes de aplicar la nueva.
+
+    Usa un cliente Supabase propio de este request (no el `supabase`
+    compartido de supabase_client.py) para autenticar y actualizar: ese
+    cliente es un único objeto a nivel de módulo, y bajo requests
+    concurrentes su sesión ambiente podría ser pisada por otro login antes
+    de que se llame a update_user(), arriesgando cambiarle la contraseña a
+    la cuenta equivocada. Un cliente aislado por request elimina ese riesgo.
+    🔗 FLUTTER: PATCH /api/auth/cambiar-password
+    Body: { "email": "...", "password_actual": "...", "password_nueva": "..." }
+    """
+    if req.password_actual == req.password_nueva:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                             detail="La nueva contraseña debe ser diferente a la actual.")
+
+    from supabase import create_client
+    from supabase_client import SUPABASE_URL, SUPABASE_KEY
+    cliente_temporal = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+    try:
+        response = cliente_temporal.auth.sign_in_with_password({
+            "email": req.email,
+            "password": req.password_actual,
+        })
+        if not response.user:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Tu contraseña actual es incorrecta.")
+    except HTTPException:
+        raise
+    except Exception as ex:
+        msg = str(ex)
+        if "Invalid login credentials" in msg:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Tu contraseña actual es incorrecta.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error: {msg}")
+
+    try:
+        cliente_temporal.auth.update_user({"password": req.password_nueva})
+    except Exception as ex:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                             detail=f"No se pudo actualizar la contraseña: {ex}")
+
+    return {"success": True}
 
 
 @router.post("/logout")

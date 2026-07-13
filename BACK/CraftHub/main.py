@@ -20,6 +20,7 @@ from preferencias_router import router as preferencias_router
 from anuncios_router import router as anuncios_router
 from proveedores_router import router as proveedores_router
 from chat_router import router as chat_router
+from tarjetas_router import router as tarjetas_router
 
 
 app = FastAPI(
@@ -56,6 +57,7 @@ app.include_router(preferencias_router)
 app.include_router(anuncios_router)
 app.include_router(proveedores_router)
 app.include_router(chat_router)
+app.include_router(tarjetas_router)
 
 # ---------------------------------------------------------------------------
 # MODELOS

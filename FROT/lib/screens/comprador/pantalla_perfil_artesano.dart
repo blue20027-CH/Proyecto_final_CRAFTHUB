@@ -84,12 +84,14 @@ class PantallaPerfilArtesano extends StatefulWidget {
   // "Editar perfil" en vez de "Enviar mensaje"/"Seguir".
   final bool esPropio;
   final VoidCallback? onEditar;
+  final VoidCallback? onEnviarMensaje;
 
   const PantallaPerfilArtesano({
     super.key,
     required this.artesano,
     this.esPropio = false,
     this.onEditar,
+    this.onEnviarMensaje,
   });
 
   @override
@@ -135,6 +137,7 @@ class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
             onVolver: () => Navigator.maybePop(context),
             esPropio: widget.esPropio,
             onEditar: widget.onEditar,
+            onEnviarMensaje: widget.onEnviarMensaje,
           ),
 
           // ── CUERPO: stats + contenido ───────────────────────────────
@@ -193,12 +196,14 @@ class _SeccionBanner extends StatelessWidget {
   final VoidCallback onVolver;
   final bool esPropio;
   final VoidCallback? onEditar;
+  final VoidCallback? onEnviarMensaje;
 
   const _SeccionBanner({
     required this.artesano,
     required this.onVolver,
     this.esPropio = false,
     this.onEditar,
+    this.onEnviarMensaje,
   });
 
   @override
@@ -380,7 +385,10 @@ class _SeccionBanner extends StatelessWidget {
                               texto: 'Enviar mensaje',
                               icono: Icons.chat_bubble_outline_rounded,
                               esPrimario: true,
-                              alPresionar: () {},
+                              alPresionar: () {
+                                Navigator.maybePop(context);
+                                onEnviarMensaje?.call();
+                              },
                             ),
                             const SizedBox(width: 12),
                             _BotonAccion(

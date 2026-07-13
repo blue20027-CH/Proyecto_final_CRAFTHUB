@@ -148,7 +148,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
     });
     try {
       await ApiService.actualizarPerfil(widget.userId, {
-        'descripcion': _ctrlDescripcion.text.trim(),
+        if (_modo == 'vendedor') 'descripcion': _ctrlDescripcion.text.trim(),
         'ubicacion': _ctrlUbicacion.text.trim(),
         if (_provincia != null) 'provincia': _provincia,
         if (_categoria != null) 'categoria': _categoria,
@@ -367,22 +367,22 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _EtiquetaCampo(icono: Icons.description_outlined, texto: 'Descripción', esOscuro: esOscuro),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: _ctrlDescripcion,
-                                    maxLines: 3,
-                                    decoration: _decoracion(esOscuro,
-                                        icono: Icons.description_outlined,
-                                        hint: 'Cuéntale a tus clientes sobre ti o tu taller...'),
-                                  ),
-                                  const SizedBox(height: 20),
-
                                   if (_modo == 'vendedor') ...[
+                                    _EtiquetaCampo(icono: Icons.description_outlined, texto: 'Descripción', esOscuro: esOscuro),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller: _ctrlDescripcion,
+                                      maxLines: 3,
+                                      decoration: _decoracion(esOscuro,
+                                          icono: Icons.description_outlined,
+                                          hint: 'Cuéntale a tus clientes sobre ti o tu taller...'),
+                                    ),
+                                    const SizedBox(height: 20),
+
                                     _EtiquetaCampo(icono: Icons.category_outlined, texto: 'Categoría principal', esOscuro: esOscuro),
                                     const SizedBox(height: 8),
                                     DropdownButtonFormField<String>(
-                                      value: _categoria,
+                                      initialValue: _categoria,
                                       decoration: _decoracion(esOscuro, icono: Icons.category_outlined, hint: 'Selecciona tu categoría'),
                                       items: _categoriasArtesano
                                           .map((c) => DropdownMenuItem(value: c, child: Text(c)))
@@ -395,7 +395,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                   _EtiquetaCampo(icono: Icons.map_outlined, texto: 'Provincia / comarca', esOscuro: esOscuro),
                                   const SizedBox(height: 8),
                                   DropdownButtonFormField<String>(
-                                    value: _provincia,
+                                    initialValue: _provincia,
                                     decoration: _decoracion(esOscuro, icono: Icons.map_outlined, hint: 'Selecciona tu provincia'),
                                     items: kProvinciasPanama
                                         .map((p) => DropdownMenuItem(value: p, child: Text(p)))

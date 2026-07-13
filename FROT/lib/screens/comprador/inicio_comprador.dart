@@ -165,6 +165,24 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
+  // Contacto pendiente por abrir en la pestaña de Mensajes (llegó desde
+  // "Enviar mensaje" en la lista o el perfil completo de un artesano). Se
+  // consume una sola vez al construir esa pestaña, ver _obtenerPantallaActual.
+  String? _chatContactoIdPendiente;
+  String? _chatContactoNombrePendiente;
+
+  void _abrirChatConArtesano(String? contactoId, String contactoNombre) {
+    setState(() {
+      _navIndice = 5;
+      _tieneAnuncioSinLeer = false;
+      _chatContactoIdPendiente = contactoId;
+      _chatContactoNombrePendiente = contactoNombre;
+    });
+    if (widget.userId.isNotEmpty) {
+      ApiService.marcarAnunciosLeidos(widget.userId);
+    }
+  }
+
   void _abrirMensajes() {
     setState(() {
       _navIndice = 5;
@@ -358,13 +376,24 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 1:
         return const PantallaCarrito();
       case 2:
-        return const ArtesanosScreen();
+        return ArtesanosScreen(onEnviarMensaje: _abrirChatConArtesano);
       case 3:
         return PantallaFavoritos(userId: widget.userId);
       case 4:
         return PantallaTutorialesComprador(userId: widget.userId);
       case 5:
-        return PantallaMensajesComprador(userId: widget.userId, nombreComprador: _nombreUsuario);
+        // Se consume una sola vez: si el usuario vuelve a esta pestaña por
+        // otro camino (sidebar), no debe reabrir el mismo contacto de nuevo.
+        final contactoId = _chatContactoIdPendiente;
+        final contactoNombre = _chatContactoNombrePendiente;
+        _chatContactoIdPendiente = null;
+        _chatContactoNombrePendiente = null;
+        return PantallaMensajesComprador(
+          userId: widget.userId,
+          nombreComprador: _nombreUsuario,
+          contactoIdInicial: contactoId,
+          contactoNombreInicial: contactoNombre,
+        );
       default:
         return _buildContenido(oscuro);
     }
