@@ -1,0 +1,82 @@
+const Map<String, Map<String, String>> traducciones = {
+  // Mensajes de validación / error (pantalla_login, registro_comprador, registro_vendedor)
+  'auth.completa_campos': {'es': 'Por favor completa todos los campos.', 'en': 'Please fill in all fields.'},
+  'auth.no_pudo_iniciar_sesion': {'es': 'No se pudo iniciar sesion.', 'en': "We couldn't sign you in."},
+  'auth.error_google': {'es': 'Error al iniciar con Google.', 'en': 'Error signing in with Google.'},
+  'auth.ingresa_correo_recuperar': {'es': 'Ingresa tu correo primero para recuperar la contraseña.', 'en': 'Enter your email first to reset your password.'},
+  'auth.completa_nombre_correo_contrasena': {'es': 'Completa nombre, correo y contraseña.', 'en': 'Fill in your name, email, and password.'},
+  'auth.selecciona_provincia_comarca': {'es': 'Selecciona tu provincia o comarca.', 'en': 'Select your province or comarca.'},
+  'auth.no_pudo_completar_registro': {'es': 'No se pudo completar el registro.', 'en': "We couldn't complete your registration."},
+
+  // Branding / encabezados compartidos
+  'auth.creatividad_proposito': {'es': 'Creatividad con propósito', 'en': 'Creativity with purpose'},
+  'auth.volver': {'es': 'Volver', 'en': 'Back'},
+  'auth.o_continua_con': {'es': 'o continúa con', 'en': 'or continue with'},
+
+  // pantalla_login
+  'auth.inicia_sesion_continuar': {'es': 'Inicia sesión para continuar', 'en': 'Sign in to continue'},
+  'auth.rol_comprador': {'es': 'Comprador', 'en': 'Buyer'},
+  'auth.rol_vendedor': {'es': 'Vendedor', 'en': 'Seller'},
+  'auth.correo_usuario_hint': {'es': 'Correo o usuario', 'en': 'Email or username'},
+  'auth.contrasena_hint': {'es': 'Contraseña', 'en': 'Password'},
+  'auth.olvidaste_contrasena': {'es': '¿Olvidaste tu contraseña?', 'en': 'Forgot your password?'},
+  'auth.entrar': {'es': 'Entrar', 'en': 'Sign in'},
+  'auth.badge_seguro_titulo': {'es': 'Seguro y confiable', 'en': 'Safe and reliable'},
+  'auth.badge_seguro_subtitulo': {'es': 'Tu información está protegida', 'en': 'Your information is protected'},
+  'auth.badge_comunidad_titulo': {'es': 'Comunidad creativa', 'en': 'Creative community'},
+  'auth.badge_comunidad_subtitulo': {'es': 'Conecta con artesanos', 'en': 'Connect with artisans'},
+  'auth.badge_apoya_titulo': {'es': 'Apoya lo artesanal', 'en': 'Support handmade craft'},
+  'auth.badge_apoya_subtitulo': {'es': 'Hecho a mano, hecho con amor', 'en': 'Handmade, made with love'},
+
+  // role.dart
+  'auth.cual_es_tu_rol': {'es': '¿Cuál es tu rol en CraftHub?', 'en': "What's your role on CraftHub?"},
+  'auth.selecciona_opcion_describa': {'es': 'Selecciona la opción que mejor te describa para personalizar tu experiencia.', 'en': 'Choose the option that best describes you to personalize your experience.'},
+  'auth.desc_vendedor': {'es': 'Crea tu tienda, muestra tus productos\ny conecta con personas que valoran\nlo hecho a mano.', 'en': 'Set up your shop, showcase your products,\nand connect with people who value\nhandmade craftsmanship.'},
+  'auth.registrarme_vendedor': {'es': 'Registrarme como vendedor', 'en': 'Sign up as a seller'},
+  'auth.desc_comprador': {'es': 'Descubre historias, apoya a los artesanos\ny encuentra piezas únicas hechas\ncon pasión.', 'en': 'Discover stories, support artisans,\nand find unique pieces made\nwith passion.'},
+  'auth.explorar_invitado': {'es': 'Explorar como invitado', 'en': 'Browse as a guest'},
+  'auth.registrarme_comprador': {'es': 'Registrarme como comprador', 'en': 'Sign up as a buyer'},
+
+  // inicio_screen.dart
+  'auth.selector_idioma_label': {'es': 'Español', 'en': 'English'},
+  'auth.iniciar_sesion': {'es': 'Iniciar sesión', 'en': 'Sign in'},
+  'auth.continuar_con_google': {'es': 'Continuar con Google', 'en': 'Continue with Google'},
+  'auth.no_tienes_cuenta': {'es': '¿No tienes una cuenta? ', 'en': "Don't have an account? "},
+  'auth.crear_cuenta': {'es': 'Crear cuenta', 'en': 'Create account'},
+
+  // registro_comprador.dart / registro_vendedor.dart
+  'auth.crea_tu_cuenta_como': {'es': 'Crea tu cuenta como ', 'en': 'Create your account as '},
+  'auth.rol_vendedor_minuscula': {'es': 'vendedor', 'en': 'seller'},
+  'auth.completa_info_empezar': {'es': 'Completa tu información para empezar a compartir tus creaciones.', 'en': 'Fill in your details to start sharing your creations.'},
+  'auth.nombres_hint': {'es': 'Nombres', 'en': 'First name'},
+  'auth.apellidos_hint': {'es': 'Apellidos', 'en': 'Last name'},
+  'auth.correo_electronico_hint': {'es': 'Correo electrónico', 'en': 'Email address'},
+  'auth.nombre_usuario_hint': {'es': 'Nombre de usuario', 'en': 'Username'},
+  'auth.numero_telefono_hint': {'es': 'Número de teléfono', 'en': 'Phone number'},
+  'auth.fecha_nacimiento_hint': {'es': 'Fecha de nacimiento', 'en': 'Date of birth'},
+  'auth.provincia_comarca_hint': {'es': 'Provincia / comarca', 'en': 'Province / comarca'},
+  'auth.ciudad_direccion_hint': {'es': 'Ciudad / dirección (opcional)', 'en': 'City / address (optional)'},
+  'auth.id_numero_identificacion_hint': {'es': 'ID / Número de identificación', 'en': 'ID / identification number'},
+  'auth.genero_hint': {'es': 'Género', 'en': 'Gender'},
+  'auth.genero_masculino': {'es': 'Masculino', 'en': 'Male'},
+  'auth.genero_femenino': {'es': 'Femenino', 'en': 'Female'},
+  'auth.genero_prefiero_no_decir': {'es': 'Prefiero no decir', 'en': 'Prefer not to say'},
+  'auth.ya_tienes_cuenta': {'es': '¿Ya tienes una cuenta? ', 'en': 'Already have an account? '},
+  'auth.inicia_sesion_link': {'es': 'Inicia sesión', 'en': 'Sign in'},
+  'auth.ofreces_delivery': {'es': '¿Ofreces delivery?', 'en': 'Do you offer delivery?'},
+
+  // pantalla_gustos.dart
+  'auth.cuentanos_intereses': {'es': 'Cuéntanos tus intereses', 'en': 'Tell us your interests'},
+  'auth.selecciona_provincias_comarcas_tipos': {'es': 'Selecciona tus provincias, comarcas y los tipos de productos\nque más te interesan para personalizar tu experiencia.', 'en': "Select the provinces, comarcas, and product types\nyou're interested in to personalize your experience."},
+  'auth.regiones': {'es': 'Regiones', 'en': 'Regions'},
+  'auth.categorias': {'es': 'Categorías', 'en': 'Categories'},
+  'auth.titulo_seccion_regiones': {'es': '1. Selecciona las provincias y comarcas de Panamá que te interesan', 'en': "1. Select the provinces and comarcas of Panama you're interested in"},
+  'auth.provincias_label': {'es': 'Provincias', 'en': 'Provinces'},
+  'auth.comarcas_label': {'es': 'Comarcas', 'en': 'Comarcas'},
+  'auth.nota_provincias_comarcas': {'es': 'Puedes seleccionar una o varias provincias y comarcas según tus intereses.', 'en': 'You can select one or more provinces and comarcas based on your interests.'},
+  'auth.titulo_seccion_categorias': {'es': '2. ¿Qué tipos de productos te interesan?', 'en': '2. What types of products are you interested in?'},
+  'auth.selecciona_categorias_gustan': {'es': 'Selecciona las categorías que más te gustan.', 'en': 'Select the categories you like most.'},
+  'auth.nota_categorias': {'es': 'Cuantas más categorías selecciones, mejores recomendaciones te daremos.', 'en': 'The more categories you select, the better recommendations we can give you.'},
+  'auth.omitir_por_ahora': {'es': 'Omitir por ahora', 'en': 'Skip for now'},
+  'auth.guardar_continuar': {'es': 'Guardar y continuar', 'en': 'Save and continue'},
+};

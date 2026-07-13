@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
+import '../core/i18n/i18n.dart';
 import '../main.dart';
 
 // Un ítem del menú desplegable "Explorar" (secciones de la app).
@@ -80,7 +81,7 @@ class TopbarFlotante extends StatelessWidget {
                             decoration: InputDecoration(
                               isCollapsed: true,
                               border: InputBorder.none,
-                              hintText: 'Buscar productos, artesanos, provincias...',
+                              hintText: tr(context, 'topbar.buscar_hint'),
                               hintStyle: GoogleFonts.poppins(
                                   fontSize: 13.5, color: CraftHubColors.textoSecundario(oscuro)),
                             ),
@@ -96,28 +97,28 @@ class TopbarFlotante extends StatelessWidget {
                       // ── Accesos rápidos ──
                       _IconTopbarFlotante(
                         icono: Icons.chat_bubble_outline_rounded,
-                        tooltip: 'Mensajes',
+                        tooltip: tr(context, 'topbar.mensajes'),
                         onTap: alPresionarMensajes ?? () {},
                       ),
                       _IconTopbarFlotante(
                         icono: Icons.calendar_month_outlined,
-                        tooltip: 'Eventos',
+                        tooltip: tr(context, 'topbar.eventos'),
                         onTap: alPresionarEventos ?? () {},
                       ),
                       _IconTopbarFlotante(
                         icono: Icons.notifications_none_rounded,
-                        tooltip: 'Notificaciones',
+                        tooltip: tr(context, 'topbar.notificaciones'),
                         tieneNotif: tieneNotificaciones,
                         onTap: alPresionarNotificaciones ?? () {},
                       ),
                       _IconTopbarFlotante(
                         icono: Icons.location_on_outlined,
-                        tooltip: 'Mapa de artesanos',
+                        tooltip: tr(context, 'topbar.mapa_artesanos'),
                         onTap: alPresionarUbicacion ?? () {},
                       ),
                       _IconTopbarFlotante(
                         icono: oscuro ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                        tooltip: 'Cambiar tema',
+                        tooltip: tr(context, 'topbar.cambiar_tema'),
                         onTap: () => context.read<GestorTema>().alternarTema(),
                       ),
                       const SizedBox(width: 10),
@@ -187,7 +188,7 @@ class _BotonExplorar extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) return const SizedBox.shrink();
     return PopupMenuButton<int>(
-      tooltip: 'Explorar secciones',
+      tooltip: tr(context, 'topbar.explorar_secciones'),
       offset: const Offset(0, 46),
       color: CraftHubColors.panel(oscuro),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -215,7 +216,7 @@ class _BotonExplorar extends StatelessWidget {
           children: [
             const Icon(Icons.grid_view_rounded, size: 16, color: CraftHubColors.vinoTinto),
             const SizedBox(width: 8),
-            Text('Explorar',
+            Text(tr(context, 'topbar.explorar'),
                 style: GoogleFonts.poppins(
                     fontSize: 13, fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto)),
             const SizedBox(width: 2),

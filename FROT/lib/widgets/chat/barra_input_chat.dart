@@ -1,10 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
+import '../../services/chat_api_service.dart';
 
 /// Barra de entrada. Soporta: texto, emoji rapido, foto, compartir publicacion.
 /// NO incluye audio ni video.
-/// TODO al enviar imagen: POST /api/mensajes/imagen (multipart) -> obtener URL -> enviar mensaje
 class BarraInputChat extends StatefulWidget {
   final ValueChanged<String> alEnviarTexto;
   final ValueChanged<String> alEnviarImagen;
@@ -26,6 +27,7 @@ class _BarraInputChatState extends State<BarraInputChat> {
   final FocusNode _foco = FocusNode();
   bool _tieneTexto = false;
   bool _mostrarEmojis = false;
+  bool _subiendoImagen = false;
 
   static const _emojis = [
     '😊',
@@ -72,15 +74,36 @@ class _BarraInputChatState extends State<BarraInputChat> {
   }
 
   Future<void> _seleccionarImagen() async {
-    // file_picker funciona en Windows/macOS/Linux/Web
-    // TODO: subir al backend POST /api/mensajes/imagen y usar URL retornada
-    final res = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
-    );
-    if (res != null && res.files.isNotEmpty) {
-      final path = res.files.first.path ?? '';
-      if (path.isNotEmpty) widget.alEnviarImagen(path);
+    FilePickerResult? res;
+    try {
+      res = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        withData: true,
+        allowMultiple: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${tr(context, 'compartido.error_selector_imagenes')}${e.toString().replaceAll('Exception: ', '')}')),
+      );
+      return;
+    }
+    if (res == null || res.files.isEmpty) return;
+    final archivo = res.files.first;
+    final bytes = archivo.bytes;
+    if (bytes == null) return;
+
+    setState(() => _subiendoImagen = true);
+    try {
+      final url = await ChatApiService.subirImagenChat(bytes, archivo.name);
+      widget.alEnviarImagen(url);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${tr(context, 'compartido.error_subir_imagen_chat')}${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    } finally {
+      if (mounted) setState(() => _subiendoImagen = false);
     }
   }
 
@@ -142,22 +165,31 @@ class _BarraInputChatState extends State<BarraInputChat> {
             children: [
               _Btn(
                 icono: Icons.emoji_emotions_outlined,
-                tooltip: 'Emojis',
+                tooltip: tr(context, 'compartido.emojis_tooltip'),
                 isDark: isDark,
                 activo: _mostrarEmojis,
                 onTap: () => setState(() => _mostrarEmojis = !_mostrarEmojis),
               ),
               const SizedBox(width: 6),
-              _Btn(
-                icono: Icons.photo_outlined,
-                tooltip: 'Enviar foto',
-                isDark: isDark,
-                onTap: _seleccionarImagen,
-              ),
+              _subiendoImagen
+                  ? const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: CraftHubColors.vinoTinto),
+                      ),
+                    )
+                  : _Btn(
+                      icono: Icons.photo_outlined,
+                      tooltip: tr(context, 'compartido.enviar_foto'),
+                      isDark: isDark,
+                      onTap: _seleccionarImagen,
+                    ),
               const SizedBox(width: 6),
               _Btn(
                 icono: Icons.storefront_outlined,
-                tooltip: 'Compartir publicacion',
+                tooltip: tr(context, 'compartido.compartir_publicacion'),
                 isDark: isDark,
                 onTap: widget.alCompartirPublicacion,
               ),
@@ -174,7 +206,7 @@ class _BarraInputChatState extends State<BarraInputChat> {
                     color: CraftHubColors.textoPrincipal(isDark),
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Escribe un mensaje...',
+                    hintText: tr(context, 'compartido.escribe_mensaje_hint'),
                     hintStyle: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13.5,

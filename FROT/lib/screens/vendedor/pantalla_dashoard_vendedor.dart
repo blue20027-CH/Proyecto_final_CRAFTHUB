@@ -14,6 +14,7 @@ import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
 import '../../services/vendedor_api_service.dart';
 import '../../services/api_service.dart';
+import '../../core/i18n/i18n.dart';
 import '../../widgets/topbar_flotante.dart';
 import '../auth/inicio_screen.dart';
 import '../pantalla_editar_perfil.dart';
@@ -178,7 +179,7 @@ class _HomeVendedorState extends State<HomeVendedor> {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Notificaciones',
+      barrierLabel: tr(context, 'vendedor_dashboard.notificaciones_titulo'),
       barrierColor: Colors.black.withValues(alpha: 0.45),
       transitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (_, _, _) => _PanelNotificaciones(userId: widget.userId, esOscuro: esOscuro),
@@ -343,19 +344,19 @@ class _HomeVendedorState extends State<HomeVendedor> {
         ),
       ),
       itemsExplorar: [
-        ItemExplorar(icono: Icons.dashboard_outlined, etiqueta: 'Dashboard',
+        ItemExplorar(icono: Icons.dashboard_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_dashboard'),
             onTap: () => setState(() => _navIndice = 0)),
-        ItemExplorar(icono: Icons.inventory_2_outlined, etiqueta: 'Productos',
+        ItemExplorar(icono: Icons.inventory_2_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_productos'),
             onTap: () => setState(() => _navIndice = 1)),
-        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: 'Tutoriales',
+        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_tutoriales'),
             onTap: () => setState(() => _navIndice = 2)),
-        ItemExplorar(icono: Icons.forum_outlined, etiqueta: 'Mensajes',
+        ItemExplorar(icono: Icons.forum_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_mensajes'),
             onTap: _abrirMensajes),
-        ItemExplorar(icono: Icons.receipt_long_outlined, etiqueta: 'Pedidos',
+        ItemExplorar(icono: Icons.receipt_long_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_pedidos'),
             onTap: () => setState(() => _navIndice = 4)),
-        ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de pedidos',
+        ItemExplorar(icono: Icons.map_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_mapa_pedidos'),
             onTap: () => setState(() => _navIndice = 5)),
-        ItemExplorar(icono: Icons.groups_2_outlined, etiqueta: 'Proveedores',
+        ItemExplorar(icono: Icons.groups_2_outlined, etiqueta: tr(context, 'vendedor_dashboard.nav_proveedores'),
             onTap: () => setState(() => _navIndice = 6)),
       ],
     );
@@ -456,8 +457,8 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                       child: const Icon(Icons.notifications_rounded, size: 18, color: Colors.white),
                     ),
                     const SizedBox(width: 10),
-                    const Text('Notificaciones',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
+                    Text(tr(context, 'vendedor_dashboard.notificaciones_titulo'),
+                        style: const TextStyle(fontFamily: 'Poppins', fontSize: 16,
                             fontWeight: FontWeight.w700, color: Colors.white)),
                     if (noLeidas.isNotEmpty) ...[
                       const SizedBox(width: 8),
@@ -467,7 +468,7 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                           color: Colors.white.withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text('${noLeidas.length} nuevas',
+                        child: Text('${noLeidas.length} ${tr(context, 'vendedor_dashboard.notif_nuevas_sufijo')}',
                             style: const TextStyle(fontFamily: 'Poppins', fontSize: 11,
                                 fontWeight: FontWeight.w700, color: Colors.white)),
                       ),
@@ -494,7 +495,7 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                         ? Padding(
                             padding: const EdgeInsets.symmetric(vertical: 60),
                             child: Center(
-                              child: Text('No se pudieron cargar las notificaciones.',
+                              child: Text(tr(context, 'vendedor_dashboard.notif_error_carga'),
                                   style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: colorSec)),
                             ),
                           )
@@ -506,7 +507,7 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                                     children: [
                                       Icon(Icons.notifications_off_outlined, size: 34, color: colorSec),
                                       const SizedBox(height: 10),
-                                      Text('No tienes notificaciones todavía.',
+                                      Text(tr(context, 'vendedor_dashboard.notif_vacio'),
                                           style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: colorSec)),
                                     ],
                                   ),
@@ -517,7 +518,7 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                                 shrinkWrap: true,
                                 children: [
                                   if (noLeidas.isNotEmpty) ...[
-                                    _EncabezadoSeccion(texto: 'NUEVAS', cantidad: noLeidas.length, destacar: true, esOscuro: esOscuro),
+                                    _EncabezadoSeccion(texto: tr(context, 'vendedor_dashboard.notif_seccion_nuevas'), cantidad: noLeidas.length, destacar: true, esOscuro: esOscuro),
                                     for (int i = 0; i < noLeidas.length; i++)
                                       _FilaNotificacion(
                                         key: ValueKey(noLeidas[i]['id'] ?? 'nl$i'),
@@ -529,7 +530,7 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                                     const SizedBox(height: 8),
                                   ],
                                   if (leidas.isNotEmpty) ...[
-                                    _EncabezadoSeccion(texto: 'LEÍDAS', cantidad: leidas.length, destacar: false, esOscuro: esOscuro),
+                                    _EncabezadoSeccion(texto: tr(context, 'vendedor_dashboard.notif_seccion_leidas'), cantidad: leidas.length, destacar: false, esOscuro: esOscuro),
                                     for (int i = 0; i < leidas.length; i++)
                                       _FilaNotificacion(
                                         key: ValueKey(leidas[i]['id'] ?? 'l$i'),
@@ -550,8 +551,8 @@ class _PanelNotificacionesState extends State<_PanelNotificaciones> {
                     child: TextButton.icon(
                       onPressed: _marcarTodasLeidas,
                       icon: const Icon(Icons.done_all_rounded, size: 16, color: CraftHubColors.vinoTinto),
-                      label: const Text('Marcar todas como leídas',
-                          style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
+                      label: Text(tr(context, 'vendedor_dashboard.notif_marcar_todas_leidas'),
+                          style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
                               fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto)),
                     ),
                   ),
@@ -620,16 +621,18 @@ Map<String, dynamic> _metaNotificacion(String tipo, String titulo) {
   return {'icono': Icons.campaign_rounded, 'color': CraftHubColors.advertencia};
 }
 
-String _tiempoRelativoNotificacion(String? iso) {
-  if (iso == null || iso.isEmpty) return 'Ahora';
+String _tiempoRelativoNotificacion(BuildContext context, String? iso) {
+  final ahora = tr(context, 'vendedor_dashboard.notif_tiempo_ahora');
+  if (iso == null || iso.isEmpty) return ahora;
   final fecha = DateTime.tryParse(iso);
-  if (fecha == null) return 'Ahora';
+  if (fecha == null) return ahora;
   final diff = DateTime.now().toUtc().difference(fecha.toUtc());
-  if (diff.inMinutes < 1) return 'Ahora';
-  if (diff.inMinutes < 60) return 'hace ${diff.inMinutes}m';
-  if (diff.inHours < 24) return 'hace ${diff.inHours}h';
-  if (diff.inDays < 7) return 'hace ${diff.inDays}d';
-  return 'hace ${(diff.inDays / 7).floor()}sem';
+  if (diff.inMinutes < 1) return ahora;
+  final prefijo = tr(context, 'vendedor_dashboard.notif_tiempo_hace_prefijo');
+  if (diff.inMinutes < 60) return '$prefijo${diff.inMinutes}m';
+  if (diff.inHours < 24) return '$prefijo${diff.inHours}h';
+  if (diff.inDays < 7) return '$prefijo${diff.inDays}d';
+  return '$prefijo${(diff.inDays / 7).floor()}${tr(context, 'vendedor_dashboard.notif_tiempo_semana_abrev')}';
 }
 
 class _FilaNotificacion extends StatefulWidget {
@@ -666,7 +669,7 @@ class _FilaNotificacionState extends State<_FilaNotificacion> {
     final meta = _metaNotificacion(tipo, titulo);
     final IconData icono = meta['icono'] as IconData;
     final Color color = meta['color'] as Color;
-    final tiempo = _tiempoRelativoNotificacion(n['created_at']?.toString());
+    final tiempo = _tiempoRelativoNotificacion(context, n['created_at']?.toString());
 
     final fondoHover = esOscuro ? CraftHubColors.panelOscuro2 : CraftHubColors.vinoTintoSuave;
     final fondoBase = leida ? Colors.transparent : color.withValues(alpha: esOscuro ? 0.11 : 0.07);
@@ -827,12 +830,12 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
       return const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto));
     }
     if (_error != null) {
-      return Center(child: Text('No se pudo cargar el dashboard: $_error',
+      return Center(child: Text('${tr(context, 'vendedor_dashboard.error_cargar_dashboard_prefijo')}$_error',
           style: const TextStyle(color: CraftHubColors.error)));
     }
     final datos = _datos;
     if (datos == null) {
-      return const Center(child: Text('No hay datos del vendedor.'));
+      return Center(child: Text(tr(context, 'vendedor_dashboard.sin_datos_vendedor')));
     }
 
     final esOscuro = widget.esOscuro;
@@ -884,14 +887,14 @@ class _ContenidoDashboardState extends State<_ContenidoDashboard> {
 
 // Saludo neutral por defecto: solo usa la forma con género cuando el
 // vendedor lo indicó explícitamente en su perfil.
-String _saludoPorGenero(String genero) {
+String _saludoPorGenero(BuildContext context, String genero) {
   switch (genero.toLowerCase()) {
     case 'masculino':
-      return 'Bienvenido';
+      return tr(context, 'vendedor_dashboard.saludo_masculino');
     case 'femenino':
-      return 'Bienvenida';
+      return tr(context, 'vendedor_dashboard.saludo_femenino');
     default:
-      return 'Bienvenido/a';
+      return tr(context, 'vendedor_dashboard.saludo_neutro');
   }
 }
 
@@ -947,11 +950,11 @@ class _HeroDashboard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${_saludoPorGenero(genero)}, ${datos.nombreVendedor}',
+                          Text('${_saludoPorGenero(context, genero)}, ${datos.nombreVendedor}',
                               style: const TextStyle(fontFamily: 'Poppins', fontSize: 24,
                                   fontWeight: FontWeight.w700, color: Colors.white)),
                           const SizedBox(height: 4),
-                          Text('Aquí tienes el pulso de tu tienda en tiempo real.',
+                          Text(tr(context, 'vendedor_dashboard.hero_subtitulo'),
                               style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
                                   color: Colors.white.withValues(alpha: 0.75))),
                         ],
@@ -974,7 +977,7 @@ class _HeroDashboard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('INGRESOS TOTALES',
+                      Text(tr(context, 'vendedor_dashboard.hero_ingresos_totales_label'),
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 11,
                               fontWeight: FontWeight.w700, letterSpacing: 0.8,
                               color: Colors.white.withValues(alpha: 0.65))),
@@ -993,7 +996,7 @@ class _HeroDashboard extends StatelessWidget {
                           Icon(positivo ? Icons.trending_up_rounded : Icons.trending_down_rounded,
                               size: 14, color: Colors.white),
                           const SizedBox(width: 4),
-                          Text('${datos.variacionIngresos}% vs. período anterior',
+                          Text('${datos.variacionIngresos}% ${tr(context, 'vendedor_dashboard.vs_periodo_anterior')}',
                               style: const TextStyle(fontFamily: 'Poppins', fontSize: 11,
                                   fontWeight: FontWeight.w600, color: Colors.white)),
                         ]),
@@ -1004,10 +1007,10 @@ class _HeroDashboard extends StatelessWidget {
                   final miniStats = Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _MiniStatHero(icono: Icons.receipt_long_rounded, valor: '${datos.pedidosTotales}', etiqueta: 'Pedidos'),
+                      _MiniStatHero(icono: Icons.receipt_long_rounded, valor: '${datos.pedidosTotales}', etiqueta: tr(context, 'vendedor_dashboard.nav_pedidos')),
                       Container(width: 1, height: 46, margin: const EdgeInsets.symmetric(horizontal: 22),
                           color: Colors.white.withValues(alpha: 0.18)),
-                      _MiniStatHero(icono: Icons.star_rounded, valor: datos.promedioEvaluacion.toStringAsFixed(1), etiqueta: 'Calificación'),
+                      _MiniStatHero(icono: Icons.star_rounded, valor: datos.promedioEvaluacion.toStringAsFixed(1), etiqueta: tr(context, 'vendedor_dashboard.hero_calificacion_label')),
                     ],
                   );
 
@@ -1135,39 +1138,39 @@ class _FilaKpis extends StatelessWidget {
         esOscuro: esOscuro,
         icono: Icons.local_shipping_outlined,
         color: CraftHubColors.info,
-        titulo: 'Pendientes por enviar',
+        titulo: tr(context, 'vendedor_dashboard.kpi_pendientes_enviar'),
         valor: '${datos.pendientesEnviar}',
-        enlaceTexto: alVerPedidos != null ? 'Ver pedidos' : null,
+        enlaceTexto: alVerPedidos != null ? tr(context, 'vendedor_dashboard.link_ver_pedidos') : null,
         alPresionarEnlace: alVerPedidos,
       ),
       _TarjetaKpi(
         esOscuro: esOscuro,
         icono: Icons.inventory_2_outlined,
         color: CraftHubColors.exito,
-        titulo: 'Productos activos',
+        titulo: tr(context, 'vendedor_dashboard.kpi_productos_activos'),
         valor: '${datos.productosActivos}',
-        enlaceTexto: 'Ver productos',
+        enlaceTexto: tr(context, 'vendedor_dashboard.link_ver_productos'),
         alPresionarEnlace: alVerProductos,
       ),
       _TarjetaKpi(
         esOscuro: esOscuro,
         icono: Icons.sentiment_satisfied_alt_outlined,
         color: const Color(0xFFB8860B),
-        titulo: 'Clientes felices',
+        titulo: tr(context, 'vendedor_dashboard.kpi_clientes_felices'),
         valor: '${datos.clientesFelices}',
       ),
       _TarjetaKpi(
         esOscuro: esOscuro,
         icono: Icons.storefront_outlined,
         color: CraftHubColors.vinoTintoClaro,
-        titulo: 'Visitas a tu perfil',
+        titulo: tr(context, 'vendedor_dashboard.kpi_visitas_perfil'),
         valor: _formatoMiles(datos.visitasTienda),
       ),
       _TarjetaKpi(
         esOscuro: esOscuro,
         icono: Icons.chat_bubble_outline_rounded,
         color: const Color(0xFF00897B),
-        titulo: 'Nuevas opiniones',
+        titulo: tr(context, 'vendedor_dashboard.kpi_nuevas_opiniones'),
         valor: '${datos.nuevasOpiniones}',
       ),
     ];
@@ -1315,12 +1318,12 @@ class _PanelIngresos extends StatelessWidget {
           Row(children: [
             _IconoPanel(icono: Icons.show_chart_rounded, color: CraftHubColors.vinoTinto),
             const SizedBox(width: 10),
-            Text('Ingresos totales',
+            Text(tr(context, 'vendedor_dashboard.panel_ingresos_titulo'),
               style: TextStyle(fontFamily: 'Poppins', fontSize: 14,
                   fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
             const SizedBox(width: 6),
             Tooltip(
-              message: 'Suma de todos tus ingresos en el período seleccionado',
+              message: tr(context, 'vendedor_dashboard.panel_ingresos_tooltip'),
               child: Icon(Icons.info_outline_rounded, size: 14, color: CraftHubColors.textoSecundario(esOscuro)),
             ),
           ]),
@@ -1332,7 +1335,7 @@ class _PanelIngresos extends StatelessWidget {
             Icon(positivo ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
                 size: 13, color: positivo ? CraftHubColors.exito : CraftHubColors.error),
             const SizedBox(width: 3),
-            Text('${datos.variacionIngresos}% vs. periodo anterior',
+            Text('${datos.variacionIngresos}% ${tr(context, 'vendedor_dashboard.vs_periodo_anterior')}',
               style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
                   fontWeight: FontWeight.w600, color: positivo ? CraftHubColors.exito : CraftHubColors.error)),
           ]),
@@ -1384,7 +1387,7 @@ void _mostrarOpiniones(BuildContext context, String nombreVendedor, bool esOscur
             children: [
               Row(
                 children: [
-                  Text('Opiniones de tus clientes',
+                  Text(tr(context, 'vendedor_dashboard.opiniones_titulo'),
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 16,
                           fontWeight: FontWeight.w700, color: colorTexto)),
                   const Spacer(),
@@ -1408,7 +1411,7 @@ void _mostrarOpiniones(BuildContext context, String nombreVendedor, bool esOscur
                     if (snapshot.hasError) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text('No se pudieron cargar las opiniones: ${snapshot.error}',
+                        child: Text('${tr(context, 'vendedor_dashboard.opiniones_error_prefijo')}${snapshot.error}',
                             style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: CraftHubColors.error)),
                       );
                     }
@@ -1417,7 +1420,7 @@ void _mostrarOpiniones(BuildContext context, String nombreVendedor, bool esOscur
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 32),
                         child: Center(
-                          child: Text('Aún no tienes opiniones de clientes.',
+                          child: Text(tr(context, 'vendedor_dashboard.opiniones_vacio'),
                               style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: colorSec)),
                         ),
                       );
@@ -1476,7 +1479,7 @@ class _FilaOpinion extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        Text('Sobre "${opinion.producto}"',
+        Text('${tr(context, 'vendedor_dashboard.opinion_sobre')} "${opinion.producto}"',
             style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: colorSec)),
         const SizedBox(height: 4),
         Text(opinion.comentario,
@@ -1505,13 +1508,13 @@ class _PanelEvaluaciones extends StatelessWidget {
             const _IconoPanel(icono: Icons.star_rounded, color: Color(0xFFD4A843)),
             const SizedBox(width: 10),
             Expanded(
-              child: Text('Evaluaciones',
+              child: Text(tr(context, 'vendedor_dashboard.panel_evaluaciones_titulo'),
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 14,
                     fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
             ),
             _BotonTexto(
               esOscuro: esOscuro,
-              texto: 'Ver opiniones',
+              texto: tr(context, 'vendedor_dashboard.link_ver_opiniones'),
               alPresionar: () => _mostrarOpiniones(context, datos.nombreVendedor, esOscuro),
             ),
           ]),
@@ -1556,24 +1559,24 @@ class _PanelTopProductos extends StatelessWidget {
             const _IconoPanel(icono: Icons.emoji_events_rounded, color: Color(0xFFD4A843)),
             const SizedBox(width: 10),
             Expanded(
-              child: Text('Top 5 productos más vendidos',
+              child: Text(tr(context, 'vendedor_dashboard.panel_top_productos_titulo'),
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 14,
                     fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
             ),
-            _BotonTexto(esOscuro: esOscuro, texto: 'Ver todos', alPresionar: alVerTodos),
+            _BotonTexto(esOscuro: esOscuro, texto: tr(context, 'vendedor_dashboard.link_ver_todos'), alPresionar: alVerTodos),
           ]),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(children: [
               const SizedBox(width: 34),
-              Expanded(child: Text('Producto',
+              Expanded(child: Text(tr(context, 'vendedor_dashboard.columna_producto'),
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 11,
                     fontWeight: FontWeight.w600, color: colorSec))),
-              SizedBox(width: 50, child: Text('Ventas', textAlign: TextAlign.center,
+              SizedBox(width: 50, child: Text(tr(context, 'vendedor_dashboard.columna_ventas'), textAlign: TextAlign.center,
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 11,
                     fontWeight: FontWeight.w600, color: colorSec))),
-              SizedBox(width: 80, child: Text('Ingresos', textAlign: TextAlign.right,
+              SizedBox(width: 80, child: Text(tr(context, 'vendedor_dashboard.columna_ingresos'), textAlign: TextAlign.right,
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 11,
                     fontWeight: FontWeight.w600, color: colorSec))),
             ]),
@@ -1657,7 +1660,7 @@ void _mostrarDetalleProducto(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Ventas', style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: colorSec)),
+                      Text(tr(context, 'vendedor_dashboard.columna_ventas'), style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: colorSec)),
                       Text('${p.ventas}',
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w700, color: colorTexto)),
                     ],
@@ -1667,7 +1670,7 @@ void _mostrarDetalleProducto(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Ingresos', style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: colorSec)),
+                      Text(tr(context, 'vendedor_dashboard.columna_ingresos'), style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: colorSec)),
                       Text('\$${p.ingresos.toStringAsFixed(2)}',
                           style: const TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
                     ],
@@ -1684,8 +1687,8 @@ void _mostrarDetalleProducto(
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: CraftHubColors.vinoTinto, padding: const EdgeInsets.symmetric(vertical: 13)),
                   icon: const Icon(Icons.inventory_2_outlined, size: 17, color: Colors.white),
-                  label: const Text('Ver en mis productos',
-                      style: TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
+                  label: Text(tr(context, 'vendedor_dashboard.boton_ver_en_productos'),
+                      style: const TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],

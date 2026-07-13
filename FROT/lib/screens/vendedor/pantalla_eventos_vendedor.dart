@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/evento_modelo.dart';
 import '../../services/eventos_api_service.dart';
 import '../../widgets/eventos/banner_cta_evento.dart';
@@ -63,7 +64,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
       if (!mounted) return;
       setState(() => _eventos = eventos);
     } catch (e) {
-      if (mounted) setState(() => _error = 'No se pudieron cargar los eventos.');
+      if (mounted) setState(() => _error = tr(context, 'vendedor_operaciones.eventos_error_carga'));
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -148,7 +149,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
     if (nuevo == null || !mounted) return;
     setState(() => _eventos = [nuevo, ..._eventos]);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('¡Tu evento ya está publicado en el calendario!')),
+      SnackBar(content: Text(tr(context, 'vendedor_operaciones.eventos_snack_publicado'))),
     );
   }
 
@@ -171,9 +172,8 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     EncabezadoEventos(
-                      titulo: 'Eventos Artesanales',
-                      subtitulo:
-                          'Encuentra ferias en todo el país y contacta directo a los organizadores.',
+                      titulo: tr(context, 'vendedor_operaciones.eventos_titulo'),
+                      subtitulo: tr(context, 'vendedor_operaciones.eventos_subtitulo'),
                       accionExtra: _BotonNuevoEvento(onTap: _abrirCrearEvento),
                     ),
                     const SizedBox(height: 20),
@@ -194,9 +194,8 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   EncabezadoEventos(
-                    titulo: 'Eventos Artesanales',
-                    subtitulo:
-                        'Encuentra ferias en todo el país y contacta directo a los organizadores.',
+                    titulo: tr(context, 'vendedor_operaciones.eventos_titulo'),
+                    subtitulo: tr(context, 'vendedor_operaciones.eventos_subtitulo'),
                     accionExtra: _BotonNuevoEvento(onTap: _abrirCrearEvento),
                   ),
                   const SizedBox(height: 20),
@@ -259,9 +258,9 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
   Widget _buildCta() {
     return BannerCtaEvento(
       icono: Icons.campaign_outlined,
-      titulo: '¿Organizas un evento artesanal?',
-      subtitulo: 'Publícalo en el calendario y llega a compradores de todo el país.',
-      textoBoton: 'Publicar evento',
+      titulo: tr(context, 'vendedor_operaciones.eventos_cta_titulo'),
+      subtitulo: tr(context, 'vendedor_operaciones.eventos_cta_subtitulo'),
+      textoBoton: tr(context, 'vendedor_operaciones.eventos_cta_boton'),
       onPressed: _abrirCrearEvento,
     );
   }
@@ -281,7 +280,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Próximos eventos',
+            tr(context, 'vendedor_operaciones.eventos_proximos_titulo'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 16,
@@ -292,7 +291,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
         ),
         _BotonVerMapaVendedor(
           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mapa de eventos próximamente.')),
+            SnackBar(content: Text(tr(context, 'vendedor_operaciones.eventos_snack_mapa_proximamente'))),
           ),
         ),
       ],
@@ -325,7 +324,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
             children: [
               Chip(
                 label: Text(
-                  'Día ${d.day}/${d.month}/${d.year}',
+                  '${tr(context, 'vendedor_operaciones.eventos_dia_prefijo')}${d.day}/${d.month}/${d.year}',
                   style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.white),
                 ),
                 backgroundColor: CraftHubColors.vinoTinto,
@@ -337,7 +336,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
           if (_diaSeleccionadoSinEventos) ...[
             const SizedBox(height: 6),
             Text(
-              'No hay eventos justo ese día — mostrando los más próximos a partir de esa fecha.',
+              tr(context, 'vendedor_operaciones.eventos_dia_sin_eventos_msg'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
@@ -354,7 +353,9 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
   Widget _tarjetaPara(EventoArtesanal evento) {
     return TarjetaEventoProximo(
       evento: evento,
-      textoBotonPrimario: evento.solicitudEnviada ? 'Solicitado' : 'Solicitar espacio',
+      textoBotonPrimario: evento.solicitudEnviada
+          ? tr(context, 'vendedor_operaciones.eventos_boton_solicitado')
+          : tr(context, 'vendedor_operaciones.eventos_boton_solicitar_espacio'),
       iconoBotonPrimario:
           evento.solicitudEnviada ? Icons.check_circle_outline : Icons.storefront_outlined,
       alVerDetalles: () => mostrarDetalleEvento(
@@ -393,7 +394,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
           child: Text(
-            'No hay eventos para mostrar con estos filtros.',
+            tr(context, 'vendedor_operaciones.eventos_lista_vacia'),
             style: TextStyle(fontFamily: 'Poppins', color: CraftHubColors.textoSecundario(oscuro)),
           ),
         ),
@@ -509,13 +510,13 @@ class _BotonNuevoEventoState extends State<_BotonNuevoEvento> {
             color: _hover ? CraftHubColors.vinoTintoOscuro : CraftHubColors.vinoTinto,
             borderRadius: BorderRadius.circular(50),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add_rounded, size: 17, color: Colors.white),
-              SizedBox(width: 6),
-              Text('Nuevo evento',
-                  style: TextStyle(
+              const Icon(Icons.add_rounded, size: 17, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(tr(context, 'vendedor_operaciones.eventos_nuevo_evento_boton'),
+                  style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -561,8 +562,8 @@ class _BotonVerMapaVendedorState extends State<_BotonVerMapaVendedor> {
             children: [
               const Icon(Icons.map_outlined, size: 15, color: CraftHubColors.vinoTinto),
               const SizedBox(width: 6),
-              const Text('Ver mapa',
-                  style: TextStyle(
+              Text(tr(context, 'vendedor_operaciones.eventos_ver_mapa_boton'),
+                  style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
@@ -591,7 +592,7 @@ class _ChipProvinciaEvento extends StatelessWidget {
       itemBuilder: (_) => [
         PopupMenuItem(
           value: '__todas',
-          child: Text('Todas las provincias',
+          child: Text(tr(context, 'vendedor_operaciones.eventos_todas_provincias'),
               style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
         ),
         const PopupMenuDivider(),
@@ -610,7 +611,7 @@ class _ChipProvinciaEvento extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFF7A5800)),
           const SizedBox(width: 5),
-          Text(provinciaSeleccionada ?? 'Provincia',
+          Text(provinciaSeleccionada ?? tr(context, 'vendedor_operaciones.eventos_provincia_placeholder'),
               style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,

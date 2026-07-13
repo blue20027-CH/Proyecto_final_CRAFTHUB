@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
+import '../../core/locale_provider.dart';
 import '../../../widgets/boton_primario.dart';
 import '../auth/pantalla_login.dart';
 import '../auth/role.dart';
@@ -126,35 +128,42 @@ class _SelectorIdioma extends StatelessWidget {
     final colorTexto =
         esOscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: esOscuro
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.white.withValues(alpha: 0.55),
+    return Tooltip(
+      message: tr(context, 'topbar.cambiar_idioma'),
+      child: InkWell(
+        onTap: () => context.read<LocaleProvider>().alternarIdioma(),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: esOscuro
-              ? Colors.white.withValues(alpha: 0.12)
-              : Colors.black.withValues(alpha: 0.10),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Español',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: colorTexto,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: esOscuro
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.white.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: esOscuro
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.10),
             ),
           ),
-          const SizedBox(width: 4),
-          Icon(Icons.keyboard_arrow_down_rounded,
-              size: 18, color: colorTexto.withValues(alpha: 0.7)),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                tr(context, 'auth.selector_idioma_label'),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: colorTexto,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 18, color: colorTexto.withValues(alpha: 0.7)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -230,7 +239,7 @@ class _ContenidoCentral extends StatelessWidget {
 
           // ── BOTÓN INICIAR SESIÓN ──────────────────────────────────────
           BotonPrimario(
-  texto: 'Iniciar sesión',
+  texto: tr(context, 'auth.iniciar_sesion'),
   alPresionar: () {
     Navigator.push(
       context,
@@ -346,7 +355,7 @@ class _SeparadorOContinua extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Text(
-              'o continúa con',
+              tr(context, 'auth.o_continua_con'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
@@ -424,7 +433,7 @@ class _BotonGoogleState extends State<_BotonGoogle> {
                 _IconoGoogle(),
                 const SizedBox(width: 12),
                 Text(
-                  'Continuar con Google',
+                  tr(context, 'auth.continuar_con_google'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 15,
@@ -515,7 +524,7 @@ class _LinkCrearCuenta extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          '¿No tienes una cuenta? ',
+          tr(context, 'auth.no_tienes_cuenta'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13.5,
@@ -534,7 +543,7 @@ class _LinkCrearCuenta extends StatelessWidget {
               );
             },
             child: Text(
-              'Crear cuenta',
+              tr(context, 'auth.crear_cuenta'),
               style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13.5,

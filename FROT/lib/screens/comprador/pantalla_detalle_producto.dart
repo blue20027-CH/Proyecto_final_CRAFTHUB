@@ -11,6 +11,7 @@ import '../../models/detalle_producto_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
 import 'pantalla_pago.dart';
+import '../../core/i18n/i18n.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // PANTALLA DETALLE DE PRODUCTO
@@ -45,7 +46,7 @@ class PantallaDetalleProducto extends StatefulWidget {
     return showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Cerrar detalle de producto',
+      barrierLabel: tr(context, 'comprador_secundario.cerrar_detalle_producto'),
       barrierColor: Colors.black.withValues(alpha: 0.55),
       transitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (context, animation, secondaryAnimation) => PantallaDetalleProducto(
@@ -163,7 +164,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
         }
         if (!mounted) return;
         setState(() {
-          _error = 'No se pudo cargar el producto. Verifica tu conexión e inténtalo de nuevo.';
+          _error = tr(context, 'comprador_secundario.error_cargar_producto');
           _cargando = false;
         });
       } else {
@@ -224,9 +225,9 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
 
     final optimista = ComentarioModelo(
       id: 'local-${DateTime.now().microsecondsSinceEpoch}',
-      autor: 'Tú',
+      autor: tr(context, 'comprador_secundario.autor_tu'),
       avatarUrl: '',
-      fecha: 'Ahora',
+      fecha: tr(context, 'comprador_secundario.fecha_ahora'),
       calificacion: calificacion,
       texto: texto,
       fotoUrl: fotoUrl ?? '',
@@ -241,14 +242,14 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
         userId: widget.userId,
         fotoUrl: fotoUrl,
       );
-      _mostrarToast('Comentario publicado');
+      _mostrarToast(tr(context, 'comprador_secundario.comentario_publicado'));
       return true;
     } catch (e) {
       debugPrint('Error publicando comentario: $e');
       if (mounted) {
         setState(() => _comentarios = _comentarios.where((c) => c.id != optimista.id).toList());
       }
-      _mostrarToast('No se pudo publicar el comentario');
+      _mostrarToast(tr(context, 'comprador_secundario.error_publicar_comentario'));
       return false;
     }
   }
@@ -272,7 +273,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
   Future<void> _agregarAlCarrito() async {
     if (_detalle == null || _agregandoAlCarrito) return;
     if (widget.userId.isEmpty) {
-      _mostrarToast('Inicia sesión para añadir productos al carrito');
+      _mostrarToast(tr(context, 'comprador_secundario.inicia_sesion_agregar_carrito'));
       return;
     }
     setState(() => _agregandoAlCarrito = true);
@@ -284,10 +285,10 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
             imagenUrl: _detalle!.imagenUrl,
             artesano: _detalle!.creador,
           );
-      _mostrarToast('Añadido al carrito');
+      _mostrarToast(tr(context, 'comprador_secundario.anadido_al_carrito'));
     } catch (e) {
       debugPrint('Error agregando al carrito: $e');
-      _mostrarToast('No se pudo añadir al carrito');
+      _mostrarToast(tr(context, 'comprador_secundario.error_anadir_carrito'));
     } finally {
       if (mounted) setState(() => _agregandoAlCarrito = false);
     }
@@ -298,7 +299,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
   Future<void> _comprarAhora() async {
     if (_detalle == null || _comprandoAhora) return;
     if (widget.userId.isEmpty) {
-      _mostrarToast('Inicia sesión para comprar este producto');
+      _mostrarToast(tr(context, 'comprador_secundario.inicia_sesion_comprar_producto'));
       return;
     }
     setState(() => _comprandoAhora = true);
@@ -317,7 +318,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
       );
     } catch (e) {
       debugPrint('Error en compra directa: $e');
-      _mostrarToast('No se pudo procesar la compra');
+      _mostrarToast(tr(context, 'comprador_secundario.error_procesar_compra'));
     } finally {
       if (mounted) setState(() => _comprandoAhora = false);
     }
@@ -489,7 +490,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
             onToggleFavorito: _alternarFavorito,
           ),
           const SizedBox(height: 28),
-          Text('Productos similares',
+          Text(tr(context, 'comprador_secundario.productos_similares'),
               style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -499,7 +500,7 @@ class _PantallaDetalleProductoState extends State<PantallaDetalleProducto> {
             height: 210,
             child: _similares.isEmpty
                 ? Center(
-                    child: Text('Sin recomendaciones por ahora',
+                    child: Text(tr(context, 'comprador_secundario.sin_recomendaciones_por_ahora'),
                         style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: CraftHubColors.textoSecundario(oscuro))))
@@ -574,7 +575,7 @@ class _BotonCerrarState extends State<_BotonCerrar> {
             children: [
               const Icon(Icons.close_rounded, size: 16, color: CraftHubColors.vinoTinto),
               const SizedBox(width: 6),
-              Text('Cerrar',
+              Text(tr(context, 'comprador_secundario.cerrar'),
                   style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -646,7 +647,7 @@ class _EstadoError extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
-              child: Text('Reintentar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              child: Text(tr(context, 'comprador_secundario.reintentar'), style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -791,7 +792,7 @@ class _PanelInformacion extends StatelessWidget {
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text('Creado por ', style: GoogleFonts.poppins(fontSize: 13.5, color: textoSecundario)),
+            Text('${tr(context, 'comprador_secundario.creado_por')} ', style: GoogleFonts.poppins(fontSize: 13.5, color: textoSecundario)),
             Text(detalle.creador,
                 style: GoogleFonts.poppins(
                     fontSize: 13.5, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
@@ -815,7 +816,7 @@ class _PanelInformacion extends StatelessWidget {
           Row(children: [
             _Estrellas(calificacion: detalle.calificacion),
             const SizedBox(width: 6),
-            Text('${detalle.calificacion.toStringAsFixed(1)} (${detalle.totalValoraciones} valoraciones)',
+            Text('${detalle.calificacion.toStringAsFixed(1)} (${detalle.totalValoraciones} ${tr(context, 'comprador_secundario.valoraciones_palabra')})',
                 style: GoogleFonts.poppins(fontSize: 12.5, color: textoSecundario)),
           ]),
         const SizedBox(height: 16),
@@ -829,13 +830,13 @@ class _PanelInformacion extends StatelessWidget {
         const SizedBox(height: 18),
         Divider(color: CraftHubColors.borde(oscuro)),
         const SizedBox(height: 14),
-        _FilaSpec(icono: Icons.category_outlined, etiqueta: 'Categoría', valor: detalle.categoria, oscuro: oscuro),
+        _FilaSpec(icono: Icons.category_outlined, etiqueta: tr(context, 'comprador_secundario.categoria'), valor: detalle.categoria, oscuro: oscuro),
         const SizedBox(height: 10),
-        _FilaSpec(icono: Icons.texture_rounded, etiqueta: 'Materiales', valor: detalle.materiales, oscuro: oscuro),
+        _FilaSpec(icono: Icons.texture_rounded, etiqueta: tr(context, 'comprador_secundario.materiales'), valor: detalle.materiales, oscuro: oscuro),
         const SizedBox(height: 10),
-        _FilaSpec(icono: Icons.brush_outlined, etiqueta: 'Técnica', valor: detalle.tecnica, oscuro: oscuro),
+        _FilaSpec(icono: Icons.brush_outlined, etiqueta: tr(context, 'comprador_secundario.tecnica'), valor: detalle.tecnica, oscuro: oscuro),
         const SizedBox(height: 10),
-        _FilaSpec(icono: Icons.straighten_rounded, etiqueta: 'Dimensiones', valor: detalle.dimensiones, oscuro: oscuro),
+        _FilaSpec(icono: Icons.straighten_rounded, etiqueta: tr(context, 'comprador_secundario.dimensiones'), valor: detalle.dimensiones, oscuro: oscuro),
         const SizedBox(height: 22),
         Wrap(
           spacing: 12,
@@ -939,7 +940,10 @@ class _BotonComprarAhoraState extends State<_BotonComprarAhora> {
                 Icon(bloqueado ? Icons.lock_outline_rounded : Icons.bolt_rounded,
                     size: 17, color: Colors.white),
               const SizedBox(width: 8),
-              Text(bloqueado ? 'Inicia sesión para comprar' : 'Comprar ahora',
+              Text(
+                  bloqueado
+                      ? tr(context, 'comprador_secundario.inicia_sesion_para_comprar')
+                      : tr(context, 'comprador_secundario.comprar_ahora'),
                   style: GoogleFonts.poppins(
                       fontSize: 13.5, fontWeight: FontWeight.w600, color: Colors.white)),
             ],
@@ -998,7 +1002,10 @@ class _BotonAgregarCarritoState extends State<_BotonAgregarCarrito> {
                 Icon(bloqueado ? Icons.lock_outline_rounded : Icons.shopping_bag_outlined,
                     size: 17, color: bloqueado ? CraftHubColors.textoSecundario(oscuro) : CraftHubColors.vinoTinto),
               const SizedBox(width: 8),
-              Text(bloqueado ? 'Inicia sesión' : 'Añadir al carrito',
+              Text(
+                  bloqueado
+                      ? tr(context, 'comprador_secundario.inicia_sesion')
+                      : tr(context, 'comprador_secundario.anadir_al_carrito'),
                   style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
@@ -1049,7 +1056,7 @@ class _BotonMeGustaState extends State<_BotonMeGusta> {
               Icon(widget.activo ? Icons.favorite : Icons.favorite_border_rounded,
                   size: 16, color: CraftHubColors.vinoTinto),
               const SizedBox(width: 8),
-              Text('Me gusta',
+              Text(tr(context, 'comprador_secundario.me_gusta'),
                   style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w600,
@@ -1135,7 +1142,7 @@ class _SeccionComentarios extends StatelessWidget {
         const SizedBox(height: 14),
         Row(
           children: [
-            Text('Comentarios (${comentarios.length})',
+            Text('${tr(context, 'comprador_secundario.comentarios')} (${comentarios.length})',
                 style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -1152,7 +1159,7 @@ class _SeccionComentarios extends StatelessWidget {
         if (comentarios.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Text('Aún no hay comentarios para este producto.',
+            child: Text(tr(context, 'comprador_secundario.sin_comentarios_producto'),
                 style: GoogleFonts.poppins(
                     fontSize: 12.5, color: CraftHubColors.textoSecundario(oscuro))),
           )
@@ -1176,7 +1183,7 @@ class _SelectorOrden extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      tooltip: 'Ordenar comentarios',
+      tooltip: tr(context, 'comprador_secundario.ordenar_comentarios'),
       offset: const Offset(0, 32),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: onCambiar,
@@ -1186,7 +1193,7 @@ class _SelectorOrden extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Ordenar por: ',
+          Text('${tr(context, 'comprador_secundario.ordenar_por')}: ',
               style: GoogleFonts.poppins(fontSize: 12, color: CraftHubColors.textoSecundario(oscuro))),
           Text(valor,
               style: GoogleFonts.poppins(
@@ -1218,7 +1225,7 @@ class _AvisoIniciarSesion extends StatelessWidget {
         Icon(Icons.lock_outline_rounded, size: 18, color: CraftHubColors.textoSecundario(oscuro)),
         const SizedBox(width: 10),
         Expanded(
-          child: Text('Inicia sesión para dejar tu comentario y calificación.',
+          child: Text(tr(context, 'comprador_secundario.inicia_sesion_comentar'),
               style: GoogleFonts.poppins(fontSize: 12.5, color: CraftHubColors.textoSecundario(oscuro))),
         ),
       ]),
@@ -1323,7 +1330,7 @@ class _ComposerComentarioState extends State<_ComposerComentario> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('Tu calificación',
+            Text(tr(context, 'comprador_secundario.tu_calificacion'),
                 style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
@@ -1363,7 +1370,7 @@ class _ComposerComentarioState extends State<_ComposerComentario> {
             maxLines: 4,
             style: GoogleFonts.poppins(fontSize: 13, color: CraftHubColors.textoPrincipal(oscuro)),
             decoration: InputDecoration(
-              hintText: 'Comparte tu experiencia con este producto...',
+              hintText: tr(context, 'comprador_secundario.comparte_experiencia_hint'),
               hintStyle: GoogleFonts.poppins(fontSize: 13, color: CraftHubColors.textoSecundario(oscuro)),
               filled: true,
               fillColor: CraftHubColors.fondo(oscuro),
@@ -1429,7 +1436,7 @@ class _ComposerComentarioState extends State<_ComposerComentario> {
                         height: 15,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : Text('Publicar',
+                    : Text(tr(context, 'comprador_secundario.publicar'),
                         style: GoogleFonts.poppins(
                             fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white)),
               ),
@@ -1596,14 +1603,14 @@ class _PanelSimilaresState extends State<_PanelSimilares> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Productos similares',
+        Text(tr(context, 'comprador_secundario.productos_similares'),
             style: GoogleFonts.poppins(
                 fontSize: 15, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(oscuro))),
         const SizedBox(height: 14),
         Expanded(
           child: similares.isEmpty
               ? Center(
-                  child: Text('Sin recomendaciones por ahora',
+                  child: Text(tr(context, 'comprador_secundario.sin_recomendaciones_por_ahora'),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                           fontSize: 12.5, color: CraftHubColors.textoSecundario(oscuro))),

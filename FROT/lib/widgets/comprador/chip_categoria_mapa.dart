@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class ChipCategoriaMapa extends StatefulWidget {
   final String nombre;
@@ -117,7 +118,7 @@ class _ChipCategoriaMapaState extends State<ChipCategoriaMapa> {
                         ),
                       ),
                       Text(
-                        '${widget.totalArtesanos} artesanos',
+                        '${widget.totalArtesanos} ${tr(context, 'compartido.artesanos_label')}',
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,

@@ -10,6 +10,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/pedido_vendedor_model.dart';
 import '../../services/vendedor_api_service.dart';
@@ -295,7 +296,7 @@ class _PantallaMapaVendedorState extends State<PantallaMapaVendedor> {
               : _puntosFiltrados.isEmpty
               ? Center(
                   child: Text(
-                    'Sin pedidos para mostrar',
+                    tr(context, 'vendedor_operaciones.vacio_sin_pedidos'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12.5,
@@ -452,7 +453,7 @@ class _HeaderMapaVendedor extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Mapa de pedidos',
+                    tr(context, 'vendedor_operaciones.titulo_mapa_pedidos'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 22,
@@ -461,7 +462,7 @@ class _HeaderMapaVendedor extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Ubicación y estado de entrega de tus clientes',
+                    tr(context, 'vendedor_operaciones.subtitulo_mapa_pedidos'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
@@ -598,9 +599,9 @@ class _BotonActualizarMapaState extends State<_BotonActualizarMapa> {
                       size: 16,
                     ),
               const SizedBox(width: 8),
-              const Text(
-                'Actualizar',
-                style: TextStyle(
+              Text(
+                tr(context, 'vendedor_operaciones.actualizar'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -640,7 +641,7 @@ class _CampoBusquedaMapa extends StatelessWidget {
         color: CraftHubColors.textoPrincipal(esOscuro),
       ),
       decoration: InputDecoration(
-        hintText: 'Buscar cliente o dirección...',
+        hintText: tr(context, 'vendedor_operaciones.buscar_cliente_direccion_hint'),
         hintStyle: TextStyle(
           fontFamily: 'Poppins',
           fontSize: 13,
@@ -1049,7 +1050,7 @@ class _PopupPedidoMapa extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total',
+                tr(context, 'vendedor_operaciones.total'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
@@ -1069,7 +1070,7 @@ class _PopupPedidoMapa extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Estado del pedido',
+            tr(context, 'vendedor_operaciones.estado_del_pedido'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 11,
@@ -1091,7 +1092,7 @@ class _PopupPedidoMapa extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Actualizando...',
+                      tr(context, 'vendedor_operaciones.actualizando'),
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,

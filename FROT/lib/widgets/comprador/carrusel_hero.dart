@@ -1,19 +1,31 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
+import '../../core/locale_provider.dart';
 
 // 🔌 Modelo del banner destacado → GET /api/productos/destacados
 class BannerModelo {
   final String titulo;
   final String descripcion;
+  final String? tituloEn;
+  final String? descripcionEn;
   final String imagenUrl;
   final String productoId;
 
   const BannerModelo({
     required this.titulo, required this.descripcion,
+    this.tituloEn, this.descripcionEn,
     required this.imagenUrl, required this.productoId,
   });
+
+  String tituloEfectivo(bool esIngles) =>
+      esIngles && tituloEn != null && tituloEn!.isNotEmpty ? tituloEn! : titulo;
+
+  String descripcionEfectiva(bool esIngles) =>
+      esIngles && descripcionEn != null && descripcionEn!.isNotEmpty ? descripcionEn! : descripcion;
 
   factory BannerModelo.fromJson(Map<String, dynamic> json) => BannerModelo(
     titulo:      json['titulo'],
@@ -122,6 +134,7 @@ class _Slide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esIngles = context.watch<LocaleProvider>().esIngles;
     return Stack(fit: StackFit.expand, children: [
       Image.network(banner.imagenUrl, // 🔌 URL desde backend
         fit: BoxFit.cover,
@@ -139,11 +152,11 @@ class _Slide extends StatelessWidget {
         padding: const EdgeInsets.all(32),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(banner.titulo,
+          Text(banner.tituloEfectivo(esIngles),
             style: GoogleFonts.poppins(fontSize: 26,
                 fontWeight: FontWeight.w700, color: Colors.white, height: 1.15)),
           const SizedBox(height: 8),
-          Text(banner.descripcion,
+          Text(banner.descripcionEfectiva(esIngles),
             style: GoogleFonts.poppins(fontSize: 13,
                 color: Colors.white.withValues(alpha: 0.82)),
             maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -157,7 +170,7 @@ class _Slide extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
               elevation: 0,
             ),
-            child: Text('Conocer más',
+            child: Text(tr(context, 'comprador_home.conocer_mas'),
               style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
           ),
         ]),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class SelectorColeccion extends StatefulWidget {
   final List<String> colecciones;
@@ -23,7 +24,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
   @override
   Widget build(BuildContext context) {
     final esOscuro = Theme.of(context).brightness == Brightness.dark;
-    final etiqueta = widget.coleccionSeleccionada ?? 'Todas las colecciones';
+    final etiqueta = widget.coleccionSeleccionada ?? tr(context, 'compartido.todas_colecciones');
 
     return MouseRegion(
       onEnter: (_) => setState(() => _sobreEl = true),
@@ -38,7 +39,7 @@ class _SelectorColeccionState extends State<SelectorColeccion> {
           PopupMenuItem<String?>(
             value: null,
             child: Text(
-              'Todas las colecciones',
+              tr(context, 'compartido.todas_colecciones'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,

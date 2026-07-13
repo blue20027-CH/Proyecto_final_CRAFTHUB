@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/provincias_panama.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/proveedor_model.dart';
 import '../../services/proveedores_api_service.dart';
 
@@ -62,16 +63,16 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
   // No puede ser `const`: un Map<double, ...> const no es válido en Dart
   // porque double sobrescribe == / hashCode.
   static final _opcionesCalificacion = <double?, String>{
-    null: 'Cualquier calificación',
-    3.0: '3.0 o más',
-    4.0: '4.0 o más',
-    4.5: '4.5 o más',
+    null: 'vendedor_operaciones.proveedores_calificacion_cualquiera',
+    3.0: 'vendedor_operaciones.proveedores_calificacion_3',
+    4.0: 'vendedor_operaciones.proveedores_calificacion_4',
+    4.5: 'vendedor_operaciones.proveedores_calificacion_45',
   };
 
   static const _opcionesOrden = {
-    'relevantes': 'Orden: Relevantes',
-    'calificacion': 'Mejor calificados',
-    'recientes': 'Más recientes',
+    'relevantes': 'vendedor_operaciones.proveedores_orden_relevantes',
+    'calificacion': 'vendedor_operaciones.proveedores_orden_calificacion',
+    'recientes': 'vendedor_operaciones.proveedores_orden_recientes',
   };
 
   @override
@@ -128,7 +129,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
     try {
       await launchUrl(Uri(scheme: 'mailto', path: email));
     } catch (_) {
-      _mostrarSnack('No se pudo abrir el correo', esError: true);
+      _mostrarSnack(tr(context, 'vendedor_operaciones.proveedores_snack_error_correo'), esError: true);
     }
   }
 
@@ -148,7 +149,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
         esOscuro: widget.esOscuro,
         nombreVendedor: widget.nombreVendedor,
         onCreado: () {
-          _mostrarSnack('Proveedor agregado a la red');
+          _mostrarSnack(tr(context, 'vendedor_operaciones.proveedores_snack_agregado'));
           _cargar();
         },
       ),
@@ -300,12 +301,12 @@ class _HeroProveedores extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text('Red de Proveedores',
+                    Text(tr(context, 'vendedor_operaciones.proveedores_titulo'),
                         style: TextStyle(fontFamily: 'Poppins', fontSize: 21, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
                     const SizedBox(width: 6),
                     const Icon(Icons.auto_awesome_rounded, size: 17, color: CraftHubColors.vinoTinto),
                   ]),
-                  Text('Conecta con proveedores confiables de materiales premium y haz crecer tu negocio artesanal.',
+                  Text(tr(context, 'vendedor_operaciones.proveedores_subtitulo'),
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoSecundario(esOscuro))),
                 ],
               ),
@@ -346,11 +347,11 @@ class _BotonAgregarProveedorState extends State<_BotonAgregarProveedor> {
             borderRadius: BorderRadius.circular(50),
             boxShadow: [BoxShadow(color: CraftHubColors.vinoTinto.withValues(alpha: 0.28), blurRadius: 10, offset: const Offset(0, 3))],
           ),
-          child: const Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.add_rounded, size: 18, color: Colors.white),
-            SizedBox(width: 6),
-            Text('Agregar proveedor',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(tr(context, 'vendedor_operaciones.proveedores_agregar_boton'),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
           ]),
         ),
       ),
@@ -417,7 +418,7 @@ class _BarraFiltrosProveedores extends StatelessWidget {
           decoration: InputDecoration(
             isCollapsed: true,
             border: InputBorder.none,
-            hintText: 'Buscar proveedores o materiales...',
+            hintText: tr(context, 'vendedor_operaciones.proveedores_buscar_hint'),
             hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(esOscuro)),
           ),
         ),
@@ -447,10 +448,10 @@ class _BarraFiltrosProveedores extends StatelessWidget {
     final dropdownCalificacion = dropdown<double?>(
       calificacionSeleccionada,
       opcionesCalificacion.keys.toList(),
-      (v) => opcionesCalificacion[v]!,
+      (v) => tr(context, opcionesCalificacion[v]!),
       alCambiarCalificacion,
     );
-    final dropdownOrden = dropdown(ordenSeleccionado, opcionesOrden.keys.toList(), (v) => opcionesOrden[v]!, alCambiarOrden);
+    final dropdownOrden = dropdown(ordenSeleccionado, opcionesOrden.keys.toList(), (v) => tr(context, opcionesOrden[v]!), alCambiarOrden);
 
     return LayoutBuilder(builder: (context, constraints) {
       if (constraints.maxWidth < 900) {
@@ -499,13 +500,13 @@ class _EstadoVacioProveedores extends StatelessWidget {
       child: Column(children: [
         Icon(Icons.groups_2_outlined, size: 42, color: CraftHubColors.textoSecundario(esOscuro)),
         const SizedBox(height: 10),
-        Text('No se encontraron proveedores con estos filtros',
+        Text(tr(context, 'vendedor_operaciones.proveedores_vacio_titulo'),
             style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: CraftHubColors.textoSecundario(esOscuro))),
         const SizedBox(height: 14),
         TextButton.icon(
           onPressed: alAgregar,
           icon: const Icon(Icons.add_rounded, color: CraftHubColors.vinoTinto),
-          label: const Text('Agregar el primero', style: TextStyle(fontFamily: 'Poppins', color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
+          label: Text(tr(context, 'vendedor_operaciones.proveedores_vacio_agregar_primero'), style: const TextStyle(fontFamily: 'Poppins', color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
         ),
       ]),
     );
@@ -531,7 +532,7 @@ class _EstadoErrorProveedores extends StatelessWidget {
       child: Column(children: [
         const Icon(Icons.error_outline_rounded, size: 36, color: CraftHubColors.error),
         const SizedBox(height: 10),
-        Text('No se pudieron cargar los proveedores',
+        Text(tr(context, 'vendedor_operaciones.proveedores_error_titulo'),
             style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: CraftHubColors.textoPrincipal(esOscuro))),
         const SizedBox(height: 4),
         Text(mensaje, textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: CraftHubColors.textoSecundario(esOscuro))),
@@ -539,7 +540,7 @@ class _EstadoErrorProveedores extends StatelessWidget {
         TextButton.icon(
           onPressed: alReintentar,
           icon: const Icon(Icons.refresh_rounded, color: CraftHubColors.vinoTinto),
-          label: const Text('Reintentar', style: TextStyle(fontFamily: 'Poppins', color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
+          label: Text(tr(context, 'vendedor_operaciones.proveedores_reintentar'), style: const TextStyle(fontFamily: 'Poppins', color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
         ),
       ]),
     );
@@ -629,10 +630,8 @@ class _TarjetaProveedor extends StatelessWidget {
             SizedBox(
               height: 140,
               width: double.infinity,
-              child: p.imagenUrl.isNotEmpty
-                  ? Image.network(p.imagenUrl, fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _imagenPlaceholder())
-                  : _imagenPlaceholder(),
+              child: Image.network(p.imagenEfectiva, fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _imagenPlaceholder()),
             ),
             Positioned(
               top: 10,
@@ -707,7 +706,7 @@ class _TarjetaProveedor extends StatelessWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Colors.white),
-                      label: const Text('Contactar', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+                      label: Text(tr(context, 'vendedor_operaciones.proveedores_tarjeta_contactar'), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -720,7 +719,7 @@ class _TarjetaProveedor extends StatelessWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       icon: Icon(Icons.expand_more_rounded, size: 15, color: colorTexto),
-                      label: Text('Ver perfil', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600, color: colorTexto)),
+                      label: Text(tr(context, 'vendedor_operaciones.proveedores_tarjeta_ver_perfil'), style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600, color: colorTexto)),
                     ),
                   ),
                 ]),
@@ -772,9 +771,9 @@ class _BannerQuieroSerProveedor extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text('¿Eres proveedor de materiales?',
+                Text(tr(context, 'vendedor_operaciones.proveedores_banner_titulo'),
                     style: TextStyle(fontFamily: 'Poppins', fontSize: 15, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
-                Text('Únete a nuestra red y conecta con artesanos de todo el país.',
+                Text(tr(context, 'vendedor_operaciones.proveedores_banner_subtitulo'),
                     style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoSecundario(esOscuro))),
               ]),
             ),
@@ -786,8 +785,8 @@ class _BannerQuieroSerProveedor extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
             ),
-            child: const Text('Quiero ser proveedor',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
+            child: Text(tr(context, 'vendedor_operaciones.proveedores_banner_boton'),
+                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
           ),
         ],
       ),
@@ -834,7 +833,7 @@ class _DialogoAgregarProveedorState extends State<_DialogoAgregarProveedor> {
 
   Future<void> _guardar() async {
     if (_ctrlNombre.text.trim().isEmpty) {
-      setState(() => _error = 'El nombre del proveedor es obligatorio.');
+      setState(() => _error = tr(context, 'vendedor_operaciones.proveedores_error_nombre_obligatorio'));
       return;
     }
     setState(() {
@@ -929,33 +928,33 @@ class _DialogoAgregarProveedorState extends State<_DialogoAgregarProveedor> {
               children: [
                 Row(children: [
                   Expanded(
-                    child: Text('Agregar proveedor',
+                    child: Text(tr(context, 'vendedor_operaciones.proveedores_agregar_boton'),
                         style: TextStyle(fontFamily: 'Poppins', fontSize: 17, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
                   ),
                   GestureDetector(onTap: () => Navigator.pop(context), child: Icon(Icons.close_rounded, size: 20, color: CraftHubColors.textoSecundario(esOscuro))),
                 ]),
                 const SizedBox(height: 16),
-                _campo('Nombre del negocio *', _ctrlNombre),
+                _campo(tr(context, 'vendedor_operaciones.proveedores_campo_nombre_negocio'), _ctrlNombre),
                 const SizedBox(height: 12),
-                _campo('Nombre del contacto (opcional)', _ctrlPropietario),
-                const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: _selector('Categoría', _categoria, kCategoriasProveedor, (v) => setState(() => _categoria = v!))),
-                  const SizedBox(width: 12),
-                  Expanded(child: _selector('Ubicación', _ubicacion, kProvinciasPanama, (v) => setState(() => _ubicacion = v!))),
-                ]),
-                const SizedBox(height: 12),
-                _campo('Descripción', _ctrlDescripcion, maxLines: 3),
-                const SizedBox(height: 12),
-                _campo('Materiales (separados por coma)', _ctrlMateriales),
+                _campo(tr(context, 'vendedor_operaciones.proveedores_campo_nombre_contacto'), _ctrlPropietario),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: _campo('Teléfono', _ctrlTelefono, tipo: TextInputType.phone)),
+                  Expanded(child: _selector(tr(context, 'vendedor_operaciones.proveedores_campo_categoria'), _categoria, kCategoriasProveedor, (v) => setState(() => _categoria = v!))),
                   const SizedBox(width: 12),
-                  Expanded(child: _campo('Correo', _ctrlEmail, tipo: TextInputType.emailAddress)),
+                  Expanded(child: _selector(tr(context, 'vendedor_operaciones.proveedores_campo_ubicacion'), _ubicacion, kProvinciasPanama, (v) => setState(() => _ubicacion = v!))),
                 ]),
                 const SizedBox(height: 12),
-                _campo('URL de imagen (opcional)', _ctrlImagen),
+                _campo(tr(context, 'vendedor_operaciones.proveedores_campo_descripcion'), _ctrlDescripcion, maxLines: 3),
+                const SizedBox(height: 12),
+                _campo(tr(context, 'vendedor_operaciones.proveedores_campo_materiales'), _ctrlMateriales),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(child: _campo(tr(context, 'vendedor_operaciones.proveedores_campo_telefono'), _ctrlTelefono, tipo: TextInputType.phone)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _campo(tr(context, 'vendedor_operaciones.proveedores_campo_correo'), _ctrlEmail, tipo: TextInputType.emailAddress)),
+                ]),
+                const SizedBox(height: 12),
+                _campo(tr(context, 'vendedor_operaciones.proveedores_campo_imagen_url'), _ctrlImagen),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
                   Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: CraftHubColors.error)),
@@ -968,7 +967,7 @@ class _DialogoAgregarProveedorState extends State<_DialogoAgregarProveedor> {
                     style: ElevatedButton.styleFrom(backgroundColor: CraftHubColors.vinoTinto, padding: const EdgeInsets.symmetric(vertical: 13)),
                     child: _enviando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Agregar a la red', style: TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
+                        : Text(tr(context, 'vendedor_operaciones.proveedores_dialogo_boton_agregar'), style: const TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -1001,18 +1000,18 @@ class _DialogoContactar extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(22),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Contactar a ${proveedor.nombre}',
+            Text('${tr(context, 'vendedor_operaciones.proveedores_contactar_a_prefijo')}${proveedor.nombre}',
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w700, color: colorTexto)),
             const SizedBox(height: 4),
-            Text('Elige cómo prefieres comunicarte.', style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: colorSec)),
+            Text(tr(context, 'vendedor_operaciones.proveedores_contactar_subtitulo'), style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: colorSec)),
             const SizedBox(height: 18),
-            _OpcionContacto(icono: Icons.forum_outlined, titulo: 'Chatear', subtitulo: 'Envíale un mensaje directo', esOscuro: esOscuro, onTap: () {
+            _OpcionContacto(icono: Icons.forum_outlined, titulo: tr(context, 'vendedor_operaciones.proveedores_opcion_chatear_titulo'), subtitulo: tr(context, 'vendedor_operaciones.proveedores_opcion_chatear_subtitulo'), esOscuro: esOscuro, onTap: () {
               Navigator.pop(context);
               onChatear();
             }),
             if (proveedor.email.isNotEmpty) ...[
               const SizedBox(height: 10),
-              _OpcionContacto(icono: Icons.mail_outline_rounded, titulo: 'Correo', subtitulo: proveedor.email, esOscuro: esOscuro, onTap: () {
+              _OpcionContacto(icono: Icons.mail_outline_rounded, titulo: tr(context, 'vendedor_operaciones.proveedores_campo_correo'), subtitulo: proveedor.email, esOscuro: esOscuro, onTap: () {
                 Navigator.pop(context);
                 onCorreo();
               }),
@@ -1106,10 +1105,9 @@ class _DialogoPerfilProveedor extends StatelessWidget {
                 child: SizedBox(
                   height: 150,
                   width: double.infinity,
-                  child: p.imagenUrl.isNotEmpty
-                      ? Image.network(p.imagenUrl, fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(color: CraftHubColors.vinoTintoSuave))
-                      : Container(color: CraftHubColors.vinoTintoSuave, child: const Icon(Icons.inventory_2_outlined, color: CraftHubColors.vinoTinto)),
+                  child: Image.network(p.imagenEfectiva, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(color: CraftHubColors.vinoTintoSuave,
+                          child: const Icon(Icons.inventory_2_outlined, color: CraftHubColors.vinoTinto))),
                 ),
               ),
               const SizedBox(height: 14),
@@ -1129,7 +1127,7 @@ class _DialogoPerfilProveedor extends StatelessWidget {
                 const Icon(Icons.star_rounded, size: 17, color: Color(0xFFD4A843)),
                 const SizedBox(width: 4),
                 Text(p.calificacion.toStringAsFixed(1), style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, fontWeight: FontWeight.w700, color: colorTexto)),
-                Text(' (${p.totalResenas} reseñas)', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: colorSec)),
+                Text(' (${p.totalResenas} ${tr(context, 'vendedor_operaciones.proveedores_resenas_palabra')})', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: colorSec)),
               ]),
               if (p.descripcion.isNotEmpty) ...[
                 const SizedBox(height: 14),
@@ -1137,7 +1135,7 @@ class _DialogoPerfilProveedor extends StatelessWidget {
               ],
               if (p.materiales.isNotEmpty) ...[
                 const SizedBox(height: 14),
-                Text('MATERIALES', style: TextStyle(fontFamily: 'Poppins', fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: colorSec)),
+                Text(tr(context, 'vendedor_operaciones.proveedores_materiales_header'), style: TextStyle(fontFamily: 'Poppins', fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: colorSec)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -1156,7 +1154,7 @@ class _DialogoPerfilProveedor extends StatelessWidget {
                   onPressed: alContactar,
                   style: ElevatedButton.styleFrom(backgroundColor: CraftHubColors.vinoTinto, padding: const EdgeInsets.symmetric(vertical: 13)),
                   icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: Colors.white),
-                  label: const Text('Contactar proveedor', style: TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
+                  label: Text(tr(context, 'vendedor_operaciones.proveedores_contactar_proveedor_boton'), style: const TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
                 ),
               ),
             ]),

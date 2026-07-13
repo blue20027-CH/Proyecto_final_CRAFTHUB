@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../main.dart';
 import '../../widgets/boton_primario.dart';
 import '../../widgets/campo_texto.dart';
@@ -47,7 +48,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
   // ── API_HOOK: Lógica de inicio de sesión ────────────────────────────────────────────────────
   Future<void> _iniciarSesion() async {
     if (_ctrlEmail.text.trim().isEmpty || _ctrlPassword.text.isEmpty) {
-      setState(() => _errorMensaje = 'Por favor completa todos los campos.');
+      setState(() => _errorMensaje = 'auth.completa_campos');
       return;
     }
 
@@ -62,7 +63,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
       );
 
       if (respuesta == null || respuesta['success'] != true) {
-        throw Exception('No se pudo iniciar sesion.');
+        throw Exception('auth.no_pudo_iniciar_sesion');
       }
 
       if (mounted) {
@@ -126,7 +127,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
     try {
       await Future.delayed(const Duration(milliseconds: 800));
     } catch (e) {
-      setState(() => _errorMensaje = 'Error al iniciar con Google.');
+      setState(() => _errorMensaje = 'auth.error_google');
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -135,7 +136,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
   // ── API_HOOK: Recuperar contraseña ──────────────────────────────────────────────────────────
   Future<void> _recuperarPassword() async {
     if (_ctrlEmail.text.trim().isEmpty) {
-      setState(() => _errorMensaje = 'Ingresa tu correo primero para recuperar la contraseña.');
+      setState(() => _errorMensaje = 'auth.ingresa_correo_recuperar');
       return;
     }
   }
@@ -321,7 +322,7 @@ class _PanelLogin extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Creatividad con propósito',
+                  tr(context, 'auth.creatividad_proposito'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 10,
@@ -338,7 +339,7 @@ class _PanelLogin extends StatelessWidget {
         const SizedBox(height: 22),
 
         Text(
-          'Inicia sesión para continuar',
+          tr(context, 'auth.inicia_sesion_continuar'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
@@ -349,9 +350,9 @@ class _PanelLogin extends StatelessWidget {
         const SizedBox(height: 16),
 
         SegmentedButton<String>(
-          segments: const [
-            ButtonSegment(value: 'Comprador', label: Text('Comprador')),
-            ButtonSegment(value: 'Vendedor', label: Text('Vendedor')),
+          segments: [
+            ButtonSegment(value: 'Comprador', label: Text(tr(context, 'auth.rol_comprador'))),
+            ButtonSegment(value: 'Vendedor', label: Text(tr(context, 'auth.rol_vendedor'))),
           ],
           selected: {modoSeleccionado},
           onSelectionChanged: (seleccion) => alCambiarModo(seleccion.first),
@@ -377,7 +378,7 @@ class _PanelLogin extends StatelessWidget {
         const SizedBox(height: 16),
         CampoTexto(
           controlador: ctrlEmail,
-          hint: 'Correo o usuario',
+          hint: tr(context, 'auth.correo_usuario_hint'),
           icono: Icons.person_outline_rounded,
           esOscuro: esOscuro,
         ),
@@ -386,7 +387,7 @@ class _PanelLogin extends StatelessWidget {
 
         CampoTexto(
           controlador: ctrlPassword,
-          hint: 'Contraseña',
+          hint: tr(context, 'auth.contrasena_hint'),
           icono: Icons.lock_outline_rounded,
           esOscuro: esOscuro,
           esPassword: true,
@@ -400,7 +401,7 @@ class _PanelLogin extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              errorMensaje!,
+              tr(context, errorMensaje!),
               style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11,
@@ -419,9 +420,9 @@ class _PanelLogin extends StatelessWidget {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
-              '¿Olvidaste tu contraseña?',
-              style: TextStyle(
+            child: Text(
+              tr(context, 'auth.olvidaste_contrasena'),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
@@ -444,7 +445,7 @@ class _PanelLogin extends StatelessWidget {
                 ),
               )
             : BotonPrimario(
-                texto: 'Entrar',
+                texto: tr(context, 'auth.entrar'),
                 alPresionar: alIniciarSesion,
                 ancho: double.infinity,
               ),
@@ -509,7 +510,7 @@ class _BotonVolverState extends State<_BotonVolver> {
               ),
               const SizedBox(width: 6),
               Text(
-                'Volver',
+                tr(context, 'auth.volver'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
@@ -541,7 +542,7 @@ class _Separador extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            'o continúa con',
+            tr(context, 'auth.o_continua_con'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
@@ -564,9 +565,9 @@ class _BadgesConfianza extends StatelessWidget {
     final colorSec = CraftHubColors.textoSecundario(esOscuro);
 
     final badges = [
-      (Icons.verified_user_outlined, 'Seguro y confiable',  'Tu información está protegida'),
-      (Icons.group_outlined,          'Comunidad creativa',  'Conecta con artesanos'),
-      (Icons.handshake_outlined,      'Apoya lo artesanal',  'Hecho a mano, hecho con amor'),
+      (Icons.verified_user_outlined, tr(context, 'auth.badge_seguro_titulo'),  tr(context, 'auth.badge_seguro_subtitulo')),
+      (Icons.group_outlined,          tr(context, 'auth.badge_comunidad_titulo'),  tr(context, 'auth.badge_comunidad_subtitulo')),
+      (Icons.handshake_outlined,      tr(context, 'auth.badge_apoya_titulo'),  tr(context, 'auth.badge_apoya_subtitulo')),
     ];
 
     return Row(

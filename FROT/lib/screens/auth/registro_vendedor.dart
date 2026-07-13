@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../vendedor/pantalla_dashoard_vendedor.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../core/provincias_panama.dart';
 import '../../services/servicio_auth.dart';
 import '../../widgets/boton_primario.dart';
@@ -53,11 +54,11 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
     if (_ctrlNombres.text.trim().isEmpty ||
         _ctrlCorreo.text.trim().isEmpty ||
         _ctrlPassword.text.isEmpty) {
-      setState(() => _errorMensaje = 'Completa nombre, correo y contraseña.');
+      setState(() => _errorMensaje = 'auth.completa_nombre_correo_contrasena');
       return;
     }
     if (_provincia == null) {
-      setState(() => _errorMensaje = 'Selecciona tu provincia o comarca.');
+      setState(() => _errorMensaje = 'auth.selecciona_provincia_comarca');
       return;
     }
 
@@ -83,7 +84,7 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
       );
 
       if (respuesta == null || respuesta['success'] != true) {
-        throw Exception('No se pudo completar el registro.');
+        throw Exception('auth.no_pudo_completar_registro');
       }
 
       if (!mounted) return;
@@ -281,11 +282,11 @@ class _FormularioRegistro extends StatelessWidget {
         // ── TÍTULO ───────────────────────────────────────────────────
         RichText(
           textAlign: TextAlign.center,
-          text: const TextSpan(
+          text: TextSpan(
             children: [
               TextSpan(
-                text: 'Crea tu cuenta como ',
-                style: TextStyle(
+                text: tr(context, 'auth.crea_tu_cuenta_como'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
@@ -293,8 +294,8 @@ class _FormularioRegistro extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: 'vendedor',
-                style: TextStyle(
+                text: tr(context, 'auth.rol_vendedor_minuscula'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
@@ -307,8 +308,8 @@ class _FormularioRegistro extends StatelessWidget {
 
         const SizedBox(height: 6),
 
-        const Text(
-          'Completa tu información para empezar a compartir tus creaciones.',
+        Text(
+          tr(context, 'auth.completa_info_empezar'),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -323,13 +324,13 @@ class _FormularioRegistro extends StatelessWidget {
         _FilaDos(
           izquierda: CampoTexto(
             controlador: ctrlNombres,
-            hint: 'Nombres',
+            hint: tr(context, 'auth.nombres_hint'),
             icono: Icons.person_outline_rounded,
             esOscuro: esOscuro,
           ),
           derecha: CampoTexto(
             controlador: ctrlApellidos,
-            hint: 'Apellidos',
+            hint: tr(context, 'auth.apellidos_hint'),
             icono: Icons.person_outline_rounded,
             esOscuro: esOscuro,
           ),
@@ -340,7 +341,7 @@ class _FormularioRegistro extends StatelessWidget {
         // ── FILA 2: Correo (ancho completo) ──────────────────────────
         CampoTexto(
           controlador: ctrlCorreo,
-          hint: 'Correo electrónico',
+          hint: tr(context, 'auth.correo_electronico_hint'),
           icono: Icons.mail_outline_rounded,
           esOscuro: esOscuro,
         ),
@@ -351,13 +352,13 @@ class _FormularioRegistro extends StatelessWidget {
         _FilaDos(
           izquierda: CampoTexto(
             controlador: ctrlUsuario,
-            hint: 'Nombre de usuario',
+            hint: tr(context, 'auth.nombre_usuario_hint'),
             icono: Icons.badge_outlined,
             esOscuro: esOscuro,
           ),
           derecha: CampoTexto(
             controlador: ctrlPassword,
-            hint: 'Contraseña',
+            hint: tr(context, 'auth.contrasena_hint'),
             icono: Icons.lock_outline_rounded,
             esOscuro: esOscuro,
             esPassword: true,
@@ -372,13 +373,13 @@ class _FormularioRegistro extends StatelessWidget {
         _FilaDos(
   izquierda: CampoTexto(
     controlador: ctrlTelefono,
-    hint: 'Número de teléfono',
+    hint: tr(context, 'auth.numero_telefono_hint'),
     icono: Icons.phone_outlined,
     esOscuro: esOscuro,
   ),
   derecha: CampoTexto(
     controlador: ctrlFechaNacimiento,
-    hint: 'Fecha de nacimiento',
+    hint: tr(context, 'auth.fecha_nacimiento_hint'),
     icono: Icons.calendar_today_outlined,
     esOscuro: esOscuro,
     readOnly: true,
@@ -406,7 +407,7 @@ class _FormularioRegistro extends StatelessWidget {
         _FilaDos(
           izquierda: CampoDropdown<String>(
             valorSeleccionado: provincia,
-            hint: 'Provincia / comarca',
+            hint: tr(context, 'auth.provincia_comarca_hint'),
             icono: Icons.map_outlined,
             alCambiar: alCambiarProvincia,
             items: kProvinciasPanama
@@ -415,7 +416,7 @@ class _FormularioRegistro extends StatelessWidget {
           ),
           derecha: CampoTexto(
             controlador: ctrlUbicacion,
-            hint: 'Ciudad / dirección (opcional)',
+            hint: tr(context, 'auth.ciudad_direccion_hint'),
             icono: Icons.location_on_outlined,
             esOscuro: esOscuro,
           ),
@@ -427,19 +428,19 @@ class _FormularioRegistro extends StatelessWidget {
         _FilaDos(
           izquierda: CampoTexto(
             controlador: ctrlId,
-            hint: 'ID / Número de identificación',
+            hint: tr(context, 'auth.id_numero_identificacion_hint'),
             icono: Icons.badge_outlined,
             esOscuro: esOscuro,
           ),
           derecha: CampoDropdown<String>(
             valorSeleccionado: genero,
-            hint: 'Género',
+            hint: tr(context, 'auth.genero_hint'),
             icono: Icons.wc_outlined,
             alCambiar: alCambiarGenero,
-            items: const [
-              DropdownMenuItem(value: 'masculino', child: Text('Masculino')),
-              DropdownMenuItem(value: 'femenino', child: Text('Femenino')),
-              DropdownMenuItem(value: 'otro', child: Text('Prefiero no decir')),
+            items: [
+              DropdownMenuItem(value: 'masculino', child: Text(tr(context, 'auth.genero_masculino'))),
+              DropdownMenuItem(value: 'femenino', child: Text(tr(context, 'auth.genero_femenino'))),
+              DropdownMenuItem(value: 'otro', child: Text(tr(context, 'auth.genero_prefiero_no_decir'))),
             ],
           ),
         ),
@@ -455,7 +456,7 @@ class _FormularioRegistro extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Text(
-              errorMensaje!,
+              tr(context, errorMensaje!),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'Poppins',
@@ -477,7 +478,7 @@ class _FormularioRegistro extends StatelessWidget {
                 ),
               )
             : BotonPrimario(
-                texto: 'Crear cuenta',
+                texto: tr(context, 'auth.crear_cuenta'),
                 alPresionar: alRegistrar,
               ),
 
@@ -497,9 +498,9 @@ class _FormularioRegistro extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              '¿Ya tienes una cuenta? ',
-              style: TextStyle(
+            Text(
+              tr(context, 'auth.ya_tienes_cuenta'),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
                 color: CraftHubColors.textoSecClaro,
@@ -509,9 +510,9 @@ class _FormularioRegistro extends StatelessWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () => Navigator.maybePop(context),
-                child: const Text(
-                  'Inicia sesión',
-                  style: TextStyle(
+                child: Text(
+                  tr(context, 'auth.inicia_sesion_link'),
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -589,7 +590,7 @@ class _Encabezado extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Creatividad con propósito',
+                  tr(context, 'auth.creatividad_proposito'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 10,
@@ -637,18 +638,18 @@ class _BotonVolverState extends State<_BotonVolver> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
+              const Icon(
                 Icons.arrow_back_rounded,
                 size: 16,
                 color: CraftHubColors.textoClaro,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
-                'Volver',
-                style: TextStyle(
+                tr(context, 'auth.volver'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -703,9 +704,9 @@ class _ToggleDelivery extends StatelessWidget {
           color: CraftHubColors.textoSecClaro,
         ),
         const SizedBox(width: 10),
-        const Text(
-          '¿Ofreces delivery?',
-          style: TextStyle(
+        Text(
+          tr(context, 'auth.ofreces_delivery'),
+          style: const TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13.5,
             fontWeight: FontWeight.w500,
@@ -737,11 +738,11 @@ class _Separador extends StatelessWidget {
         Expanded(
           child: Divider(color: Colors.black.withValues(alpha: 0.10), thickness: 1),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            'o continúa con',
-            style: TextStyle(
+            tr(context, 'auth.o_continua_con'),
+            style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
               color: CraftHubColors.textoSecClaro,

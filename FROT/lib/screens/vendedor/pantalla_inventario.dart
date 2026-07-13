@@ -14,6 +14,7 @@ import '../../services/vendedor_api_service.dart';
 import '../../services/api_service.dart';
 import '../../services/exportador_inventario.dart';
 import '../comprador/pantalla_detalle_producto.dart';
+import '../../core/i18n/i18n.dart';
 
 class PantallaInventario extends StatefulWidget {
   final String nombreVendedor;
@@ -167,16 +168,17 @@ class _PantallaInventarioState extends State<PantallaInventario> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Eliminar producto',
-            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16)),
-        content: Text('¿Seguro que quieres eliminar "${producto.nombre}"? Esta acción no se puede deshacer.',
+        title: Text(tr(context, 'vendedor_inventario.eliminar_producto_titulo'),
+            style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text(
+            '${tr(context, 'vendedor_inventario.confirmar_eliminar_prefijo')}${producto.nombre}${tr(context, 'vendedor_inventario.confirmar_eliminar_sufijo')}',
             style: const TextStyle(fontFamily: 'Poppins', fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr(context, 'vendedor_inventario.cancelar'))),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC62828), foregroundColor: Colors.white),
-            child: const Text('Eliminar'),
+            child: Text(tr(context, 'vendedor_inventario.eliminar')),
           ),
         ],
       ),
@@ -189,7 +191,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo eliminar: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'vendedor_inventario.no_se_pudo_eliminar_prefijo')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     }
   }
@@ -209,12 +211,12 @@ class _PantallaInventarioState extends State<PantallaInventario> {
       await ExportadorInventario.exportarCsv(_productosFiltrados);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inventario exportado correctamente.')),
+        SnackBar(content: Text(tr(context, 'vendedor_inventario.exportado_correctamente'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo exportar: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'vendedor_inventario.no_se_pudo_exportar_prefijo')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     }
   }
@@ -240,7 +242,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         color: colorFondo,
         child: Center(
           child: Text(
-            'No se pudo cargar el inventario: $_error',
+            '${tr(context, 'vendedor_inventario.no_se_pudo_cargar_prefijo')}$_error',
             style: const TextStyle(color: Colors.redAccent),
           ),
         ),
@@ -306,7 +308,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
             Row(
               children: [
                 Text(
-                  'Mi inventario',
+                  tr(context, 'vendedor_inventario.titulo_pantalla'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 30,
@@ -325,7 +327,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Gestiona y organiza todos tus productos en un solo lugar.',
+              tr(context, 'vendedor_inventario.subtitulo_pantalla'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
@@ -339,9 +341,9 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         OutlinedButton.icon(
           onPressed: _exportarInventario,
           icon: const Icon(Icons.upload_outlined, size: 16),
-          label: const Text(
-            'Exportar inventario',
-            style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
+          label: Text(
+            tr(context, 'vendedor_inventario.exportar_inventario'),
+            style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
           ),
           style: OutlinedButton.styleFrom(
             foregroundColor: esModoOscuro
@@ -363,9 +365,9 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         ElevatedButton.icon(
           onPressed: _nuevoProducto,
           icon: const Icon(Icons.add, size: 16),
-          label: const Text(
-            'Agregar producto',
-            style: TextStyle(
+          label: Text(
+            tr(context, 'vendedor_inventario.agregar_producto'),
+            style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -393,35 +395,35 @@ class _PantallaInventarioState extends State<PantallaInventario> {
           icono: Icons.inventory_2_outlined,
           colorIcono: const Color(0xFF7B5EA7),
           valor: '$_totalProductos',
-          etiqueta: 'Productos totales',
+          etiqueta: tr(context, 'vendedor_inventario.stat_productos_totales'),
         ),
         const SizedBox(width: 16),
         TarjetaEstadistica(
           icono: Icons.check_circle_outline,
           colorIcono: const Color(0xFF2E7D32),
           valor: '$_productosActivos',
-          etiqueta: 'Activos',
+          etiqueta: tr(context, 'vendedor_inventario.stat_activos'),
         ),
         const SizedBox(width: 16),
         TarjetaEstadistica(
           icono: Icons.label_off_outlined,
           colorIcono: const Color(0xFFE65100),
           valor: '$_productosAgotados',
-          etiqueta: 'Agotados',
+          etiqueta: tr(context, 'vendedor_inventario.stat_agotados'),
         ),
         const SizedBox(width: 16),
         TarjetaEstadistica(
           icono: Icons.visibility_outlined,
           colorIcono: const Color(0xFF1565C0),
           valor: '${(_visitasMes / 1000).toStringAsFixed(1)}K',
-          etiqueta: 'Visitas este mes',
+          etiqueta: tr(context, 'vendedor_inventario.stat_visitas_mes'),
         ),
         const SizedBox(width: 16),
         TarjetaEstadistica(
           icono: Icons.attach_money,
           colorIcono: const Color(0xFF821515),
           valor: '\$${_ventasTotales.toStringAsFixed(2)}',
-          etiqueta: 'Ventas totales',
+          etiqueta: tr(context, 'vendedor_inventario.stat_ventas_totales'),
         ),
       ],
     );
@@ -484,7 +486,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
                 color: esModoOscuro ? Colors.white : const Color(0xFF1A1A1A),
               ),
               decoration: estiloCampo.copyWith(
-                hintText: 'Buscar producto...',
+                hintText: tr(context, 'vendedor_inventario.buscar_producto_hint'),
                 hintStyle: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -572,9 +574,9 @@ class _PantallaInventarioState extends State<PantallaInventario> {
               _aplicarFiltros();
             },
             icon: const Icon(Icons.refresh, size: 15),
-            label: const Text(
-              'Limpiar filtros',
-              style: TextStyle(fontFamily: 'Poppins', fontSize: 12),
+            label: Text(
+              tr(context, 'vendedor_inventario.limpiar_filtros'),
+              style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
             ),
             style: TextButton.styleFrom(
               foregroundColor: esModoOscuro
@@ -591,9 +593,9 @@ class _PantallaInventarioState extends State<PantallaInventario> {
               // TODO: Abrir panel de filtros avanzados
             },
             icon: const Icon(Icons.filter_list, size: 15),
-            label: const Text(
-              'Filtros avanzados',
-              style: TextStyle(fontFamily: 'Poppins', fontSize: 12),
+            label: Text(
+              tr(context, 'vendedor_inventario.filtros_avanzados'),
+              style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: esModoOscuro
@@ -645,7 +647,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
               padding: const EdgeInsets.symmetric(vertical: 48),
               child: Center(
                 child: Text(
-                  'No se encontraron productos con los filtros aplicados.',
+                  tr(context, 'vendedor_inventario.sin_productos_filtrados'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
@@ -853,7 +855,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     final precio = double.tryParse(_ctrlPrecio.text.trim().replaceAll(',', '.'));
     final stock = int.tryParse(_ctrlStock.text.trim());
     if (_ctrlNombre.text.trim().isEmpty || precio == null || stock == null) {
-      setState(() => _error = 'Revisa que nombre, precio y stock sean válidos.');
+      setState(() => _error = tr(context, 'vendedor_inventario.error_validacion_producto'));
       return;
     }
     setState(() {
@@ -929,7 +931,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Editar producto',
+                          tr(context, 'vendedor_inventario.editar_producto_titulo'),
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 17,
                               fontWeight: FontWeight.w700, color: colorTexto),
                         ),
@@ -959,16 +961,16 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                       const SizedBox(height: 18),
                       _SeccionFormulario(
                         icono: Icons.info_outline_rounded,
-                        titulo: 'Información básica',
+                        titulo: tr(context, 'vendedor_inventario.seccion_informacion_basica'),
                         child: TextField(
                           controller: _ctrlNombre,
-                          decoration: const InputDecoration(labelText: 'Nombre del producto'),
+                          decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_nombre_producto')),
                         ),
                       ),
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.sell_outlined,
-                        titulo: 'Precio e inventario',
+                        titulo: tr(context, 'vendedor_inventario.seccion_precio_inventario'),
                         child: Column(
                           children: [
                             Row(
@@ -977,7 +979,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                                   child: TextField(
                                     controller: _ctrlPrecio,
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_precio'), prefixText: '\$'),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -985,7 +987,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                                   child: TextField(
                                     controller: _ctrlStock,
                                     keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(labelText: 'Stock'),
+                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_stock')),
                                   ),
                                 ),
                               ],
@@ -993,7 +995,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                             const SizedBox(height: 12),
                             DropdownButtonFormField<String>(
                               value: _categoria,
-                              decoration: const InputDecoration(labelText: 'Categoría'),
+                              decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_categoria')),
                               items: _categorias
                                   .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                   .toList(),
@@ -1001,36 +1003,33 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                             ),
                           ],
                         ),
-                        tip: 'Compara con productos parecidos de tu categoría antes de fijar el precio: '
-                            'te ayuda a mantenerte competitivo sin regalar tu trabajo.',
+                        tip: tr(context, 'vendedor_inventario.tip_precio'),
                       ),
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.image_outlined,
-                        titulo: 'Imagen del producto',
+                        titulo: tr(context, 'vendedor_inventario.seccion_imagen_producto'),
                         child: _SelectorImagenProducto(
                           ctrlImagen: _ctrlImagen,
                           subiendo: _subiendoImagen,
                           alSubirDesdePC: _subirDesdePC,
                           alTomarFoto: _tomarFoto,
                         ),
-                        tip: 'Usa luz natural y un fondo limpio y neutro. Las fotos claras y bien '
-                            'iluminadas son las que más convierten visitas en ventas.',
+                        tip: tr(context, 'vendedor_inventario.tip_imagen'),
                       ),
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.description_outlined,
-                        titulo: 'Descripción',
+                        titulo: tr(context, 'vendedor_inventario.seccion_descripcion'),
                         child: TextField(
                           controller: _ctrlDescripcion,
                           maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: 'Descripción',
-                            hintText: 'Materiales, técnica, tamaño, tiempo de elaboración...',
+                          decoration: InputDecoration(
+                            labelText: tr(context, 'vendedor_inventario.seccion_descripcion'),
+                            hintText: tr(context, 'vendedor_inventario.hint_descripcion_producto'),
                           ),
                         ),
-                        tip: 'Cuenta la historia detrás de la pieza: qué materiales usaste y de qué '
-                            'provincia es la técnica. A los compradores les encanta esa conexión.',
+                        tip: tr(context, 'vendedor_inventario.tip_descripcion'),
                       ),
                       if (_error != null) ...[
                         const SizedBox(height: 14),
@@ -1050,7 +1049,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Cancelar'),
+                    child: Text(tr(context, 'vendedor_inventario.cancelar')),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton.icon(
@@ -1061,7 +1060,9 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.check_rounded, size: 18),
-                    label: Text(_guardando ? 'Guardando...' : 'Guardar cambios'),
+                    label: Text(_guardando
+                        ? tr(context, 'vendedor_inventario.guardando')
+                        : tr(context, 'vendedor_inventario.guardar_cambios')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF821515),
                       foregroundColor: Colors.white,
@@ -1215,7 +1216,7 @@ class _SelectorImagenProducto extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: ctrlImagen,
-                    decoration: const InputDecoration(labelText: 'URL de imagen'),
+                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_url_imagen')),
                   ),
                 ),
               ],
@@ -1224,8 +1225,8 @@ class _SelectorImagenProducto extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: subiendo ? null : alSubirDesdePC,
               icon: const Icon(Icons.upload_outlined, size: 16, color: Color(0xFF821515)),
-              label: const Text('Subir imagen desde PC',
-                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
+              label: Text(tr(context, 'vendedor_inventario.subir_imagen_pc'),
+                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(40),
                 side: const BorderSide(color: Color(0xFFE3B8B8)),
@@ -1236,8 +1237,8 @@ class _SelectorImagenProducto extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: subiendo ? null : alTomarFoto,
               icon: const Icon(Icons.photo_camera_outlined, size: 16, color: Color(0xFF821515)),
-              label: const Text('Tomar foto con cámara',
-                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
+              label: Text(tr(context, 'vendedor_inventario.tomar_foto_camara'),
+                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(40),
                 side: const BorderSide(color: Color(0xFFE3B8B8)),
@@ -1322,7 +1323,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
     final precio = double.tryParse(_ctrlPrecio.text.trim().replaceAll(',', '.'));
     final stock = int.tryParse(_ctrlStock.text.trim());
     if (_ctrlNombre.text.trim().isEmpty || precio == null || stock == null) {
-      setState(() => _error = 'Revisa que nombre, precio y stock sean válidos.');
+      setState(() => _error = tr(context, 'vendedor_inventario.error_validacion_producto'));
       return;
     }
     setState(() {
@@ -1381,12 +1382,12 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Nuevo producto',
+                          tr(context, 'vendedor_inventario.nuevo_producto_titulo'),
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 17,
                               fontWeight: FontWeight.w700, color: colorTexto),
                         ),
                         Text(
-                          'Publica una nueva pieza en tu tienda',
+                          tr(context, 'vendedor_inventario.nuevo_producto_subtitulo'),
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
                               color: esModoOscuro ? Colors.white54 : const Color(0xFF9E8E85)),
                         ),
@@ -1409,18 +1410,17 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                       const SizedBox(height: 18),
                       _SeccionFormulario(
                         icono: Icons.info_outline_rounded,
-                        titulo: 'Información básica',
+                        titulo: tr(context, 'vendedor_inventario.seccion_informacion_basica'),
                         child: TextField(
                           controller: _ctrlNombre,
-                          decoration: const InputDecoration(labelText: 'Nombre del producto'),
+                          decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_nombre_producto')),
                         ),
-                        tip: 'Un nombre claro y específico (ej. "Mola Guna floral tejida a mano") '
-                            'ayuda a que te encuentren más fácil en las búsquedas.',
+                        tip: tr(context, 'vendedor_inventario.tip_nombre'),
                       ),
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.sell_outlined,
-                        titulo: 'Precio e inventario',
+                        titulo: tr(context, 'vendedor_inventario.seccion_precio_inventario'),
                         child: Column(
                           children: [
                             Row(
@@ -1429,7 +1429,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                                   child: TextField(
                                     controller: _ctrlPrecio,
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    decoration: const InputDecoration(labelText: 'Precio', prefixText: '\$'),
+                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_precio'), prefixText: '\$'),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -1437,7 +1437,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                                   child: TextField(
                                     controller: _ctrlStock,
                                     keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(labelText: 'Stock'),
+                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_stock')),
                                   ),
                                 ),
                               ],
@@ -1445,7 +1445,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                             const SizedBox(height: 12),
                             DropdownButtonFormField<String>(
                               value: _categoria,
-                              decoration: const InputDecoration(labelText: 'Categoría'),
+                              decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_categoria')),
                               items: _categorias
                                   .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                   .toList(),
@@ -1453,36 +1453,33 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                             ),
                           ],
                         ),
-                        tip: 'Compara con productos parecidos de tu categoría antes de fijar el precio: '
-                            'te ayuda a mantenerte competitivo sin regalar tu trabajo.',
+                        tip: tr(context, 'vendedor_inventario.tip_precio'),
                       ),
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.image_outlined,
-                        titulo: 'Imagen del producto',
+                        titulo: tr(context, 'vendedor_inventario.seccion_imagen_producto'),
                         child: _SelectorImagenProducto(
                           ctrlImagen: _ctrlImagen,
                           subiendo: _subiendoImagen,
                           alSubirDesdePC: _subirDesdePC,
                           alTomarFoto: _tomarFoto,
                         ),
-                        tip: 'Usa luz natural y un fondo limpio y neutro. Las fotos claras y bien '
-                            'iluminadas son las que más convierten visitas en ventas.',
+                        tip: tr(context, 'vendedor_inventario.tip_imagen'),
                       ),
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.description_outlined,
-                        titulo: 'Descripción',
+                        titulo: tr(context, 'vendedor_inventario.seccion_descripcion'),
                         child: TextField(
                           controller: _ctrlDescripcion,
                           maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: 'Descripción',
-                            hintText: 'Materiales, técnica, tamaño, tiempo de elaboración...',
+                          decoration: InputDecoration(
+                            labelText: tr(context, 'vendedor_inventario.seccion_descripcion'),
+                            hintText: tr(context, 'vendedor_inventario.hint_descripcion_producto'),
                           ),
                         ),
-                        tip: 'Cuenta la historia detrás de la pieza: qué materiales usaste y de qué '
-                            'provincia es la técnica. A los compradores les encanta esa conexión.',
+                        tip: tr(context, 'vendedor_inventario.tip_descripcion'),
                       ),
                       if (_error != null) ...[
                         const SizedBox(height: 14),
@@ -1502,7 +1499,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Cancelar'),
+                    child: Text(tr(context, 'vendedor_inventario.cancelar')),
                   ),
                   const SizedBox(width: 10),
                   ElevatedButton.icon(
@@ -1513,7 +1510,9 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.add_rounded, size: 18),
-                    label: Text(_guardando ? 'Creando...' : 'Crear producto'),
+                    label: Text(_guardando
+                        ? tr(context, 'vendedor_inventario.creando')
+                        : tr(context, 'vendedor_inventario.crear_producto')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF821515),
                       foregroundColor: Colors.white,

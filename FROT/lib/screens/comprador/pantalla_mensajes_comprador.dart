@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
 import '../../services/chat_api_service.dart';
 import '../../widgets/chat/panel_conversaciones.dart';
@@ -25,11 +27,57 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
   bool _cargandoConversaciones = true;
   bool _cargandoMensajes = false;
   String? _error;
+  Timer? _pollConversaciones;
+  Timer? _pollMensajes;
 
   @override
   void initState() {
     super.initState();
     _cargarConversaciones();
+    _pollConversaciones = Timer.periodic(const Duration(seconds: 6), (_) => _refrescarConversaciones());
+  }
+
+  @override
+  void dispose() {
+    _pollConversaciones?.cancel();
+    _pollMensajes?.cancel();
+    super.dispose();
+  }
+
+  // Refresca la lista de conversaciones en segundo plano (sin spinner) para
+  // que las vistas previas y los contadores de no leídos se mantengan al día
+  // aunque no haya ninguna conversación abierta.
+  Future<void> _refrescarConversaciones() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final lista = await ChatApiService.cargarConversaciones(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _conversaciones = lista;
+      });
+    } catch (_) {
+      // Silencioso: es un refresco de fondo, no bloquea la interacción.
+    }
+  }
+
+  // Sondea la conversación abierta cada pocos segundos para simular tiempo
+  // real (el backend todavía no expone WebSocket) — así los mensajes del
+  // otro participante aparecen sin tener que cerrar y reabrir el chat.
+  void _iniciarSondeoMensajes(String conversacionId) {
+    _pollMensajes?.cancel();
+    _pollMensajes = Timer.periodic(const Duration(seconds: 3), (_) async {
+      if (_conversacionActiva?.id != conversacionId) return;
+      try {
+        final mensajes = await ChatApiService.cargarMensajes(conversacionId, widget.userId);
+        if (!mounted || _conversacionActiva?.id != conversacionId) return;
+        if (mensajes.length != _mensajesActivos.length) {
+          setState(() => _mensajesActivos = mensajes);
+          ChatApiService.marcarMensajesLeidos(conversacionId, widget.userId);
+        }
+      } catch (_) {
+        // Silencioso: se reintenta en el próximo ciclo.
+      }
+    });
   }
 
   Future<void> _cargarConversaciones() async {
@@ -88,11 +136,12 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
       if (conv.mensajesNoLeidos > 0) {
         ChatApiService.marcarMensajesLeidos(conv.id, widget.userId);
       }
+      _iniciarSondeoMensajes(conv.id);
     } catch (e) {
       if (!mounted) return;
       setState(() => _cargandoMensajes = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudieron cargar los mensajes: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'comprador_social.mensajes_error_cargar')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     }
   }
@@ -125,14 +174,14 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
                           ? _PantallaVacia(
                               isDark: isDark,
                               icono: Icons.forum_outlined,
-                              titulo: 'Tus mensajes',
+                              titulo: tr(context, 'comprador_social.mensajes_vacio_titulo'),
                               subtitulo:
-                                  'Selecciona una conversación para chatear\ncon un artesano.',
+                                  tr(context, 'comprador_social.mensajes_vacio_subtitulo'),
                             )
                           : _cargandoMensajes
                               ? const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto))
                               : PanelChat(
-                                  key: ValueKey(_conversacionActiva!.id),
+                                  key: ValueKey('${_conversacionActiva!.id}_${_mensajesActivos.length}'),
                                   conversacion: _conversacionActiva!,
                                   mensajes: _mensajesActivos,
                                   usuarioId: widget.userId,
@@ -164,7 +213,10 @@ class _PantallaVacia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: isDark ? CraftHubColors.fondoOscuro : const Color(0xFFF5EFE9),
+      decoration: BoxDecoration(
+        color: isDark ? CraftHubColors.fondoOscuro : const Color(0xFFF5EFE9),
+        image: construirFondoChat(isDark),
+      ),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -225,7 +277,7 @@ class _PantallaError extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(isDark))),
             const SizedBox(height: 14),
-            TextButton(onPressed: alReintentar, child: const Text('Reintentar')),
+            TextButton(onPressed: alReintentar, child: Text(tr(context, 'comprador_social.reintentar'))),
           ],
         ),
       ),

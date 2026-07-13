@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import 'tarjeta_tutorial.dart';
+import '../../core/i18n/i18n.dart';
 
 /// Tarjeta compacta para la columna lateral "Mis videos".
 /// 🔌 GET /api/tutoriales/mis-videos → List<ModeloTutorial>
@@ -150,7 +151,7 @@ class _TarjetaMiVideoState extends State<TarjetaMiVideo> {
               IconButton(
                 icon: Icon(Icons.more_vert_rounded, size: 16, color: colorSec),
                 onPressed: widget.alPresionarOpciones,
-                tooltip: 'Opciones',
+                tooltip: tr(context, 'vendedor_inventario.opciones_tooltip'),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(
                     minWidth: 24, minHeight: 24),

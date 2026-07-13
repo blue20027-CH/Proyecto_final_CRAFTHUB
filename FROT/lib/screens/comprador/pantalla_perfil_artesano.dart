@@ -3,6 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../widgets/comprador/tarjeta_producto_perfil.dart';
 import '../../widgets/comprador/selector_coleccion.dart';
 import '../../services/api_service.dart';
+import '../../core/i18n/i18n.dart';
 
 // Modelo de datos del artesano
 // TODO: reemplazar con tu modelo real desde FastAPI
@@ -116,7 +117,9 @@ class _PantallaPerfilArtesanoState extends State<PantallaPerfilArtesano> {
 
   String get _tituloProductos {
     final nombre = widget.artesano.nombre.split(' ').first;
-    if (_coleccionSeleccionada == null) return 'Productos de $nombre';
+    if (_coleccionSeleccionada == null) {
+      return '${tr(context, 'comprador_secundario.productos_de')} $nombre';
+    }
     return _coleccionSeleccionada!;
   }
 
@@ -369,7 +372,7 @@ class _SeccionBanner extends StatelessWidget {
                     children: esPropio
                         ? [
                             _BotonAccion(
-                              texto: 'Editar perfil',
+                              texto: tr(context, 'comprador_secundario.editar_perfil'),
                               icono: Icons.edit_outlined,
                               esPrimario: true,
                               alPresionar: onEditar ?? () {},
@@ -377,14 +380,14 @@ class _SeccionBanner extends StatelessWidget {
                           ]
                         : [
                             _BotonAccion(
-                              texto: 'Enviar mensaje',
+                              texto: tr(context, 'comprador_secundario.enviar_mensaje'),
                               icono: Icons.chat_bubble_outline_rounded,
                               esPrimario: true,
                               alPresionar: () {},
                             ),
                             const SizedBox(width: 12),
                             _BotonAccion(
-                              texto: 'Seguir artesana',
+                              texto: tr(context, 'comprador_secundario.seguir_artesana'),
                               icono: Icons.favorite_border_rounded,
                               esPrimario: false,
                               alPresionar: () {},
@@ -432,14 +435,14 @@ class _BotonVolverState extends State<_BotonVolver> {
                 : Colors.white.withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(30),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.arrow_back_rounded, size: 16, color: CraftHubColors.textoClaro),
-              SizedBox(width: 6),
+              const Icon(Icons.arrow_back_rounded, size: 16, color: CraftHubColors.textoClaro),
+              const SizedBox(width: 6),
               Text(
-                'Volver',
-                style: TextStyle(
+                tr(context, 'comprador_secundario.volver'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -549,22 +552,22 @@ class _SeccionEstadisticas extends StatelessWidget {
           _StatNumerico(
               icono: Icons.inventory_2_outlined,
               valor: '${artesano.totalProductos}',
-              etiqueta: 'Productos'),
+              etiqueta: tr(context, 'comprador_secundario.productos')),
           const SizedBox(width: 48),
           _StatNumerico(
               icono: Icons.calendar_today_outlined,
-              valor: '${artesano.anosEnCraftHub} años',
-              etiqueta: 'En CraftHub'),
+              valor: '${artesano.anosEnCraftHub} ${tr(context, 'comprador_secundario.anos_palabra')}',
+              etiqueta: tr(context, 'comprador_secundario.en_crafthub')),
           const SizedBox(width: 48),
           _StatNumerico(
               icono: Icons.thumb_up_alt_outlined,
               valor: '${artesano.valoracionesPositivas}%',
-              etiqueta: 'Valoraciones positivas'),
+              etiqueta: tr(context, 'comprador_secundario.valoraciones_positivas')),
           const SizedBox(width: 48),
           _StatNumerico(
               icono: Icons.shopping_bag_outlined,
               valor: '${artesano.ventasRealizadas}',
-              etiqueta: 'Ventas realizadas'),
+              etiqueta: tr(context, 'comprador_secundario.ventas_realizadas')),
         ],
       ),
     );
@@ -656,7 +659,7 @@ class _PanelIzquierdo extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'Sobre $primerNombre',
+              '${tr(context, 'comprador_secundario.sobre')} $primerNombre',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
@@ -679,7 +682,7 @@ class _PanelIzquierdo extends StatelessWidget {
           Divider(color: CraftHubColors.borde(esOscuro), height: 1),
           const SizedBox(height: 18),
           Text(
-            'ESPECIALIDADES',
+            tr(context, 'comprador_secundario.especialidades_titulo'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 10.5,
@@ -723,7 +726,7 @@ class _PanelIzquierdo extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Envíos a todo Panamá',
+                        tr(context, 'comprador_secundario.envios_todo_panama'),
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 12,
@@ -733,7 +736,7 @@ class _PanelIzquierdo extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Entregas rápidas y seguras a cualquier provincia.',
+                        tr(context, 'comprador_secundario.entregas_rapidas_seguras'),
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 11,
@@ -827,7 +830,7 @@ class _PanelProductos extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '$totalProductos productos',
+                '$totalProductos ${tr(context, 'comprador_secundario.productos_palabra')}',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
@@ -850,7 +853,7 @@ class _PanelProductos extends StatelessWidget {
                 height: 200,
                 child: Center(
                   child: Text(
-                    'No hay productos en esta colección.',
+                    tr(context, 'comprador_secundario.sin_productos_en_coleccion'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,

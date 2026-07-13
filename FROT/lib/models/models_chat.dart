@@ -7,6 +7,25 @@
 //   WS   /ws/chat/{conversacionId}          → stream en tiempo real
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'package:flutter/material.dart';
+
+// Papel tapiz de fondo compartido por todas las pantallas de chat (panel de
+// conversación activa y los estados vacíos), para que se vea consistente.
+const String kFondoChatUrl =
+    'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jul%2010,%202026,%2003_30_22%20PM.png';
+
+// Solo opacidad, sin colorFilter: un "lighten" forzaba el fondo oscuro del
+// PNG hacia el crema del tema y aplanaba el dibujo (las líneas quedaban casi
+// del mismo tono que el crema, perdiendo el detalle). Con opacidad simple el
+// patrón se ve con su contraste real, solo más tenue.
+DecorationImage construirFondoChat(bool isDark) {
+  return DecorationImage(
+    image: const NetworkImage(kFondoChatUrl),
+    fit: BoxFit.cover,
+    opacity: isDark ? 0.22 : 0.40,
+  );
+}
+
 enum TipoMensaje { texto, imagen, publicacion }
 
 class PublicacionCompartidaModelo {
@@ -108,7 +127,7 @@ class ConversacionModelo {
       nombreContacto: (json['nombre_contacto'] ?? 'Usuario CraftHub').toString(),
       idContacto: json['id_contacto']?.toString(),
       rolContacto: (json['rol_contacto'] ?? 'Cliente').toString(),
-      avatarUrl: '',
+      avatarUrl: (json['foto_contacto'] ?? '').toString(),
       ultimoMensaje: (json['ultimo_mensaje'] ?? '').toString(),
       horaUltimo: DateTime.tryParse((json['ultimo_mensaje_hora'] ?? '').toString())?.toLocal() ?? DateTime.now(),
       mensajesNoLeidos: int.tryParse((json['mensajes_no_leidos'] ?? 0).toString()) ?? 0,

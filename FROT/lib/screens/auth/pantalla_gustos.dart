@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../services/api_service.dart';
+import '../../core/i18n/i18n.dart';
 import '../comprador/inicio_comprador.dart';
 
 class _Provincia {
@@ -357,7 +358,7 @@ class _Encabezado extends StatelessWidget {
             children: [
               Flexible(
                 child: Text(
-                  'Cuéntanos tus intereses',
+                  tr(context, 'auth.cuentanos_intereses'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Poppins',
@@ -381,7 +382,7 @@ class _Encabezado extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Selecciona tus provincias, comarcas y los tipos de productos\nque más te interesan para personalizar tu experiencia.',
+            tr(context, 'auth.selecciona_provincias_comarcas_tipos'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -425,7 +426,7 @@ class _ResumenSeleccion extends StatelessWidget {
           Expanded(
             child: _StatCard(
               icon: Icons.location_on_outlined,
-              titulo: 'Regiones',
+              titulo: tr(context, 'auth.regiones'),
               valor: totalRegiones.toString(),
             ),
           ),
@@ -433,7 +434,7 @@ class _ResumenSeleccion extends StatelessWidget {
           Expanded(
             child: _StatCard(
               icon: Icons.category_outlined,
-              titulo: 'Categorías',
+              titulo: tr(context, 'auth.categorias'),
               valor: totalCategorias.toString(),
             ),
           ),
@@ -466,11 +467,10 @@ class _SeccionRegiones extends StatelessWidget {
         children: [
           _TituloSeccion(
             icono: Icons.location_on_outlined,
-            texto:
-                '1. Selecciona las provincias y comarcas de Panamá que te interesan',
+            texto: tr(context, 'auth.titulo_seccion_regiones'),
           ),
           const SizedBox(height: 20),
-          _SubLabel(texto: 'Provincias', esModoOscuro: esModoOscuro),
+          _SubLabel(texto: tr(context, 'auth.provincias_label'), esModoOscuro: esModoOscuro),
           const SizedBox(height: 12),
           Wrap(
             spacing: 10,
@@ -485,7 +485,7 @@ class _SeccionRegiones extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: 20),
-          _SubLabel(texto: 'Comarcas', esModoOscuro: esModoOscuro),
+          _SubLabel(texto: tr(context, 'auth.comarcas_label'), esModoOscuro: esModoOscuro),
           const SizedBox(height: 12),
           Wrap(
             spacing: 10,
@@ -502,8 +502,7 @@ class _SeccionRegiones extends StatelessWidget {
           const SizedBox(height: 16),
           _Nota(
             icono: Icons.people_outline,
-            texto:
-                'Puedes seleccionar una o varias provincias y comarcas según tus intereses.',
+            texto: tr(context, 'auth.nota_provincias_comarcas'),
           ),
         ],
       ),
@@ -530,11 +529,11 @@ class _SeccionCategorias extends StatelessWidget {
         children: [
           _TituloSeccion(
             icono: Icons.shopping_bag_outlined,
-            texto: '2. ¿Qué tipos de productos te interesan?',
+            texto: tr(context, 'auth.titulo_seccion_categorias'),
           ),
           const SizedBox(height: 6),
           Text(
-            'Selecciona las categorías que más te gustan.',
+            tr(context, 'auth.selecciona_categorias_gustan'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 13,
@@ -574,8 +573,7 @@ class _SeccionCategorias extends StatelessWidget {
           const SizedBox(height: 16),
           _Nota(
             icono: Icons.favorite_border,
-            texto:
-                'Cuantas más categorías selecciones, mejores recomendaciones te daremos.',
+            texto: tr(context, 'auth.nota_categorias'),
           ),
         ],
       ),
@@ -689,7 +687,7 @@ class _BarraAcciones extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Omitir por ahora',
+              tr(context, 'auth.omitir_por_ahora'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 14,
@@ -718,19 +716,19 @@ class _BarraAcciones extends StatelessWidget {
                       color: Colors.white,
                     ),
                   )
-                : const Row(
+                : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Guardar y continuar',
-                        style: TextStyle(
+                        tr(context, 'auth.guardar_continuar'),
+                        style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 18),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 18),
                     ],
                   ),
           ),

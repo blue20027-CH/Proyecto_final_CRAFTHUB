@@ -2,6 +2,7 @@ import 'package:abi_frotend_nd/screens/auth/pantalla_gustos.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../screens/auth/registro_vendedor.dart';
 import '../../screens/auth/registro_comprador.dart';
 import '../../main.dart';
@@ -130,7 +131,7 @@ class _BotonVolverState extends State<_BotonVolver> {
               Icon(Icons.arrow_back_rounded, size: 16, color: colorTexto),
               const SizedBox(width: 6),
               Text(
-                'Volver',
+                tr(context, 'auth.volver'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -159,7 +160,7 @@ class _CuerpoSeleccion extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '¿Cuál es tu rol en CraftHub?',
+          tr(context, 'auth.cual_es_tu_rol'),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -170,7 +171,7 @@ class _CuerpoSeleccion extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Selecciona la opción que mejor te describa para personalizar tu experiencia.',
+          tr(context, 'auth.selecciona_opcion_describa'),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -194,12 +195,11 @@ class _CuerpoSeleccion extends StatelessWidget {
                 child: _TarjetaRol(
                   esOscuro: esOscuro,
                   icono: Icons.storefront_outlined,
-                  titulo: 'Vendedor',
-                  descripcion:
-                      'Crea tu tienda, muestra tus productos\ny conecta con personas que valoran\nlo hecho a mano.',
+                  titulo: tr(context, 'auth.rol_vendedor'),
+                  descripcion: tr(context, 'auth.desc_vendedor'),
                   botones: [
                     _DatoBoton(
-                      texto: 'Registrarme como vendedor',
+                      texto: tr(context, 'auth.registrarme_vendedor'),
                       icono: Icons.person_add_outlined,
                       esPrimario: true,
                       alPresionar: () => Navigator.push(
@@ -218,12 +218,11 @@ class _CuerpoSeleccion extends StatelessWidget {
                 child: _TarjetaRol(
                   esOscuro: esOscuro,
                   icono: Icons.shopping_bag_outlined,
-                  titulo: 'Comprador',
-                  descripcion:
-                      'Descubre historias, apoya a los artesanos\ny encuentra piezas únicas hechas\ncon pasión.',
+                  titulo: tr(context, 'auth.rol_comprador'),
+                  descripcion: tr(context, 'auth.desc_comprador'),
                   botones: [
                     _DatoBoton(
-                      texto: 'Explorar como invitado',
+                      texto: tr(context, 'auth.explorar_invitado'),
                       icono: Icons.search_rounded,
                       esPrimario: true,
                       alPresionar: () => Navigator.push(
@@ -234,7 +233,7 @@ class _CuerpoSeleccion extends StatelessWidget {
                       ),
                     ),
                     _DatoBoton(
-                      texto: 'Registrarme como comprador',
+                      texto: tr(context, 'auth.registrarme_comprador'),
                       icono: Icons.person_add_outlined,
                       esPrimario: false,
                       alPresionar: () => Navigator.push(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class GraficoEvaluaciones extends StatefulWidget {
   final Map<int, int> distribucion; // estrella -> cantidad
@@ -65,7 +66,7 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Excelente',
+              tr(context, 'vendedor_dashboard.evaluaciones_excelente'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
@@ -74,7 +75,7 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
               ),
             ),
             Text(
-              'Basado en ${widget.total} opiniones',
+              '${tr(context, 'vendedor_dashboard.evaluaciones_basado_en')} ${widget.total} ${tr(context, 'vendedor_dashboard.evaluaciones_opiniones_sufijo')}',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 10,
@@ -150,7 +151,7 @@ class _GraficoEvaluacionesState extends State<GraficoEvaluaciones> {
                     SizedBox(
                       width: 70,
                       child: Text(
-                        '$estrellas estrellas',
+                        '$estrellas ${tr(context, 'vendedor_dashboard.evaluaciones_estrellas_sufijo')}',
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,

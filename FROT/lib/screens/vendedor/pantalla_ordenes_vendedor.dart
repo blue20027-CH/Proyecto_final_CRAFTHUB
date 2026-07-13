@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/pedido_vendedor_model.dart';
 import '../../services/vendedor_api_service.dart';
@@ -435,7 +436,7 @@ class _Encabezado extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Mis Órdenes',
+                    tr(context, 'vendedor_operaciones.titulo_mis_ordenes'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 28,
@@ -452,7 +453,7 @@ class _Encabezado extends StatelessWidget {
                 ],
               ),
               Text(
-                'Administra y da seguimiento a todas las órdenes de tu tienda.',
+                tr(context, 'vendedor_operaciones.subtitulo_mis_ordenes'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -496,7 +497,7 @@ class _BotonActualizarState extends State<_BotonActualizar> {
       onExit: (_) => setState(() => _sobre = false),
       cursor: SystemMouseCursors.click,
       child: Tooltip(
-        message: 'Actualizar órdenes',
+        message: tr(context, 'vendedor_operaciones.tooltip_actualizar_ordenes'),
         child: GestureDetector(
           onTap: widget.cargando ? null : widget.alTap,
           child: AnimatedContainer(
@@ -533,9 +534,9 @@ class _BotonActualizarState extends State<_BotonActualizar> {
                         color: Colors.white,
                       ),
                 const SizedBox(width: 8),
-                const Text(
-                  'Actualizar',
-                  style: TextStyle(
+                Text(
+                  tr(context, 'vendedor_operaciones.actualizar'),
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -565,37 +566,37 @@ class _FilaEstadisticas extends StatelessWidget {
       _DatoTarjeta(
         icono: Icons.receipt_long_outlined,
         color: CraftHubColors.vinoTinto,
-        titulo: 'Total de órdenes',
+        titulo: tr(context, 'vendedor_operaciones.stat_total_ordenes'),
         valor: '${stats.totalOrdenes}',
-        subtitulo: 'Todas las órdenes',
+        subtitulo: tr(context, 'vendedor_operaciones.stat_todas_las_ordenes'),
       ),
       _DatoTarjeta(
         icono: Icons.fiber_new_rounded,
         color: CraftHubColors.info,
-        titulo: 'Nuevas órdenes',
+        titulo: tr(context, 'vendedor_operaciones.stat_nuevas_ordenes'),
         valor: '${stats.nuevasOrdenes}',
-        subtitulo: 'Últimos 30 días',
+        subtitulo: tr(context, 'vendedor_operaciones.stat_ultimos_30_dias'),
       ),
       _DatoTarjeta(
         icono: Icons.check_circle_outline_rounded,
         color: CraftHubColors.exito,
-        titulo: 'Órdenes completadas',
+        titulo: tr(context, 'vendedor_operaciones.stat_ordenes_completadas'),
         valor: '${stats.completadas}',
-        subtitulo: 'Últimos 30 días',
+        subtitulo: tr(context, 'vendedor_operaciones.stat_ultimos_30_dias'),
       ),
       _DatoTarjeta(
         icono: Icons.cancel_outlined,
         color: CraftHubColors.error,
-        titulo: 'Órdenes canceladas',
+        titulo: tr(context, 'vendedor_operaciones.stat_ordenes_canceladas'),
         valor: '${stats.canceladas}',
-        subtitulo: 'Últimos 30 días',
+        subtitulo: tr(context, 'vendedor_operaciones.stat_ultimos_30_dias'),
       ),
       _DatoTarjeta(
         icono: Icons.attach_money_rounded,
         color: const Color(0xFFB8860B),
-        titulo: 'Ingresos totales',
+        titulo: tr(context, 'vendedor_operaciones.stat_ingresos_totales'),
         valor: '\$${stats.ingresosTotales.toStringAsFixed(2)}',
-        subtitulo: 'Últimos 30 días',
+        subtitulo: tr(context, 'vendedor_operaciones.stat_ultimos_30_dias'),
       ),
     ];
 
@@ -762,11 +763,11 @@ class _BarraFiltros extends StatelessWidget {
     'Cancelada',
   ];
 
-  static const _ordenes = {
-    'recientes': 'Más recientes',
-    'antiguos': 'Más antiguos',
-    'mayor_total': 'Mayor total',
-    'menor_total': 'Menor total',
+  static const _ordenesKeys = {
+    'recientes': 'vendedor_operaciones.orden_mas_recientes',
+    'antiguos': 'vendedor_operaciones.orden_mas_antiguos',
+    'mayor_total': 'vendedor_operaciones.orden_mayor_total',
+    'menor_total': 'vendedor_operaciones.orden_menor_total',
   };
 
   Widget _decorador(Widget child) => Container(
@@ -803,7 +804,7 @@ class _BarraFiltros extends StatelessWidget {
               decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
-                hintText: 'Buscar por orden, cliente o producto...',
+                hintText: tr(context, 'vendedor_operaciones.buscar_ordenes_hint'),
                 hintStyle: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -873,8 +874,8 @@ class _BarraFiltros extends StatelessWidget {
             fontSize: 13,
             color: CraftHubColors.textoPrincipal(esOscuro),
           ),
-          items: _ordenes.entries
-              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+          items: _ordenesKeys.entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(tr(context, e.value))))
               .toList(),
           onChanged: alCambiarOrden,
         ),
@@ -940,7 +941,7 @@ class _EstadoVacio extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'No se encontraron órdenes con estos filtros',
+            tr(context, 'vendedor_operaciones.vacio_sin_resultados'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
@@ -982,7 +983,7 @@ class _EstadoError extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'No se pudieron cargar las órdenes',
+            tr(context, 'vendedor_operaciones.error_no_se_pudieron_cargar'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
@@ -1007,9 +1008,9 @@ class _EstadoError extends StatelessWidget {
               Icons.refresh_rounded,
               color: CraftHubColors.vinoTinto,
             ),
-            label: const Text(
-              'Reintentar',
-              style: TextStyle(
+            label: Text(
+              tr(context, 'vendedor_operaciones.reintentar'),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 color: CraftHubColors.vinoTinto,
                 fontWeight: FontWeight.w600,
@@ -1053,7 +1054,7 @@ class _ChipEstado extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Guardando...',
+              tr(context, 'vendedor_operaciones.guardando'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11.5,
@@ -1068,7 +1069,7 @@ class _ChipEstado extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: PopupMenuButton<String>(
-        tooltip: 'Cambiar estado',
+        tooltip: tr(context, 'vendedor_operaciones.tooltip_cambiar_estado'),
         offset: const Offset(0, 34),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onSelected: alCambiarEstado,
@@ -1250,7 +1251,7 @@ class _UbicacionTappableState extends State<_UbicacionTappable> {
       onExit: (_) => setState(() => _sobre = false),
       cursor: SystemMouseCursors.click,
       child: Tooltip(
-        message: 'Ver en el mapa',
+        message: tr(context, 'vendedor_operaciones.ver_en_el_mapa'),
         child: GestureDetector(
           onTap: widget.onTap,
           child: Row(
@@ -1339,7 +1340,7 @@ class _TablaOrdenes extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          _encabezado(),
+          _encabezado(context),
           for (var i = 0; i < pedidos.length; i++)
             _fila(context, pedidos[i], destacada: i.isEven),
         ],
@@ -1376,7 +1377,7 @@ class _TablaOrdenes extends StatelessWidget {
     ),
   );
 
-  Widget _encabezado() {
+  Widget _encabezado(BuildContext context) {
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -1387,19 +1388,19 @@ class _TablaOrdenes extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _celdaTexto('Orden', _flexOrden),
-          _celdaTexto('Cliente', _flexCliente),
-          _celdaTexto('Ubicación', _flexUbicacion),
-          _celdaTexto('Productos', _flexProductos),
-          _celdaTexto('Total', _flexTotal),
-          _celdaTexto('Estado', _flexEstado),
-          _celdaTexto('Fecha', _flexFecha),
+          _celdaTexto(tr(context, 'vendedor_operaciones.col_orden'), _flexOrden),
+          _celdaTexto(tr(context, 'vendedor_operaciones.col_cliente'), _flexCliente),
+          _celdaTexto(tr(context, 'vendedor_operaciones.col_ubicacion'), _flexUbicacion),
+          _celdaTexto(tr(context, 'vendedor_operaciones.productos'), _flexProductos),
+          _celdaTexto(tr(context, 'vendedor_operaciones.total'), _flexTotal),
+          _celdaTexto(tr(context, 'vendedor_operaciones.col_estado'), _flexEstado),
+          _celdaTexto(tr(context, 'vendedor_operaciones.col_fecha'), _flexFecha),
           SizedBox(
             width: _anchoAcciones,
-            child: const Text(
-              'Acciones',
+            child: Text(
+              tr(context, 'vendedor_operaciones.col_acciones'),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
@@ -1450,7 +1451,7 @@ class _TablaOrdenes extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${pedido.cantidadProductos} producto${pedido.cantidadProductos == 1 ? '' : 's'}',
+                  '${pedido.cantidadProductos} ${pedido.cantidadProductos == 1 ? tr(context, 'vendedor_operaciones.producto_singular') : tr(context, 'vendedor_operaciones.producto_plural')}',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11.5,
@@ -1626,13 +1627,13 @@ class _AccionesFila extends StatelessWidget {
       children: [
         _BotonIcono(
           icono: Icons.visibility_outlined,
-          tooltip: 'Ver detalle',
+          tooltip: tr(context, 'vendedor_operaciones.ver_detalle'),
           onTap: alVerDetalle,
           esOscuro: esOscuro,
         ),
         const SizedBox(width: 4),
         PopupMenuButton<String>(
-          tooltip: 'Más acciones',
+          tooltip: tr(context, 'vendedor_operaciones.mas_acciones'),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -1644,19 +1645,19 @@ class _AccionesFila extends StatelessWidget {
             }
           },
           itemBuilder: (_) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'mapa',
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.map_outlined,
                     size: 16,
                     color: CraftHubColors.vinoTinto,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Text(
-                    'Ver en el mapa',
-                    style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
+                    tr(context, 'vendedor_operaciones.ver_en_el_mapa'),
+                    style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
                   ),
                 ],
               ),
@@ -1676,7 +1677,7 @@ class _AccionesFila extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'Marcar como ${EstadoPedido.etiqueta(e)}',
+                          '${tr(context, 'vendedor_operaciones.marcar_como')} ${EstadoPedido.etiqueta(e)}',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
@@ -1689,7 +1690,7 @@ class _AccionesFila extends StatelessWidget {
           ],
           child: _BotonIcono(
             icono: Icons.more_vert_rounded,
-            tooltip: 'Más acciones',
+            tooltip: tr(context, 'vendedor_operaciones.mas_acciones'),
             onTap: null,
             esOscuro: esOscuro,
           ),
@@ -1883,9 +1884,9 @@ class _TarjetaOrdenCompacta extends StatelessWidget {
                     size: 16,
                     color: CraftHubColors.vinoTinto,
                   ),
-                  label: const Text(
-                    'Ver detalle',
-                    style: TextStyle(
+                  label: Text(
+                    tr(context, 'vendedor_operaciones.ver_detalle'),
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12.5,
                       color: CraftHubColors.vinoTinto,
@@ -1906,9 +1907,9 @@ class _TarjetaOrdenCompacta extends StatelessWidget {
                     size: 16,
                     color: Colors.white,
                   ),
-                  label: const Text(
-                    'Mapa',
-                    style: TextStyle(
+                  label: Text(
+                    tr(context, 'vendedor_operaciones.mapa'),
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12.5,
                       color: Colors.white,
@@ -2035,7 +2036,7 @@ class _DialogoDetallePedido extends StatelessWidget {
                   if (alChatear != null)
                     _BotonIcono(
                       icono: Icons.forum_outlined,
-                      tooltip: 'Chatear con el cliente',
+                      tooltip: tr(context, 'vendedor_operaciones.chatear_con_cliente'),
                       onTap: alChatear,
                       esOscuro: esOscuro,
                     ),
@@ -2044,7 +2045,7 @@ class _DialogoDetallePedido extends StatelessWidget {
               const SizedBox(height: 16),
 
               Text(
-                'Productos',
+                tr(context, 'vendedor_operaciones.productos'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12.5,
@@ -2117,7 +2118,7 @@ class _DialogoDetallePedido extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Total',
+                    tr(context, 'vendedor_operaciones.total'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -2145,9 +2146,9 @@ class _DialogoDetallePedido extends StatelessWidget {
                     backgroundColor: CraftHubColors.vinoTinto,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
-                    'Cerrar',
-                    style: TextStyle(
+                  child: Text(
+                    tr(context, 'vendedor_operaciones.cerrar'),
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
                       color: Colors.white,
                       fontWeight: FontWeight.w600,

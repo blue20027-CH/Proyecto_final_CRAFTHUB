@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../widgets/comprador/tarjeta_artesano.dart';
 import '../../widgets/comprador/panel_perfil_artesano.dart';
 import 'pantalla_perfil_artesano.dart';
+import '../../core/i18n/i18n.dart';
 
 
 // CategorÃ­as y provincias para filtros
@@ -122,18 +123,18 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
                         _EstadoVacio(
                           oscuro: oscuro,
                           icono: Icons.wifi_off_rounded,
-                          titulo: 'No se pudieron cargar los artesanos',
-                          mensaje: _error ?? 'Error desconocido',
-                          textoBoton: 'Reintentar',
+                          titulo: tr(context, 'comprador_secundario.no_se_pudieron_cargar_artesanos'),
+                          mensaje: _error ?? tr(context, 'comprador_secundario.error_desconocido'),
+                          textoBoton: tr(context, 'comprador_secundario.reintentar'),
                           onPressed: _cargarArtesanos,
                         )
                       else if (_artesanosFiltrados.isEmpty)
                         _EstadoVacio(
                           oscuro: oscuro,
                           icono: Icons.storefront_outlined,
-                          titulo: 'No hay artesanos con productos',
-                          mensaje: 'Cuando un vendedor tenga productos publicados aparecera aqui.',
-                          textoBoton: 'Actualizar',
+                          titulo: tr(context, 'comprador_secundario.no_hay_artesanos_con_productos'),
+                          mensaje: tr(context, 'comprador_secundario.aparecera_cuando_vendedor_publique'),
+                          textoBoton: tr(context, 'comprador_secundario.actualizar'),
                           onPressed: _cargarArtesanos,
                         )
                       else
@@ -283,14 +284,14 @@ class _EncabezadoSeccion extends StatelessWidget {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Text('Artesanos',
+          Text(tr(context, 'comprador_secundario.artesanos_titulo'),
             style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700,
                 color: CraftHubColors.textoPrincipal(oscuro))),
           const SizedBox(width: 8),
           const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFFC9A84C)),
         ]),
         const SizedBox(height: 4),
-        Text('Conoce a los talentosos artesanos que mantienen vivas\nnuestras tradiciones y cultura panameÃ±a.',
+        Text(tr(context, 'comprador_secundario.conoce_artesanos_descripcion'),
           style: GoogleFonts.poppins(fontSize: 12, height: 1.55,
               color: CraftHubColors.textoSecundario(oscuro))),
       ])),
@@ -311,7 +312,7 @@ class _EncabezadoSeccion extends StatelessWidget {
             Text('+250', // ðŸ”Œ reemplazar con total del backend
               style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoPrincipal(oscuro))),
-            Text('Artesanos activos',
+            Text(tr(context, 'comprador_secundario.artesanos_activos'),
               style: GoogleFonts.poppins(fontSize: 10,
                   color: CraftHubColors.textoSecundario(oscuro))),
           ]),
@@ -367,7 +368,7 @@ class _FilasFiltos extends StatelessWidget {
           Icon(Icons.tune_rounded, size: 14,
               color: CraftHubColors.textoSecundario(oscuro)),
           const SizedBox(width: 5),
-          Text('MÃ¡s filtros',
+          Text(tr(context, 'comprador_secundario.mas_filtros'),
             style: GoogleFonts.poppins(fontSize: 12,
                 color: CraftHubColors.textoSecundario(oscuro))),
         ]),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/carrito_model.dart';
 import '../services/api_service.dart';
+import '../widgets/comprador/dialogo_factura_completa.dart';
 
 class CarritoProvider extends ChangeNotifier {
   List<CarritoModel> _carritos = [];
@@ -130,7 +131,11 @@ class CarritoProvider extends ChangeNotifier {
   }
 
   void verFacturaCompleta(BuildContext context) {
-    debugPrint('Abriendo factura...');
+    if (carritoActivo == null) return;
+    showDialog(
+      context: context,
+      builder: (_) => DialogoFacturaCompleta(carrito: carritoActivo!),
+    );
   }
 
   Future<void> descargarFactura() async {

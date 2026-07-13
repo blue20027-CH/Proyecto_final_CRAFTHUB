@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 /// Modelo de datos de un tutorial.
 /// 🔌 GET /api/tutoriales → List<ModeloTutorial>
@@ -278,7 +279,7 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
                             size: 14, color: colorSec),
                         const SizedBox(width: 3),
                         Text(
-                          _formatearVistas(widget.tutorial.vistas),
+                          _formatearVistas(context, widget.tutorial.vistas),
                           style: TextStyle(
                               color: colorSec,
                               fontSize: 12,
@@ -309,10 +310,11 @@ class _TarjetaTutorialState extends State<TarjetaTutorial> {
     ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.04, end: 0);
   }
 
-  String _formatearVistas(int vistas) {
+  String _formatearVistas(BuildContext context, int vistas) {
+    final sufijo = tr(context, 'vendedor_inventario.vistas_sufijo');
     if (vistas >= 1000) {
-      return '${(vistas / 1000).toStringAsFixed(1)}K vistas';
+      return '${(vistas / 1000).toStringAsFixed(1)}K $sufijo';
     }
-    return '$vistas vistas';
+    return '$vistas $sufijo';
   }
 }

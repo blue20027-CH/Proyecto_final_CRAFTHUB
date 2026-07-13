@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../core/provincias_panama.dart';
+import '../core/i18n/i18n.dart';
 import '../models/artesano_modelo.dart' show bannerPorCategoria;
 import '../services/api_service.dart';
 
@@ -77,7 +78,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
         _categoria = _categoriasArtesano.contains(categoriaActual) ? categoriaActual : null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = 'No se pudo cargar tu perfil: ${e.toString().replaceAll('Exception: ', '')}');
+      if (mounted) setState(() => _error = '${tr(context, 'compartido.error_cargar_perfil')}${e.toString().replaceAll('Exception: ', '')}');
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -94,7 +95,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo abrir el selector de imágenes: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'compartido.error_selector_imagenes')}${e.toString().replaceAll('Exception: ', '')}')),
       );
       return;
     }
@@ -129,7 +130,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo subir la imagen: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'compartido.error_subir_imagen')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     } finally {
       if (mounted) {
@@ -157,11 +158,11 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
       if (!mounted) return;
       setState(() => _huboExito = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado correctamente.')),
+        SnackBar(content: Text(tr(context, 'compartido.perfil_actualizado'))),
       );
       Navigator.pop(context, true);
     } catch (e) {
-      setState(() => _error = 'No se pudo guardar: ${e.toString().replaceAll('Exception: ', '')}');
+      setState(() => _error = '${tr(context, 'compartido.error_guardar_perfil')}${e.toString().replaceAll('Exception: ', '')}');
     } finally {
       if (mounted) setState(() => _guardando = false);
     }
@@ -219,7 +220,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
           icon: Icon(Icons.arrow_back_rounded, color: CraftHubColors.textoPrincipal(esOscuro)),
           onPressed: () => Navigator.pop(context, _huboExito),
         ),
-        title: Text('Editar perfil',
+        title: Text(tr(context, 'compartido.editar_perfil_titulo'),
             style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700,
                 color: CraftHubColors.textoPrincipal(esOscuro))),
       ),
@@ -267,7 +268,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                           Icon(Icons.add_photo_alternate_outlined,
                                               size: 30, color: CraftHubColors.vinoTinto.withValues(alpha: 0.6)),
                                           const SizedBox(height: 6),
-                                          Text('Agregar foto de portada',
+                                          Text(tr(context, 'compartido.agregar_foto_portada'),
                                               style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
                                                   color: CraftHubColors.vinoTinto.withValues(alpha: 0.7))),
                                         ],
@@ -281,7 +282,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                             bottom: 12,
                             child: _BotonCamara(
                               onTap: _subiendoBanner ? null : () => _cambiarFoto(esBanner: true),
-                              etiqueta: 'Cambiar portada',
+                              etiqueta: tr(context, 'compartido.cambiar_portada'),
                             ),
                           ),
                           Positioned(
@@ -367,23 +368,23 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _EtiquetaCampo(icono: Icons.description_outlined, texto: 'Descripción', esOscuro: esOscuro),
+                                  _EtiquetaCampo(icono: Icons.description_outlined, texto: tr(context, 'compartido.descripcion_label'), esOscuro: esOscuro),
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: _ctrlDescripcion,
                                     maxLines: 3,
                                     decoration: _decoracion(esOscuro,
                                         icono: Icons.description_outlined,
-                                        hint: 'Cuéntale a tus clientes sobre ti o tu taller...'),
+                                        hint: tr(context, 'compartido.descripcion_hint')),
                                   ),
                                   const SizedBox(height: 20),
 
                                   if (_modo == 'vendedor') ...[
-                                    _EtiquetaCampo(icono: Icons.category_outlined, texto: 'Categoría principal', esOscuro: esOscuro),
+                                    _EtiquetaCampo(icono: Icons.category_outlined, texto: tr(context, 'compartido.categoria_principal_label'), esOscuro: esOscuro),
                                     const SizedBox(height: 8),
                                     DropdownButtonFormField<String>(
                                       value: _categoria,
-                                      decoration: _decoracion(esOscuro, icono: Icons.category_outlined, hint: 'Selecciona tu categoría'),
+                                      decoration: _decoracion(esOscuro, icono: Icons.category_outlined, hint: tr(context, 'compartido.selecciona_categoria_hint')),
                                       items: _categoriasArtesano
                                           .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                           .toList(),
@@ -392,11 +393,11 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                     const SizedBox(height: 20),
                                   ],
 
-                                  _EtiquetaCampo(icono: Icons.map_outlined, texto: 'Provincia / comarca', esOscuro: esOscuro),
+                                  _EtiquetaCampo(icono: Icons.map_outlined, texto: tr(context, 'compartido.provincia_comarca_label'), esOscuro: esOscuro),
                                   const SizedBox(height: 8),
                                   DropdownButtonFormField<String>(
                                     value: _provincia,
-                                    decoration: _decoracion(esOscuro, icono: Icons.map_outlined, hint: 'Selecciona tu provincia'),
+                                    decoration: _decoracion(esOscuro, icono: Icons.map_outlined, hint: tr(context, 'compartido.selecciona_provincia_hint')),
                                     items: kProvinciasPanama
                                         .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                                         .toList(),
@@ -404,15 +405,15 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                   ),
                                   const SizedBox(height: 20),
 
-                                  _EtiquetaCampo(icono: Icons.location_on_outlined, texto: 'Ciudad / dirección (opcional)', esOscuro: esOscuro),
+                                  _EtiquetaCampo(icono: Icons.location_on_outlined, texto: tr(context, 'compartido.ciudad_direccion_label'), esOscuro: esOscuro),
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: _ctrlUbicacion,
-                                    decoration: _decoracion(esOscuro, icono: Icons.location_on_outlined, hint: 'Ej. David, Chiriquí'),
+                                    decoration: _decoracion(esOscuro, icono: Icons.location_on_outlined, hint: tr(context, 'compartido.ciudad_hint_ejemplo')),
                                   ),
                                   const SizedBox(height: 20),
 
-                                  _EtiquetaCampo(icono: Icons.phone_outlined, texto: 'Teléfono', esOscuro: esOscuro),
+                                  _EtiquetaCampo(icono: Icons.phone_outlined, texto: tr(context, 'compartido.telefono_label'), esOscuro: esOscuro),
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: _ctrlTelefono,
@@ -439,7 +440,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                       )
                                     : const Icon(Icons.check_rounded, size: 19),
-                                label: Text(_guardando ? 'Guardando...' : 'Guardar cambios',
+                                label: Text(_guardando ? tr(context, 'compartido.guardando') : tr(context, 'compartido.guardar_cambios'),
                                     style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: CraftHubColors.vinoTinto,

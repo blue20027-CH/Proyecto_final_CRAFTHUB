@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
 import 'avatar_contacto.dart';
 
@@ -67,9 +68,9 @@ class CabeceraChat extends StatelessWidget {
                   ),
                 ),
                 if (conversacion.enLinea)
-                  const Text(
-                    'En linea',
-                    style: TextStyle(
+                  Text(
+                    tr(context, 'compartido.en_linea'),
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 11,
                       color: CraftHubColors.exito,
@@ -80,7 +81,7 @@ class CabeceraChat extends StatelessWidget {
             ),
           ),
           Tooltip(
-            message: 'Mas opciones',
+            message: tr(context, 'compartido.mas_opciones'),
             child: InkWell(
               onTap: () => _mostrarOpciones(context, isDark),
               borderRadius: BorderRadius.circular(8),
@@ -112,7 +113,7 @@ class CabeceraChat extends StatelessWidget {
         backgroundColor: CraftHubColors.panel(isDark),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Opciones',
+          tr(context, 'compartido.opciones_titulo'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
@@ -131,7 +132,7 @@ class CabeceraChat extends StatelessWidget {
                   size: 20,
                 ),
                 title: Text(
-                  'Ver perfil',
+                  tr(context, 'compartido.ver_perfil'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
@@ -149,7 +150,7 @@ class CabeceraChat extends StatelessWidget {
                   size: 20,
                 ),
                 title: Text(
-                  'Silenciar',
+                  tr(context, 'compartido.silenciar'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
@@ -166,9 +167,9 @@ class CabeceraChat extends StatelessWidget {
                   color: CraftHubColors.error,
                   size: 20,
                 ),
-                title: const Text(
-                  'Bloquear',
-                  style: TextStyle(
+                title: Text(
+                  tr(context, 'compartido.bloquear'),
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
                     color: CraftHubColors.error,

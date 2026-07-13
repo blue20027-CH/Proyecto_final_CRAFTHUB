@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
+import '../../core/i18n/i18n.dart';
 
 /// Diálogo modal para publicar un nuevo tutorial (enlace de YouTube).
 /// 🔌 POST /api/tutoriales — ver ApiService.subirTutorial
@@ -42,9 +43,9 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
 
   String? _validarYoutube(String? v) {
     final url = (v ?? '').trim();
-    if (url.isEmpty) return 'El enlace de YouTube es requerido';
+    if (url.isEmpty) return tr(context, 'vendedor_inventario.youtube_requerido');
     if (!url.contains('youtube.com/watch') && !url.contains('youtu.be/')) {
-      return 'Ingresa un enlace válido de YouTube';
+      return tr(context, 'vendedor_inventario.youtube_invalido');
     }
     return null;
   }
@@ -53,7 +54,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
     if (!_formKey.currentState!.validate()) return;
     if (_categoriaSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona una categoría.')),
+        SnackBar(content: Text(tr(context, 'vendedor_inventario.seleccionar_categoria_snackbar'))),
       );
       return;
     }
@@ -71,7 +72,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No se pudo publicar el tutorial: $e')),
+          SnackBar(content: Text('${tr(context, 'vendedor_inventario.no_se_pudo_publicar_tutorial_prefijo')}$e')),
         );
       }
     } finally {
@@ -120,7 +121,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Subir mi video',
+                          tr(context, 'vendedor_inventario.subir_mi_video_titulo'),
                           style: TextStyle(
                             color: colorTexto,
                             fontSize: 18,
@@ -129,7 +130,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                           ),
                         ),
                         Text(
-                          'Comparte tu conocimiento con la comunidad',
+                          tr(context, 'vendedor_inventario.subir_mi_video_subtitulo'),
                           style: TextStyle(
                             color: colorSec,
                             fontSize: 12,
@@ -149,7 +150,7 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
 
                 // ── Enlace de YouTube ─────────────────────────────────────────
                 _LabelCampo(
-                  texto: 'Enlace de YouTube *',
+                  texto: tr(context, 'vendedor_inventario.label_enlace_youtube'),
                   colorTexto: colorTexto,
                 ),
                 const SizedBox(height: 8),
@@ -161,27 +162,27 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Sube tu video a YouTube y pega aquí el enlace.',
+                  tr(context, 'vendedor_inventario.hint_enlace_ayuda'),
                   style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins'),
                 ),
                 const SizedBox(height: 20),
 
                 // ── Título ───────────────────────────────────────────────────
                 _LabelCampo(
-                  texto: 'Título del tutorial *',
+                  texto: tr(context, 'vendedor_inventario.label_titulo_tutorial'),
                   colorTexto: colorTexto,
                 ),
                 const SizedBox(height: 8),
                 _CampoTexto(
                   controlador: _controladorTitulo,
-                  placeholder: 'Ej. Técnica de bordado Mola paso a paso',
+                  placeholder: tr(context, 'vendedor_inventario.placeholder_titulo_tutorial'),
                   esOscuro: esOscuro,
                   validador: (v) {
                     if (v == null || v.trim().isEmpty) {
-                      return 'El título es requerido';
+                      return tr(context, 'vendedor_inventario.titulo_requerido');
                     }
                     if (v.trim().length < 5) {
-                      return 'El título debe tener al menos 5 caracteres';
+                      return tr(context, 'vendedor_inventario.titulo_min_caracteres');
                     }
                     return null;
                   },
@@ -189,24 +190,23 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                 const SizedBox(height: 20),
 
                 // ── Descripción ──────────────────────────────────────────────
-                _LabelCampo(texto: 'Descripción', colorTexto: colorTexto),
+                _LabelCampo(texto: tr(context, 'vendedor_inventario.seccion_descripcion'), colorTexto: colorTexto),
                 const SizedBox(height: 8),
                 _CampoTexto(
                   controlador: _controladorDescripcion,
-                  placeholder:
-                      'Describe brevemente qué aprenderán los espectadores...',
+                  placeholder: tr(context, 'vendedor_inventario.placeholder_descripcion_tutorial'),
                   esOscuro: esOscuro,
                   maxLineas: 3,
                 ),
                 const SizedBox(height: 20),
 
                 // ── Categoría ────────────────────────────────────────────────
-                _LabelCampo(texto: 'Categoría *', colorTexto: colorTexto),
+                _LabelCampo(texto: tr(context, 'vendedor_inventario.label_categoria_video'), colorTexto: colorTexto),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: _categoriaSeleccionada,
                   decoration: InputDecoration(
-                    hintText: 'Selecciona una categoría',
+                    hintText: tr(context, 'vendedor_inventario.hint_seleccionar_categoria'),
                     hintStyle: TextStyle(
                       color: colorSec,
                       fontSize: 13,
@@ -247,8 +247,9 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                       .toList(),
                   onChanged: (val) =>
                       setState(() => _categoriaSeleccionada = val),
-                  validator: (v) =>
-                      v == null ? 'Selecciona una categoría' : null,
+                  validator: (v) => v == null
+                      ? tr(context, 'vendedor_inventario.hint_seleccionar_categoria')
+                      : null,
                 ),
                 const SizedBox(height: 32),
 
@@ -268,9 +269,9 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
-                          'Cancelar',
-                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14),
+                        child: Text(
+                          tr(context, 'vendedor_inventario.cancelar'),
+                          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
                         ),
                       ),
                     ),
@@ -296,9 +297,9 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Subir tutorial',
-                                style: TextStyle(
+                            : Text(
+                                tr(context, 'vendedor_inventario.subir_tutorial_btn'),
+                                style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

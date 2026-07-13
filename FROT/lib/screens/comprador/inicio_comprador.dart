@@ -24,6 +24,7 @@ import '../../widgets/comprador/carrusel_hero.dart';
 import '../../widgets/topbar_flotante.dart';
 import '../../services/api_service.dart';
 import '../../models/artesano_modelo.dart';
+import '../../core/i18n/i18n.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 🔌 DATOS MOCK – reemplazar con llamadas a FastAPI
@@ -32,12 +33,16 @@ final List<BannerModelo> mockBanners = [
   BannerModelo(
     titulo: 'Bolso tejido\ntradicional',
     descripcion: 'Tejido a mano por artesanas de Colón, Panamá.',
+    tituloEn: 'Traditional\nwoven bag',
+    descripcionEn: 'Handwoven by artisans from Colón, Panama.',
     imagenUrl: 'https://i.imgur.com/ZWRiMCb.jpeg',
     productoId: '001',
   ),
   BannerModelo(
     titulo: 'Cerámica\nNgäbe-Buglé',
     descripcion: 'Piezas únicas de la comarca Ngäbe-Buglé.',
+    tituloEn: 'Ngäbe-Buglé\npottery',
+    descripcionEn: 'One-of-a-kind pieces from the Ngäbe-Buglé comarca.',
     imagenUrl:
         'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jun%2030,%202026,%2004_01_52%20PM.png',
     productoId: '002',
@@ -45,6 +50,8 @@ final List<BannerModelo> mockBanners = [
   BannerModelo(
     titulo: 'Molas\noriginales',
     descripcion: 'Arte textil de la comarca Guna Yala.',
+    tituloEn: 'Original\nmolas',
+    descripcionEn: 'Textile art from the Guna Yala comarca.',
     imagenUrl:
         'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/Jun%2030,%202026,%2004_02_06%20PM.png',
     productoId: '003',
@@ -52,6 +59,8 @@ final List<BannerModelo> mockBanners = [
   BannerModelo(
     titulo: 'Fibras\nNaturales',
     descripcion: 'Belleza artesanal en cada tejido.',
+    tituloEn: 'Natural\nFibers',
+    descripcionEn: 'Artisanal beauty in every weave.',
     imagenUrl:
         'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jun%2030,%202026,%2004_07_25%20PM.png',
     productoId: '003',
@@ -59,6 +68,8 @@ final List<BannerModelo> mockBanners = [
   BannerModelo(
     titulo: 'Hecho en\nPanamá,',
     descripcion: 'Inspirado por nuentra cultura.',
+    tituloEn: 'Made in\nPanama,',
+    descripcionEn: 'Inspired by our culture.',
     imagenUrl:
         'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jul%202,%202026,%2001_12_57%20PM.png',
     productoId: '003',
@@ -289,7 +300,7 @@ class _HomeCompradorState extends State<HomeComprador> {
       );
       setState(() => _productos = _ordenarPorPreferencias(productos));
     } catch (e) {
-      setState(() => _error = 'No se pudieron cargar los productos: $e');
+      setState(() => _error = '${tr(context, 'comprador_home.error_cargando_productos')}: $e');
     } finally {
       setState(() => _cargando = false);
     }
@@ -441,19 +452,19 @@ class _HomeCompradorState extends State<HomeComprador> {
         ),
       ),
       itemsExplorar: [
-        ItemExplorar(icono: Icons.home_outlined, etiqueta: 'Inicio',
+        ItemExplorar(icono: Icons.home_outlined, etiqueta: tr(context, 'comprador_home.nav_inicio'),
             onTap: () => setState(() => _navIndice = 0)),
-        ItemExplorar(icono: Icons.shopping_bag_outlined, etiqueta: 'Carrito',
+        ItemExplorar(icono: Icons.shopping_bag_outlined, etiqueta: tr(context, 'comprador_home.nav_carrito'),
             onTap: () => setState(() => _navIndice = 1)),
-        ItemExplorar(icono: Icons.storefront_outlined, etiqueta: 'Artesanos',
+        ItemExplorar(icono: Icons.storefront_outlined, etiqueta: tr(context, 'comprador_home.nav_artesanos'),
             onTap: () => setState(() => _navIndice = 2)),
-        ItemExplorar(icono: Icons.favorite_border_rounded, etiqueta: 'Favoritos',
+        ItemExplorar(icono: Icons.favorite_border_rounded, etiqueta: tr(context, 'comprador_home.nav_favoritos'),
             onTap: () => setState(() => _navIndice = 3)),
-        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: 'Tutoriales',
+        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: tr(context, 'comprador_home.nav_tutoriales'),
             onTap: () => setState(() => _navIndice = 4)),
-        ItemExplorar(icono: Icons.chat_bubble_outline_rounded, etiqueta: 'Mensajes',
+        ItemExplorar(icono: Icons.chat_bubble_outline_rounded, etiqueta: tr(context, 'comprador_home.nav_mensajes'),
             onTap: () => setState(() => _navIndice = 5)),
-        ItemExplorar(icono: Icons.map_outlined, etiqueta: 'Mapa de artesanos',
+        ItemExplorar(icono: Icons.map_outlined, etiqueta: tr(context, 'comprador_home.nav_mapa_artesanos'),
             onTap: abrirMapa),
       ],
     );
@@ -478,7 +489,7 @@ class _HomeCompradorState extends State<HomeComprador> {
           const SizedBox(height: 24),
 
           Text(
-            'Artesanos destacados',
+            tr(context, 'comprador_home.seccion_artesanos_destacados'),
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -503,7 +514,7 @@ class _HomeCompradorState extends State<HomeComprador> {
           const SizedBox(height: 24),
 
           Text(
-            'Explorar por categorías',
+            tr(context, 'comprador_home.seccion_explorar_categorias'),
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -517,7 +528,7 @@ class _HomeCompradorState extends State<HomeComprador> {
           const SizedBox(height: 24),
 
           Text(
-            'Productos artesanales',
+            tr(context, 'comprador_home.seccion_productos_artesanales'),
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -543,9 +554,9 @@ class _HomeCompradorState extends State<HomeComprador> {
               ),
             )
           else if (_productos.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: Center(child: Text('No hay productos disponibles.')),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(child: Text(tr(context, 'comprador_home.sin_productos'))),
             )
           else
             MasonryGridView.count(
@@ -790,7 +801,7 @@ class _ChipProvinciasState extends State<_ChipProvincias> {
         PopupMenuItem(
           value: '__todos',
           child: Text(
-            'Todas',
+            tr(context, 'comprador_home.filtro_todas'),
             style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -801,7 +812,7 @@ class _ChipProvinciasState extends State<_ChipProvincias> {
         PopupMenuItem(
           enabled: false,
           child: Text(
-            'PROVINCIAS',
+            tr(context, 'comprador_home.encabezado_provincias'),
             style: GoogleFonts.poppins(
               fontSize: 10,
               color: Colors.grey,
@@ -819,7 +830,7 @@ class _ChipProvinciasState extends State<_ChipProvincias> {
         PopupMenuItem(
           enabled: false,
           child: Text(
-            'COMARCAS',
+            tr(context, 'comprador_home.encabezado_comarcas'),
             style: GoogleFonts.poppins(
               fontSize: 10,
               color: Colors.grey,
@@ -851,7 +862,7 @@ class _ChipProvinciasState extends State<_ChipProvincias> {
             ),
             const SizedBox(width: 5),
             Text(
-              widget.provinciaSeleccionada ?? 'Provincias y comarcas',
+              widget.provinciaSeleccionada ?? tr(context, 'comprador_home.placeholder_provincias_comarcas'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: const Color(0xFF7A5800),

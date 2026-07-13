@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../core/carrito_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
+import '../../core/i18n/i18n.dart';
 
 class PantallaPago extends StatefulWidget {
   final String userId;
@@ -236,7 +237,7 @@ class _PantallaPagoState extends State<PantallaPago> {
         backgroundColor: CraftHubColors.fondo(oscuro),
         elevation: 0,
         iconTheme: IconThemeData(color: CraftHubColors.textoPrincipal(oscuro)),
-        title: Text('Finalizar compra',
+        title: Text(tr(context, 'comprador_secundario.finalizar_compra'),
             style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
@@ -262,7 +263,7 @@ class _PantallaPagoState extends State<PantallaPago> {
     final items = context.watch<CarritoProvider>().carritoActivo?.items ?? [];
     if (items.isEmpty) {
       return Center(
-        child: Text('Tu carrito está vacío.',
+        child: Text(tr(context, 'comprador_secundario.tu_carrito_esta_vacio_punto'),
             style: TextStyle(fontFamily: 'Poppins', fontSize: 14, color: CraftHubColors.textoSecundario(oscuro))),
       );
     }
@@ -277,17 +278,17 @@ class _PantallaPagoState extends State<PantallaPago> {
             _SeccionCheckout(
               oscuro: oscuro,
               icono: Icons.person_outline_rounded,
-              titulo: 'Ingresa tus datos',
+              titulo: tr(context, 'comprador_secundario.ingresa_tus_datos'),
               child: Column(children: [
-                _CampoPago(controlador: _ctrlNombre, etiqueta: 'Nombre completo', oscuro: oscuro),
+                _CampoPago(controlador: _ctrlNombre, etiqueta: tr(context, 'comprador_secundario.nombre_completo'), oscuro: oscuro),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: _CampoPago(controlador: _ctrlTelefono, etiqueta: 'Teléfono', oscuro: oscuro, tipoTeclado: TextInputType.phone)),
+                  Expanded(child: _CampoPago(controlador: _ctrlTelefono, etiqueta: tr(context, 'comprador_secundario.telefono'), oscuro: oscuro, tipoTeclado: TextInputType.phone)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _CampoPago(
                       controlador: _ctrlUbicacion,
-                      etiqueta: 'Provincia / ubicación',
+                      etiqueta: tr(context, 'comprador_secundario.provincia_ubicacion'),
                       oscuro: oscuro,
                       onEditingComplete: _cargarResumen,
                     ),
@@ -299,12 +300,12 @@ class _PantallaPagoState extends State<PantallaPago> {
             _SeccionCheckout(
               oscuro: oscuro,
               icono: Icons.local_shipping_outlined,
-              titulo: 'Método de despacho',
+              titulo: tr(context, 'comprador_secundario.metodo_de_despacho'),
               child: Row(children: [
                 Icon(Icons.storefront_outlined, size: 18, color: CraftHubColors.vinoTinto),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text('Envío a domicilio — calculado según la distancia a cada artesano.',
+                  child: Text(tr(context, 'comprador_secundario.envio_domicilio_calculado'),
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoSecundario(oscuro))),
                 ),
               ]),
@@ -313,7 +314,7 @@ class _PantallaPagoState extends State<PantallaPago> {
             _SeccionCheckout(
               oscuro: oscuro,
               icono: Icons.credit_card_outlined,
-              titulo: 'Forma de pago',
+              titulo: tr(context, 'comprador_secundario.forma_de_pago'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -401,23 +402,23 @@ class _PantallaPagoState extends State<PantallaPago> {
     switch (_metodoSeleccionado) {
       case 'Tarjeta':
         return Column(children: [
-          _CampoPago(controlador: _ctrlNombreTarjeta, etiqueta: 'Nombre en la tarjeta', oscuro: oscuro),
+          _CampoPago(controlador: _ctrlNombreTarjeta, etiqueta: tr(context, 'comprador_secundario.nombre_en_tarjeta'), oscuro: oscuro),
           const SizedBox(height: 12),
           _CampoPago(
             controlador: _ctrlNumeroTarjeta,
-            etiqueta: 'Número de tarjeta',
+            etiqueta: tr(context, 'comprador_secundario.numero_de_tarjeta'),
             oscuro: oscuro,
             tipoTeclado: TextInputType.number,
             hint: '0000 0000 0000 0000',
           ),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _CampoPago(controlador: _ctrlVenceTarjeta, etiqueta: 'Vence (MM/AA)', oscuro: oscuro, hint: 'MM/AA')),
+            Expanded(child: _CampoPago(controlador: _ctrlVenceTarjeta, etiqueta: tr(context, 'comprador_secundario.vence_mm_aa'), oscuro: oscuro, hint: tr(context, 'comprador_secundario.mm_aa_hint'))),
             const SizedBox(width: 12),
             Expanded(
               child: _CampoPago(
                 controlador: _ctrlCvv,
-                etiqueta: 'CVV',
+                etiqueta: tr(context, 'comprador_secundario.cvv'),
                 oscuro: oscuro,
                 tipoTeclado: TextInputType.number,
                 oculto: true,
@@ -431,25 +432,27 @@ class _PantallaPagoState extends State<PantallaPago> {
         return Column(children: [
           _SelectorPago(
             valor: _bancoSeleccionado,
-            etiqueta: 'Banco',
+            etiqueta: tr(context, 'comprador_secundario.banco'),
             opciones: bancos,
             oscuro: oscuro,
             onCambiar: (v) => setState(() => _bancoSeleccionado = v),
           ),
           const SizedBox(height: 12),
-          _CampoPago(controlador: _ctrlTitular, etiqueta: 'Titular de la cuenta', oscuro: oscuro),
+          _CampoPago(controlador: _ctrlTitular, etiqueta: tr(context, 'comprador_secundario.titular_de_cuenta'), oscuro: oscuro),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _CampoPago(controlador: _ctrlCuenta, etiqueta: 'Número de cuenta', oscuro: oscuro, tipoTeclado: TextInputType.number)),
+            Expanded(child: _CampoPago(controlador: _ctrlCuenta, etiqueta: tr(context, 'comprador_secundario.numero_de_cuenta'), oscuro: oscuro, tipoTeclado: TextInputType.number)),
             const SizedBox(width: 12),
-            Expanded(child: _CampoPago(controlador: _ctrlReferencia, etiqueta: 'Referencia (opcional)', oscuro: oscuro)),
+            Expanded(child: _CampoPago(controlador: _ctrlReferencia, etiqueta: tr(context, 'comprador_secundario.referencia_opcional'), oscuro: oscuro)),
           ]),
         ]);
       default:
         if (_metodoSeleccionado == null) return const SizedBox.shrink();
         return _CampoPago(
           controlador: _ctrlContactoBilletera,
-          etiqueta: _campoBilletera == 'correo' ? 'Correo de $_metodoSeleccionado' : 'Teléfono de $_metodoSeleccionado',
+          etiqueta: _campoBilletera == 'correo'
+              ? '${tr(context, 'comprador_secundario.correo_de')} $_metodoSeleccionado'
+              : '${tr(context, 'comprador_secundario.telefono_de')} $_metodoSeleccionado',
           oscuro: oscuro,
           tipoTeclado: _campoBilletera == 'correo' ? TextInputType.emailAddress : TextInputType.phone,
         );
@@ -580,7 +583,7 @@ class _SelectorPago extends StatelessWidget {
             child: DropdownButton<String>(
               value: valor,
               isExpanded: true,
-              hint: Text('Selecciona tu banco', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(oscuro))),
+              hint: Text(tr(context, 'comprador_secundario.selecciona_tu_banco'), style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(oscuro))),
               dropdownColor: CraftHubColors.panel(oscuro),
               style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: CraftHubColors.textoPrincipal(oscuro)),
               items: opciones.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
@@ -800,7 +803,7 @@ class _PanelResumenCheckout extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tu pedido',
+          Text(tr(context, 'comprador_secundario.tu_pedido'),
               style: TextStyle(fontFamily: 'Poppins', fontSize: 15, fontWeight: FontWeight.w700, color: colorTexto)),
           const SizedBox(height: 14),
           ConstrainedBox(
@@ -824,7 +827,7 @@ class _PanelResumenCheckout extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(item.nombreProducto.toString(), maxLines: 1, overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w600, color: colorTexto)),
-                      Text('Cantidad: ${item.cantidad}', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: colorSec)),
+                      Text('${tr(context, 'comprador_secundario.cantidad')}: ${item.cantidad}', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: colorSec)),
                     ]),
                   ),
                   Text('\$${(item.precioUnitario * item.cantidad).toStringAsFixed(2)}',
@@ -836,20 +839,20 @@ class _PanelResumenCheckout extends StatelessWidget {
           const SizedBox(height: 16),
           Divider(color: CraftHubColors.borde(oscuro)),
           const SizedBox(height: 12),
-          _filaResumen('Subtotal', subtotal, colorTexto, colorSec),
+          _filaResumen(tr(context, 'comprador_secundario.subtotal'), subtotal, colorTexto, colorSec),
           const SizedBox(height: 8),
           cargando
               ? Row(children: [
-                  Text('Envío', style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: colorSec)),
+                  Text(tr(context, 'comprador_secundario.envio'), style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: colorSec)),
                   const SizedBox(width: 8),
                   SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 1.6, color: colorSec)),
                 ])
-              : _filaResumen('Envío', envio, colorTexto, colorSec),
+              : _filaResumen(tr(context, 'comprador_secundario.envio'), envio, colorTexto, colorSec),
           const SizedBox(height: 14),
           Divider(color: CraftHubColors.borde(oscuro)),
           const SizedBox(height: 14),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('Total', style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: colorTexto)),
+            Text(tr(context, 'comprador_secundario.total'), style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: colorTexto)),
             Text('\$${total.toStringAsFixed(2)}',
                 style: const TextStyle(fontFamily: 'Poppins', fontSize: 22, fontWeight: FontWeight.w800, color: CraftHubColors.vinoTinto)),
           ]),
@@ -866,7 +869,7 @@ class _PanelResumenCheckout extends StatelessWidget {
               ),
               child: procesando
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text('Pagar \$${total.toStringAsFixed(2)}',
+                  : Text('${tr(context, 'comprador_secundario.pagar')} \$${total.toStringAsFixed(2)}',
                       style: const TextStyle(fontFamily: 'Poppins', fontSize: 14.5, fontWeight: FontWeight.w700, color: Colors.white)),
             ),
           ),
@@ -908,10 +911,10 @@ class _PantallaExito extends StatelessWidget {
               child: const Icon(Icons.check_rounded, size: 44, color: Colors.white),
             ),
             const SizedBox(height: 22),
-            Text('¡Tu pedido fue confirmado!',
+            Text(tr(context, 'comprador_secundario.pedido_confirmado'),
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(oscuro))),
             const SizedBox(height: 8),
-            Text('Los artesanos ya recibieron tu compra y comenzarán a prepararla.',
+            Text(tr(context, 'comprador_secundario.artesanos_recibieron_compra'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(oscuro))),
             const SizedBox(height: 20),
@@ -924,14 +927,14 @@ class _PantallaExito extends StatelessWidget {
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Total pagado', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
+                  Text(tr(context, 'comprador_secundario.total_pagado'), style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
                   Text('\$${total.toStringAsFixed(2)}',
                       style: const TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
                 ]),
                 if (numeroOrden.isNotEmpty) ...[
                   const SizedBox(width: 28),
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('N.º de orden', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
+                    Text(tr(context, 'comprador_secundario.numero_de_orden'), style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
                     Text(numeroOrden.length > 8 ? numeroOrden.substring(0, 8).toUpperCase() : numeroOrden.toUpperCase(),
                         style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(oscuro))),
                   ]),
@@ -946,7 +949,7 @@ class _PantallaExito extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
               ),
-              child: const Text('Seguir explorando',
+              child: Text(tr(context, 'comprador_secundario.seguir_explorando'),
                   style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
             ),
           ],

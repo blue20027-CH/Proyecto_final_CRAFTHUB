@@ -1,0 +1,53 @@
+const Map<String, Map<String, String>> traducciones = {
+  // pantalla_mensajes_comprador.dart
+  'comprador_social.mensajes_error_cargar': {'es': 'No se pudieron cargar los mensajes: ', 'en': "Couldn't load messages: "},
+  'comprador_social.mensajes_vacio_titulo': {'es': 'Tus mensajes', 'en': 'Your messages'},
+  'comprador_social.mensajes_vacio_subtitulo': {'es': 'Selecciona una conversación para chatear\ncon un artesano.', 'en': 'Select a conversation to chat\nwith an artisan.'},
+  'comprador_social.reintentar': {'es': 'Reintentar', 'en': 'Retry'},
+
+  // pantalla_eventos_comprador.dart
+  'comprador_social.eventos_titulo': {'es': 'Eventos Artesanales', 'en': 'Artisan Events'},
+  'comprador_social.eventos_subtitulo': {'es': 'Descubre ferias, exposiciones y talleres artesanales en todo el país.', 'en': 'Discover artisan fairs, exhibitions, and workshops all over the country.'},
+  'comprador_social.eventos_error_cargar': {'es': 'No se pudieron cargar los eventos.', 'en': "We couldn't load the events."},
+  'comprador_social.eventos_cta_titulo': {'es': '¿Quieres participar como vendedor?', 'en': 'Want to take part as a seller?'},
+  'comprador_social.eventos_cta_subtitulo': {'es': 'Reserva tu mesa en las mejores ferias artesanales del país y date a conocer.', 'en': 'Reserve your table at the best artisan fairs in the country and get noticed.'},
+  'comprador_social.eventos_cta_boton': {'es': 'Conviértete en vendedor', 'en': 'Become a seller'},
+  'comprador_social.eventos_funcion_disponible_vendedor': {'es': 'Función disponible desde tu perfil de vendedor.', 'en': 'This feature is available from your seller profile.'},
+  'comprador_social.eventos_proximos_titulo': {'es': 'Próximos eventos', 'en': 'Upcoming events'},
+  'comprador_social.eventos_mapa_proximamente': {'es': 'Mapa de eventos próximamente.', 'en': 'Event map coming soon.'},
+  'comprador_social.eventos_dia_prefix': {'es': 'Día', 'en': 'Day'},
+  'comprador_social.eventos_no_hay_ese_dia': {'es': 'No hay eventos justo ese día — mostrando los más próximos a partir de esa fecha.', 'en': 'There are no events on that exact day — showing the closest ones from that date onward.'},
+  'comprador_social.eventos_reservar': {'es': 'Reservar', 'en': 'Reserve'},
+  'comprador_social.eventos_vacio_filtros': {'es': 'No hay eventos para mostrar con estos filtros.', 'en': 'There are no events to show with these filters.'},
+  'comprador_social.eventos_ver_mapa': {'es': 'Ver mapa', 'en': 'View map'},
+  'comprador_social.eventos_provincia_todas': {'es': 'Todas las provincias', 'en': 'All provinces'},
+  'comprador_social.eventos_provincia_placeholder': {'es': 'Provincia', 'en': 'Province'},
+
+  // pantalla_detalle_video.dart
+  'comprador_social.video_vistas_label': {'es': 'vistas', 'en': 'views'},
+  'comprador_social.video_vista_singular': {'es': 'vista', 'en': 'view'},
+  'comprador_social.video_no_se_pudo_abrir': {'es': 'No se pudo abrir el video', 'en': 'Could not open the video'},
+  'comprador_social.video_toca_reproducir_youtube': {'es': 'Toca para reproducir en YouTube', 'en': 'Tap to play on YouTube'},
+  'comprador_social.video_artesano_en_crafthub': {'es': 'Artesano en CraftHub', 'en': 'Artisan on CraftHub'},
+  'comprador_social.video_descripcion_titulo': {'es': 'Descripción', 'en': 'Description'},
+
+  // pantalla_tutoriales.dart (vendedor, shared with comprador wrapper)
+  'comprador_social.tutoriales_destacados_titulo': {'es': 'Tutoriales destacados', 'en': 'Featured tutorials'},
+  'comprador_social.tutoriales_mis_videos_titulo': {'es': 'Mis videos', 'en': 'My videos'},
+  'comprador_social.tutoriales_mis_videos_subtitulo': {'es': 'Administra y revisa el rendimiento\nde tus tutoriales publicados.', 'en': 'Manage and review the performance\nof your published tutorials.'},
+  'comprador_social.tutoriales_sin_videos': {'es': 'Aún no has subido ningún video.', 'en': "You haven't uploaded any videos yet."},
+  'comprador_social.tutoriales_editar_video': {'es': 'Editar video', 'en': 'Edit video'},
+  'comprador_social.tutoriales_ver_estadisticas': {'es': 'Ver estadísticas', 'en': 'View statistics'},
+  'comprador_social.tutoriales_eliminar_video': {'es': 'Eliminar video', 'en': 'Delete video'},
+  'comprador_social.tutoriales_confirmar_eliminar_pregunta': {'es': '¿Seguro que quieres eliminar', 'en': 'Are you sure you want to delete'},
+  'comprador_social.cancelar': {'es': 'Cancelar', 'en': 'Cancel'},
+  'comprador_social.eliminar': {'es': 'Eliminar', 'en': 'Delete'},
+  'comprador_social.tutoriales_error_eliminar': {'es': 'No se pudo eliminar: ', 'en': "Couldn't delete: "},
+  'comprador_social.tutoriales_banner_titulo': {'es': 'Aprende sin límites, crea con tus manos.', 'en': 'Learn without limits, create with your hands.'},
+  'comprador_social.tutoriales_banner_subtitulo': {'es': 'Descubre técnicas tradicionales, aprende de artesanos expertos\ny transforma tu creatividad en piezas únicas.', 'en': 'Discover traditional techniques, learn from expert artisans,\nand turn your creativity into one-of-a-kind pieces.'},
+  'comprador_social.tutoriales_subir_mi_video': {'es': 'Subir mi video', 'en': 'Upload my video'},
+  'comprador_social.tutoriales_comparte_conocimiento': {'es': 'Comparte tu conocimiento', 'en': 'Share your knowledge'},
+  'comprador_social.tutoriales_vacio_categoria': {'es': 'No hay tutoriales en esta categoría.', 'en': 'There are no tutorials in this category.'},
+  'comprador_social.tutoriales_vacio_se_primero': {'es': '¡Sé el primero en publicar uno!', 'en': 'Be the first to publish one!'},
+  'comprador_social.tutoriales_error_cargar_titulo': {'es': 'No se pudieron cargar los tutoriales.', 'en': "We couldn't load the tutorials."},
+};

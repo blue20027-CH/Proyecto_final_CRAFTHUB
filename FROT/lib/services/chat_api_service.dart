@@ -92,6 +92,21 @@ class ChatApiService {
     return MensajeModelo.fromJson(data['mensaje'] as Map<String, dynamic>);
   }
 
+  /// Sube una imagen de chat y devuelve su URL pública en Supabase Storage.
+  /// Reutiliza el endpoint genérico de subida de fotos de producto.
+  static Future<String> subirImagenChat(List<int> bytes, String nombreArchivo) async {
+    final uri = Uri.parse('http://127.0.0.1:8080/productos/subir-foto');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombreArchivo));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('No se pudo subir la imagen: ${response.statusCode}');
+    }
+    final data = jsonDecode(body) as Map<String, dynamic>;
+    return (data['url'] ?? '').toString();
+  }
+
   /// 🔗 PATCH /api/chat/mensajes/{conversacionId}/leidos?usuario_id=...
   static Future<void> marcarMensajesLeidos(String conversacionId, String usuarioId) async {
     try {

@@ -7,6 +7,7 @@ import '../../widgets/comprador/tarjeta_item_carrito.dart';
 import '../../widgets/comprador/panel_resumen_pedido.dart';
 import '../../widgets/comprador/seccion_sugerencias.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 // ============================================================
 // PANTALLA: MI CARRITO
@@ -105,13 +106,13 @@ class _ContenidoCarrito extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
-            SizedBox(width: 10),
+            const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
+            const SizedBox(width: 10),
             Text(
-              'Vaciar carrito',
-              style: TextStyle(
+              tr(context, 'comprador_secundario.vaciar_carrito'),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -119,15 +120,15 @@ class _ContenidoCarrito extends StatelessWidget {
             ),
           ],
         ),
-        content: const Text(
-          '¿Estás seguro que deseas eliminar todos los productos de este carrito?',
-          style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
+        content: Text(
+          tr(context, 'comprador_secundario.confirmar_vaciar_carrito'),
+          style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'Cancelar',
+              tr(context, 'comprador_secundario.cancelar'),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 color: Colors.grey[500],
@@ -146,9 +147,9 @@ class _ContenidoCarrito extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
-            child: const Text(
-              'Vaciar',
-              style: TextStyle(
+            child: Text(
+              tr(context, 'comprador_secundario.vaciar'),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
@@ -193,7 +194,7 @@ class _EstadoCarritoVacio extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Tu carrito está vacío',
+            tr(context, 'comprador_secundario.tu_carrito_esta_vacio'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 18,
@@ -205,7 +206,7 @@ class _EstadoCarritoVacio extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Explora el catálogo y agrega productos\nde artesanos panameños.',
+            tr(context, 'comprador_secundario.explora_catalogo_agrega_productos'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Poppins',
@@ -222,9 +223,9 @@ class _EstadoCarritoVacio extends StatelessWidget {
               // TODO: Navegar al catálogo (índice 0 del sidebar)
             },
             icon: const Icon(Icons.explore_outlined, size: 18),
-            label: const Text(
-              'Explorar catálogo',
-              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+            label: Text(
+              tr(context, 'comprador_secundario.explorar_catalogo'),
+              style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: CraftHubColors.vinoTinto,
@@ -283,7 +284,7 @@ class _BotonVaciarCarritoState extends State<_BotonVaciarCarrito> {
               ),
               const SizedBox(width: 6),
               Text(
-                'Vaciar carrito',
+                tr(context, 'comprador_secundario.vaciar_carrito'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,

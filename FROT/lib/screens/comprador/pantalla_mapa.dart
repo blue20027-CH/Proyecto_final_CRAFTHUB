@@ -13,6 +13,7 @@ import '../../widgets/comprador/tarjeta_artesano_mapa.dart';
 import '../../widgets/comprador/popup_artesano_mapa.dart';
 import '../../widgets/comprador/chip_categoria_mapa.dart';
 import 'pantalla_perfil_artesano.dart';
+import '../../core/i18n/i18n.dart';
 
 // 🔌 Ruteo dentro de la app usando OSRM (Open Source Routing Machine), el
 // mismo ecosistema de OpenStreetMap que ya usamos para los tiles del mapa.
@@ -233,7 +234,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
             return _ModeloArtesanoMapa.desde(a, distanciaKm: distancia);
           }).toList());
     } catch (e) {
-      if (mounted) setState(() => _error = 'No se pudieron cargar los artesanos.');
+      if (mounted) setState(() => _error = tr(context, 'comprador_secundario.error_cargar_artesanos'));
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -387,17 +388,17 @@ class _PantallaMapaState extends State<PantallaMapa> {
 
   Future<LatLng> _obtenerUbicacionActual() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
-      throw Exception('Activa el GPS/ubicación de tu dispositivo para calcular la ruta.');
+      throw Exception(tr(context, 'comprador_secundario.activa_gps'));
     }
     var permiso = await Geolocator.checkPermission();
     if (permiso == LocationPermission.denied) {
       permiso = await Geolocator.requestPermission();
       if (permiso == LocationPermission.denied) {
-        throw Exception('Necesitamos permiso de ubicación para trazar la ruta.');
+        throw Exception(tr(context, 'comprador_secundario.permiso_ubicacion_requerido'));
       }
     }
     if (permiso == LocationPermission.deniedForever) {
-      throw Exception('El permiso de ubicación está bloqueado. Actívalo en los ajustes del dispositivo.');
+      throw Exception(tr(context, 'comprador_secundario.permiso_ubicacion_bloqueado'));
     }
     final posicion = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
@@ -426,7 +427,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Ruta a ${artesano.nombre}: ${resultado.distanciaKm.toStringAsFixed(1)} km · ${resultado.duracionMin} min en auto',
+              '${tr(context, 'comprador_secundario.ruta_a')} ${artesano.nombre}: ${resultado.distanciaKm.toStringAsFixed(1)} km · ${resultado.duracionMin} ${tr(context, 'comprador_secundario.min_en_auto')}',
             ),
             duration: const Duration(seconds: 3),
           ),
@@ -524,7 +525,7 @@ class _PantallaMapaState extends State<PantallaMapa> {
                                             const SizedBox(height: 10),
                                             OutlinedButton(
                                               onPressed: _cargarArtesanos,
-                                              child: const Text('Reintentar'),
+                                              child: Text(tr(context, 'comprador_secundario.reintentar')),
                                             ),
                                           ],
                                         ),
@@ -739,7 +740,7 @@ class _HeaderMapa extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Artesanos cerca de ti',
+                tr(context, 'comprador_secundario.artesanos_cerca_de_ti'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 22,
@@ -748,7 +749,7 @@ class _HeaderMapa extends StatelessWidget {
                 ),
               ),
               Text(
-                'Descubre talento local en tu área',
+                tr(context, 'comprador_secundario.descubre_talento_local'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
@@ -817,7 +818,7 @@ class _BotonVolverMapaState extends State<_BotonVolverMapa> {
                   size: 16, color: CraftHubColors.vinoTinto),
               const SizedBox(width: 6),
               Text(
-                'Volver',
+                tr(context, 'comprador_secundario.volver'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -871,7 +872,7 @@ class _SelectorRadio extends StatelessWidget {
           items: opciones
               .map((o) => DropdownMenuItem(
                     value: o,
-                    child: Text('Dentro de ${o.toInt()} km'),
+                    child: Text('${tr(context, 'comprador_secundario.dentro_de')} ${o.toInt()} km'),
                   ))
               .toList(),
           onChanged: (v) => alCambiar(v ?? 25),
@@ -938,7 +939,9 @@ class _BotonUbicacionState extends State<_BotonUbicacion> {
                       color: Colors.white, size: 15),
               const SizedBox(width: 8),
               Text(
-                widget.cargando ? 'Ubicando...' : 'Usar mi ubicación',
+                widget.cargando
+                    ? tr(context, 'comprador_secundario.ubicando')
+                    : tr(context, 'comprador_secundario.usar_mi_ubicacion'),
                 style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -1101,14 +1104,14 @@ class _ChipCerrarRuta extends StatelessWidget {
             BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8),
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.close_rounded, size: 15, color: CraftHubColors.vinoTinto),
-            SizedBox(width: 6),
+            const Icon(Icons.close_rounded, size: 15, color: CraftHubColors.vinoTinto),
+            const SizedBox(width: 6),
             Text(
-              'Quitar ruta',
-              style: TextStyle(
+              tr(context, 'comprador_secundario.quitar_ruta'),
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -1233,7 +1236,7 @@ class _CampoBusqueda extends StatelessWidget {
         color: CraftHubColors.textoPrincipal(esOscuro),
       ),
       decoration: InputDecoration(
-        hintText: 'Buscar artesanos...',
+        hintText: tr(context, 'comprador_secundario.buscar_artesanos_hint'),
         hintStyle: TextStyle(
           fontFamily: 'Poppins',
           fontSize: 13,
@@ -1302,7 +1305,7 @@ class _BotonVerTodosState extends State<_BotonVerTodos> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Ver todos (${widget.total})',
+                '${tr(context, 'comprador_secundario.ver_todos')} (${widget.total})',
                 style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -1346,7 +1349,7 @@ class _SeccionCategorias extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Explorar artesanos por categoría',
+            tr(context, 'comprador_secundario.explorar_artesanos_por_categoria'),
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 16,
@@ -1414,21 +1417,21 @@ class _BotonMasCategoriasState extends State<_BotonMasCategorias> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: CraftHubColors.bordeClaro, width: 1.2),
           ),
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Más categorías',
+                tr(context, 'comprador_secundario.mas_categorias'),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: CraftHubColors.textoClaro,
                 ),
               ),
-              SizedBox(height: 6),
-              Icon(Icons.arrow_forward_rounded,
+              const SizedBox(height: 6),
+              const Icon(Icons.arrow_forward_rounded,
                   size: 16, color: CraftHubColors.vinoTinto),
             ],
           ),

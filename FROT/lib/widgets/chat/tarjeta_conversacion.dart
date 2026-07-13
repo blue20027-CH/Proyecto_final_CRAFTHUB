@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
 import 'avatar_contacto.dart';
 
@@ -16,14 +17,14 @@ class TarjetaConversacion extends StatelessWidget {
     required this.alTap,
   });
 
-  String _formatearHora(DateTime hora) {
+  String _formatearHora(BuildContext context, DateTime hora) {
     final diff = DateTime.now().difference(hora);
     if (diff.inMinutes < 60) return '${diff.inMinutes} min';
     if (diff.inHours < 24) {
       return '${hora.hour.toString().padLeft(2, '0')}:${hora.minute.toString().padLeft(2, '0')}';
     }
-    if (diff.inDays == 1) return 'Ayer';
-    return '${diff.inDays} días';
+    if (diff.inDays == 1) return tr(context, 'compartido.ayer');
+    return '${diff.inDays} ${tr(context, 'compartido.dias_abrev')}';
   }
 
   @override
@@ -96,7 +97,7 @@ class TarjetaConversacion extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _formatearHora(conversacion.horaUltimo),
+                        _formatearHora(context, conversacion.horaUltimo),
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 11,

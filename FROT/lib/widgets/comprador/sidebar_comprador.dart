@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../core/i18n/i18n.dart';
+import '../../core/locale_provider.dart';
 
 class SidebarComprador extends StatelessWidget {
   final String nombre;
@@ -28,12 +31,12 @@ class SidebarComprador extends StatelessWidget {
   // _obtenerPantallaActual en inicio_comprador.dart (mismo índice = misma
   // pantalla real que se muestra al seleccionarlo).
   static const _items = [
-    {'icono': Icons.home_outlined,           'label': 'Inicio'},
-    {'icono': Icons.shopping_cart_outlined,  'label': 'Mi carrito'},
-    {'icono': Icons.people_outline,          'label': 'Artesanos'},
-    {'icono': Icons.favorite_outline,        'label': 'Favoritos'},
-    {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
-    {'icono': Icons.chat_bubble_outline,     'label': 'Mensajes'},
+    {'icono': Icons.home_outlined,           'labelKey': 'comprador_home.nav_inicio'},
+    {'icono': Icons.shopping_cart_outlined,  'labelKey': 'comprador_home.nav_mi_carrito'},
+    {'icono': Icons.people_outline,          'labelKey': 'comprador_home.nav_artesanos'},
+    {'icono': Icons.favorite_outline,        'labelKey': 'comprador_home.nav_favoritos'},
+    {'icono': Icons.video_library_outlined,  'labelKey': 'comprador_home.nav_tutoriales'},
+    {'icono': Icons.chat_bubble_outline,     'labelKey': 'comprador_home.nav_mensajes'},
   ];
 
   String _iniciales(String valor) {
@@ -55,7 +58,7 @@ class SidebarComprador extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildAvatar(),
+          _buildAvatar(context),
 
           Divider(
             color: Colors.white.withValues(alpha: 0.12),
@@ -71,11 +74,19 @@ class SidebarComprador extends StatelessWidget {
               itemCount: _items.length,
               itemBuilder: (_, i) => _ItemNav(
                 icono:  _items[i]['icono'] as IconData,
-                label:  _items[i]['label'] as String,
+                label:  tr(context, _items[i]['labelKey'] as String),
                 activo: indiceActivo == i,
                 onTap:  () => alSeleccionar(i),
                 mostrarPunto: i == _indiceMensajes && tieneNotificacionMensajes,
               ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: _BotonIdiomaSidebar(
+              esIngles: context.watch<LocaleProvider>().esIngles,
+              onTap: () => context.read<LocaleProvider>().alternarIdioma(),
             ),
           ),
 
@@ -89,7 +100,7 @@ class SidebarComprador extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
             child: _ItemNav(
               icono:    Icons.logout_rounded,
-              label:    'Cerrar sesión',
+              label:    tr(context, 'comprador_home.cerrar_sesion'),
               activo:   false,
               onTap:    alCerrarSesion,
               esLogout: true,
@@ -100,11 +111,11 @@ class SidebarComprador extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: 'Editar perfil',
+        message: tr(context, 'comprador_home.editar_perfil'),
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
@@ -148,6 +159,62 @@ class _AvatarIniciales extends StatelessWidget {
           color: Colors.white,
           fontSize: 13,
           fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+// ── BOTÓN DE IDIOMA (ES/EN) — misma altura/estilo que un _ItemNav ────────
+class _BotonIdiomaSidebar extends StatefulWidget {
+  final bool esIngles;
+  final VoidCallback onTap;
+  const _BotonIdiomaSidebar({required this.esIngles, required this.onTap});
+
+  @override
+  State<_BotonIdiomaSidebar> createState() => _BotonIdiomaSidebarState();
+}
+
+class _BotonIdiomaSidebarState extends State<_BotonIdiomaSidebar> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final resaltado = _hover;
+    return Tooltip(
+      message: tr(context, 'topbar.cambiar_idioma'),
+      preferBelow: false,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit:  (_) => setState(() => _hover = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.only(bottom: 3),
+            padding: const EdgeInsets.symmetric(vertical: 9),
+            decoration: BoxDecoration(
+              color: resaltado ? Colors.white.withValues(alpha: 0.09) : Colors.transparent,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 0.8),
+            ),
+            child: Center(
+              child: Text(
+                widget.esIngles ? 'EN' : 'ES',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: resaltado ? 1 : 0.7),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

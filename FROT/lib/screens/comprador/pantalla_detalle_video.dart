@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../../widgets/vendedor/tarjeta_tutorial.dart';
 import '../../widgets/comprador/reproductor_youtube/reproductor_youtube.dart';
@@ -63,9 +64,9 @@ class _PantallaDetalleVideoState extends State<PantallaDetalleVideo> {
   }
 
   String _formatearVistas(int vistas) {
-    if (vistas >= 1000000) return '${(vistas / 1000000).toStringAsFixed(1)}M vistas';
-    if (vistas >= 1000) return '${(vistas / 1000).toStringAsFixed(1)}K vistas';
-    return '$vistas vista${vistas == 1 ? '' : 's'}';
+    if (vistas >= 1000000) return '${(vistas / 1000000).toStringAsFixed(1)}M ${tr(context, 'comprador_social.video_vistas_label')}';
+    if (vistas >= 1000) return '${(vistas / 1000).toStringAsFixed(1)}K ${tr(context, 'comprador_social.video_vistas_label')}';
+    return '$vistas ${vistas == 1 ? tr(context, 'comprador_social.video_vista_singular') : tr(context, 'comprador_social.video_vistas_label')}';
   }
 
   @override
@@ -157,7 +158,7 @@ class _ReproductorRespaldo extends StatelessWidget {
     final abierto = await canLaunchUrl(uri) && await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!abierto && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir el video')),
+        SnackBar(content: Text(tr(context, 'comprador_social.video_no_se_pudo_abrir'))),
       );
     }
   }
@@ -196,7 +197,7 @@ class _ReproductorRespaldo extends StatelessWidget {
               color: Colors.black54,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text('Toca para reproducir en YouTube',
+            child: Text(tr(context, 'comprador_social.video_toca_reproducir_youtube'),
                 style: GoogleFonts.poppins(color: Colors.white, fontSize: 10.5)),
           ),
         ),
@@ -327,7 +328,7 @@ class _PanelInfoVideo extends StatelessWidget {
                     Text(tutorial.nombreArtesano,
                         style: GoogleFonts.poppins(
                             fontSize: 14, fontWeight: FontWeight.w700, color: textoPrincipal)),
-                    Text('Artesano en CraftHub',
+                    Text(tr(context, 'comprador_social.video_artesano_en_crafthub'),
                         style: GoogleFonts.poppins(fontSize: 11.5, color: textoSecundario)),
                   ],
                 ),
@@ -338,7 +339,7 @@ class _PanelInfoVideo extends StatelessWidget {
             const SizedBox(height: 20),
             Divider(color: CraftHubColors.borde(oscuro)),
             const SizedBox(height: 18),
-            Text('Descripción',
+            Text(tr(context, 'comprador_social.video_descripcion_titulo'),
                 style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: textoPrincipal)),
             const SizedBox(height: 8),
             Text(tutorial.descripcion,

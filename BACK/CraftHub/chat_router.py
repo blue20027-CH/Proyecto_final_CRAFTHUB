@@ -53,17 +53,35 @@ def _otro_participante(conv: dict, user_id: str) -> dict:
     }
 
 
-def _serializar_conversacion(conv: dict, user_id: str, no_leidos: int = 0) -> dict:
+def _serializar_conversacion(conv: dict, user_id: str, no_leidos: int = 0, foto_contacto: str = "") -> dict:
     otro = _otro_participante(conv, user_id)
     return {
         "id": str(conv.get("id", "")),
         "nombre_contacto": otro["nombre"] or "Usuario CraftHub",
         "id_contacto": otro["id"],
         "rol_contacto": otro["rol"],
+        "foto_contacto": foto_contacto,
         "ultimo_mensaje": conv.get("ultimo_mensaje") or "",
         "ultimo_mensaje_hora": conv.get("ultimo_mensaje_hora"),
         "mensajes_no_leidos": no_leidos,
     }
+
+
+def _fotos_de_perfiles(ids: list) -> dict:
+    """Busca en un solo query la foto de perfil de cada user_id dado."""
+    ids_validos = [i for i in ids if i]
+    if not ids_validos:
+        return {}
+    try:
+        resp = (
+            supabase.table("perfiles")
+            .select("user_id, foto")
+            .in_("user_id", ids_validos)
+            .execute()
+        )
+        return {p["user_id"]: (p.get("foto") or "") for p in (resp.data or [])}
+    except Exception:
+        return {}
 
 
 def _serializar_mensaje(m: dict, para_usuario_id: str) -> dict:
@@ -103,6 +121,10 @@ def listar_conversaciones(user_id: str):
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Error cargando conversaciones: {ex}")
 
+    fotos = _fotos_de_perfiles(
+        [_otro_participante(conv, user_id).get("id") for conv in conversaciones]
+    )
+
     resultado = []
     for conv in conversaciones:
         try:
@@ -117,7 +139,8 @@ def listar_conversaciones(user_id: str):
             no_leidos = no_leidos_resp.count or 0
         except Exception:
             no_leidos = 0
-        resultado.append(_serializar_conversacion(conv, user_id, no_leidos))
+        foto = fotos.get(_otro_participante(conv, user_id).get("id"), "")
+        resultado.append(_serializar_conversacion(conv, user_id, no_leidos, foto))
 
     return {"conversaciones": resultado, "total": len(resultado)}
 
@@ -147,7 +170,8 @@ def abrir_conversacion(req: AbrirConversacionRequest):
                 or (not otro.get("id") and (otro.get("nombre") or "").strip().lower() == req.contacto_nombre.strip().lower())
             )
             if coincide:
-                return {"conversacion": _serializar_conversacion(conv, req.usuario_id, 0)}
+                foto = _fotos_de_perfiles([otro.get("id")]).get(otro.get("id"), "")
+                return {"conversacion": _serializar_conversacion(conv, req.usuario_id, 0, foto)}
 
         nueva = {
             "participante_1_id": req.usuario_id,
@@ -160,7 +184,8 @@ def abrir_conversacion(req: AbrirConversacionRequest):
         resultado = supabase.table("conversaciones").insert(nueva).execute()
         if not resultado.data:
             raise HTTPException(status_code=400, detail="No se pudo crear la conversación.")
-        return {"conversacion": _serializar_conversacion(resultado.data[0], req.usuario_id, 0)}
+        foto = _fotos_de_perfiles([req.contacto_id]).get(req.contacto_id, "")
+        return {"conversacion": _serializar_conversacion(resultado.data[0], req.usuario_id, 0, foto)}
     except HTTPException:
         raise
     except Exception as ex:

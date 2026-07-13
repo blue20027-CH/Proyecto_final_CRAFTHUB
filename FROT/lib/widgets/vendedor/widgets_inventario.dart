@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import '../../models/modelo_producto_inventario.dart';
+import '../../core/i18n/i18n.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 0. Tarjeta de producto (grilla visual del inventario)
@@ -106,7 +107,7 @@ class _TarjetaProductoInventarioState extends State<TarjetaProductoInventario> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Stock: ${widget.producto.stock}   Ventas: ${widget.producto.ventas}',
+                    'Stock: ${widget.producto.stock}   ${tr(context, 'vendedor_inventario.ventas_prefijo')}${widget.producto.ventas}',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
@@ -129,8 +130,8 @@ class _TarjetaProductoInventarioState extends State<TarjetaProductoInventario> {
                             padding: const EdgeInsets.symmetric(vertical: 9),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                           ),
-                          child: const Text('Editar',
-                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
+                          child: Text(tr(context, 'vendedor_inventario.editar'),
+                              style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -143,8 +144,8 @@ class _TarjetaProductoInventarioState extends State<TarjetaProductoInventario> {
                             padding: const EdgeInsets.symmetric(vertical: 9),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                           ),
-                          child: const Text('Eliminar',
-                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
+                          child: Text(tr(context, 'vendedor_inventario.eliminar'),
+                              style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
                         ),
                       ),
                     ],
@@ -263,15 +264,15 @@ class BadgeEstado extends StatelessWidget {
     switch (estado) {
       case EstadoProducto.activo:
         color = const Color(0xFF2E7D32);
-        texto = 'Activo';
+        texto = tr(context, 'vendedor_inventario.estado_activo');
         break;
       case EstadoProducto.agotado:
         color = const Color(0xFFC62828);
-        texto = 'Agotado';
+        texto = tr(context, 'vendedor_inventario.estado_agotado');
         break;
       case EstadoProducto.borrador:
         color = const Color(0xFFE65100);
-        texto = 'Borrador';
+        texto = tr(context, 'vendedor_inventario.estado_borrador');
         break;
     }
 
@@ -501,7 +502,7 @@ class _FilaProductoState extends State<FilaProducto> {
             Expanded(
               flex: 1,
               child: Text(
-                '${widget.producto.stock} uds.',
+                '${widget.producto.stock} ${tr(context, 'vendedor_inventario.unidades_sufijo')}',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -546,13 +547,13 @@ class _FilaProductoState extends State<FilaProducto> {
                 children: [
                   _BotonAccion(
                     icono: Icons.edit_outlined,
-                    tooltip: 'Editar producto',
+                    tooltip: tr(context, 'vendedor_inventario.editar_producto_titulo'),
                     alPresionar: widget.alEditar,
                   ),
                   const SizedBox(width: 4),
                   _BotonAccion(
                     icono: Icons.more_horiz,
-                    tooltip: 'Más opciones',
+                    tooltip: tr(context, 'vendedor_inventario.mas_opciones_tooltip'),
                     alPresionar: widget.alVerOpciones,
                   ),
                 ],
@@ -647,7 +648,7 @@ class PaginadorTabla extends StatelessWidget {
       children: [
         // Info de registros
         Text(
-          _textoRango(),
+          _textoRango(context),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 12,
@@ -680,7 +681,7 @@ class PaginadorTabla extends StatelessWidget {
 
         // Registros por página
         Text(
-          'Productos por página:',
+          tr(context, 'vendedor_inventario.productos_por_pagina'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 12,
@@ -707,11 +708,14 @@ class PaginadorTabla extends StatelessWidget {
     );
   }
 
-  String _textoRango() {
-    if (totalRegistros == 0) return 'No hay productos';
+  String _textoRango(BuildContext context) {
+    if (totalRegistros == 0) return tr(context, 'vendedor_inventario.no_hay_productos');
     final inicio = (paginaActual - 1) * registrosPorPagina + 1;
     final fin = (inicio + registrosPorPagina - 1).clamp(0, totalRegistros);
-    return 'Mostrando $inicio a $fin de $totalRegistros productos';
+    return '${tr(context, 'vendedor_inventario.mostrando_prefijo')}$inicio'
+        '${tr(context, 'vendedor_inventario.mostrando_a_infijo')}$fin'
+        '${tr(context, 'vendedor_inventario.mostrando_de_infijo')}$totalRegistros'
+        '${tr(context, 'vendedor_inventario.mostrando_productos_sufijo')}';
   }
 
   List<Widget> _construirBotonesPagina(bool esModoOscuro) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/carrito_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../screens/comprador/pantalla_pago.dart';
 
 class PanelResumenPedido extends StatelessWidget {
@@ -57,7 +58,7 @@ class PanelResumenPedido extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Resumen del pedido',
+                  tr(context, 'compartido.resumen_pedido'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 16,
@@ -73,22 +74,22 @@ class PanelResumenPedido extends StatelessWidget {
 
             // ── Desglose de costos ──────────────────────────
             _FilaResumen(
-              etiqueta: 'Subtotal',
+              etiqueta: tr(context, 'compartido.subtotal'),
               valor: '\$${carrito.subtotal.toStringAsFixed(2)}',
               esModoOscuro: esModoOscuro,
             ),
             const SizedBox(height: 10),
             _FilaResumen(
-              etiqueta: 'Envío',
+              etiqueta: tr(context, 'compartido.envio_label'),
               valor: carrito.envio == 0
-                  ? 'Gratis'
+                  ? tr(context, 'compartido.gratis')
                   : '\$${carrito.envio.toStringAsFixed(2)}',
               colorValor: carrito.envio == 0 ? Colors.green[600] : null,
               esModoOscuro: esModoOscuro,
             ),
             const SizedBox(height: 10),
             _FilaResumen(
-              etiqueta: 'Impuestos (7%)',
+              etiqueta: tr(context, 'compartido.impuestos_label'),
               valor: '\$${carrito.impuestos.toStringAsFixed(2)}',
               esModoOscuro: esModoOscuro,
             ),
@@ -105,7 +106,7 @@ class PanelResumenPedido extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total',
+                  tr(context, 'compartido.total_label'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 15,
@@ -135,7 +136,7 @@ class PanelResumenPedido extends StatelessWidget {
                 Expanded(
                   child: _BotonFactura(
                     icono: Icons.download_outlined,
-                    etiqueta: 'Descargar\nfactura',
+                    etiqueta: tr(context, 'compartido.descargar_factura'),
                     alPresionar: () => provider.descargarFactura(),
                     esSecundario: true,
                     esModoOscuro: esModoOscuro,
@@ -145,7 +146,7 @@ class PanelResumenPedido extends StatelessWidget {
                 Expanded(
                   child: _BotonFactura(
                     icono: Icons.receipt_long_outlined,
-                    etiqueta: 'Ver factura\ncompleta',
+                    etiqueta: tr(context, 'compartido.ver_factura_completa'),
                     alPresionar: () => provider.verFacturaCompleta(context),
                     esSecundario: true,
                     esModoOscuro: esModoOscuro,
@@ -175,7 +176,7 @@ class PanelResumenPedido extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Compra protegida',
+                          tr(context, 'compartido.compra_protegida'),
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12,
@@ -187,7 +188,7 @@ class PanelResumenPedido extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Tus pagos están 100% seguros y\ntus artesanos reciben tu apoyo directo.',
+                          tr(context, 'compartido.compra_protegida_desc'),
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 10.5,
@@ -210,7 +211,7 @@ class PanelResumenPedido extends StatelessWidget {
               alPresionar: () {
                 if (provider.userId.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Inicia sesión para continuar con tu compra')),
+                    SnackBar(content: Text(tr(context, 'compartido.inicia_sesion_comprar'))),
                   );
                   return;
                 }
@@ -233,7 +234,7 @@ class PanelResumenPedido extends StatelessWidget {
                           : Colors.grey[600]),
                   const SizedBox(width: 6),
                   Text(
-                    'Envíos a todo Panamá',
+                    tr(context, 'compartido.envios_panama'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
@@ -420,9 +421,9 @@ class _BotonProcederPagoState extends State<_BotonProcederPago> {
               const Icon(Icons.shopping_bag_outlined,
                   color: Colors.white, size: 18),
               const SizedBox(width: 10),
-              const Text(
-                'Proceder al pago',
-                style: TextStyle(
+              Text(
+                tr(context, 'compartido.proceder_pago'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

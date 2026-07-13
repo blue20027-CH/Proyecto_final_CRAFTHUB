@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../../widgets/vendedor/tarjeta_tutorial.dart';
 import '../../widgets/vendedor/tarjeta_mi_video.dart';
@@ -161,7 +162,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                   const SizedBox(height: 24),
 
                   Text(
-                    'Tutoriales destacados',
+                    tr(context, 'comprador_social.tutoriales_destacados_titulo'),
                     style: TextStyle(
                       color: colorTexto,
                       fontSize: 18,
@@ -213,7 +214,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Mis videos',
+                          tr(context, 'comprador_social.tutoriales_mis_videos_titulo'),
                           style: TextStyle(
                             color: colorTexto,
                             fontSize: 15,
@@ -223,7 +224,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Administra y revisa el rendimiento\nde tus tutoriales publicados.',
+                          tr(context, 'comprador_social.tutoriales_mis_videos_subtitulo'),
                           style: TextStyle(
                             color: colorSec,
                             fontSize: 11,
@@ -251,7 +252,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 24),
                                 child: Text(
-                                  'Aún no has subido ningún video.',
+                                  tr(context, 'comprador_social.tutoriales_sin_videos'),
                                   style: TextStyle(
                                     color: colorSec,
                                     fontSize: 12,
@@ -295,7 +296,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: CraftHubColors.vinoTinto),
-              title: Text('Editar video',
+              title: Text(tr(context, 'comprador_social.tutoriales_editar_video'),
                   style: TextStyle(
                       color: CraftHubColors.textoPrincipal(esOscuro),
                       fontFamily: 'Poppins')),
@@ -303,7 +304,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
             ),
             ListTile(
               leading: const Icon(Icons.bar_chart_rounded, color: CraftHubColors.vinoTinto),
-              title: Text('Ver estadísticas',
+              title: Text(tr(context, 'comprador_social.tutoriales_ver_estadisticas'),
                   style: TextStyle(
                       color: CraftHubColors.textoPrincipal(esOscuro),
                       fontFamily: 'Poppins')),
@@ -311,24 +312,24 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: CraftHubColors.error),
-              title: const Text('Eliminar video',
-                  style: TextStyle(color: CraftHubColors.error, fontFamily: 'Poppins')),
+              title: Text(tr(context, 'comprador_social.tutoriales_eliminar_video'),
+                  style: const TextStyle(color: CraftHubColors.error, fontFamily: 'Poppins')),
               onTap: () async {
                 Navigator.pop(context);
                 final confirmar = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Eliminar video'),
-                    content: Text('¿Seguro que quieres eliminar "${tutorial.titulo}"?'),
+                    title: Text(tr(ctx, 'comprador_social.tutoriales_eliminar_video')),
+                    content: Text('${tr(ctx, 'comprador_social.tutoriales_confirmar_eliminar_pregunta')} "${tutorial.titulo}"?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancelar'),
+                        child: Text(tr(ctx, 'comprador_social.cancelar')),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text('Eliminar',
-                            style: TextStyle(color: CraftHubColors.error)),
+                        child: Text(tr(ctx, 'comprador_social.eliminar'),
+                            style: const TextStyle(color: CraftHubColors.error)),
                       ),
                     ],
                   ),
@@ -340,7 +341,7 @@ class _PantallaTutorialesState extends State<PantallaTutoriales> {
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('No se pudo eliminar: $e')),
+                        SnackBar(content: Text('${tr(context, 'comprador_social.tutoriales_error_eliminar')}$e')),
                       );
                     }
                   }
@@ -406,7 +407,7 @@ class _BannerTutoriales extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Aprende sin límites, crea con tus manos.',
+                  tr(context, 'comprador_social.tutoriales_banner_titulo'),
                   style: TextStyle(
                     color: colorTexto,
                     fontSize: 15,
@@ -416,7 +417,7 @@ class _BannerTutoriales extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Descubre técnicas tradicionales, aprende de artesanos expertos\ny transforma tu creatividad en piezas únicas.',
+                  tr(context, 'comprador_social.tutoriales_banner_subtitulo'),
                   style: TextStyle(
                     color: colorSec,
                     fontSize: 12,
@@ -444,9 +445,9 @@ class _BannerTutoriales extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text('Subir mi video',
+                Text(tr(context, 'comprador_social.tutoriales_subir_mi_video'),
                     style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
-                Text('Comparte tu conocimiento',
+                Text(tr(context, 'comprador_social.tutoriales_comparte_conocimiento'),
                     style: TextStyle(color: colorSec, fontSize: 10, fontFamily: 'Poppins')),
               ],
             ),
@@ -524,10 +525,10 @@ class _EstadoVacio extends StatelessWidget {
           children: [
             Icon(Icons.video_library_outlined, size: 56, color: colorSec),
             const SizedBox(height: 16),
-            Text('No hay tutoriales en esta categoría.',
+            Text(tr(context, 'comprador_social.tutoriales_vacio_categoria'),
                 style: TextStyle(color: colorSec, fontSize: 14, fontFamily: 'Poppins')),
             const SizedBox(height: 6),
-            Text('¡Sé el primero en publicar uno!',
+            Text(tr(context, 'comprador_social.tutoriales_vacio_se_primero'),
                 style: TextStyle(color: colorSec, fontSize: 12, fontFamily: 'Poppins')),
           ],
         ),
@@ -550,7 +551,7 @@ class _EstadoError extends StatelessWidget {
           children: [
             const Icon(Icons.wifi_off_rounded, size: 56, color: CraftHubColors.error),
             const SizedBox(height: 16),
-            Text('No se pudieron cargar los tutoriales.',
+            Text(tr(context, 'comprador_social.tutoriales_error_cargar_titulo'),
                 style: TextStyle(color: colorSec, fontSize: 14, fontFamily: 'Poppins')),
             const SizedBox(height: 6),
             Text(mensaje,

@@ -8,6 +8,7 @@ import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/eventos/modal_detalle_evento.dart';
 import '../../widgets/eventos/tarjeta_evento_proximo.dart';
 import 'pantalla_detalle_producto.dart';
+import '../../core/i18n/i18n.dart';
 
 // Pantalla "Mis favoritos": lee directamente del FavoritosProvider global,
 // así que cualquier corazón que se toque en el resto de la app (tarjetas de
@@ -35,7 +36,7 @@ class PantallaFavoritos extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
             child: Row(children: [
-              Text('Mis favoritos',
+              Text(tr(context, 'comprador_secundario.mis_favoritos'),
                 style: GoogleFonts.poppins(
                   fontSize: 22, fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoPrincipal(oscuro))),
@@ -50,7 +51,7 @@ class PantallaFavoritos extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: CraftHubColors.borde(oscuro)),
                   ),
-                  child: Text('$total guardados',
+                  child: Text('$total ${tr(context, 'comprador_secundario.guardados')}',
                     style: GoogleFonts.poppins(fontSize: 12,
                       color: CraftHubColors.textoSecundario(oscuro))),
                 ),
@@ -61,8 +62,8 @@ class PantallaFavoritos extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Text(
               estaLogueado
-                ? 'Productos y eventos que has guardado como favoritos.'
-                : 'Inicia sesión para guardar tus favoritos.',
+                ? tr(context, 'comprador_secundario.productos_eventos_guardados_favoritos')
+                : tr(context, 'comprador_secundario.inicia_sesion_guardar_favoritos'),
               style: GoogleFonts.poppins(fontSize: 13,
                 color: CraftHubColors.textoSecundario(oscuro))),
           ),
@@ -84,7 +85,7 @@ class PantallaFavoritos extends StatelessWidget {
                                 if (provider.productos.isNotEmpty) ...[
                                   _EncabezadoSeccion(
                                     icono: Icons.shopping_bag_outlined,
-                                    titulo: 'Productos favoritos',
+                                    titulo: tr(context, 'comprador_secundario.productos_favoritos'),
                                     total: provider.productos.length,
                                     oscuro: oscuro,
                                   ),
@@ -118,7 +119,7 @@ class PantallaFavoritos extends StatelessWidget {
                                 if (provider.eventos.isNotEmpty) ...[
                                   _EncabezadoSeccion(
                                     icono: Icons.event_outlined,
-                                    titulo: 'Eventos favoritos',
+                                    titulo: tr(context, 'comprador_secundario.eventos_favoritos'),
                                     total: provider.eventos.length,
                                     oscuro: oscuro,
                                   ),
@@ -126,7 +127,7 @@ class PantallaFavoritos extends StatelessWidget {
                                   for (final evento in provider.eventos) ...[
                                     TarjetaEventoProximo(
                                       evento: evento,
-                                      textoBotonPrimario: 'Quitar de favoritos',
+                                      textoBotonPrimario: tr(context, 'comprador_secundario.quitar_de_favoritos'),
                                       iconoBotonPrimario: Icons.favorite,
                                       alVerDetalles: () => mostrarDetalleEvento(
                                         context,
@@ -192,11 +193,11 @@ class _EstadoVacio extends StatelessWidget {
           Icon(Icons.favorite_border_rounded, size: 64,
             color: CraftHubColors.textoSecundario(oscuro)),
           const SizedBox(height: 16),
-          Text('No tienes favoritos aún',
+          Text(tr(context, 'comprador_secundario.no_tienes_favoritos_aun'),
             style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600,
               color: CraftHubColors.textoPrincipal(oscuro))),
           const SizedBox(height: 8),
-          Text('Explora el catálogo y el calendario de eventos\ny guarda lo que más te guste.',
+          Text(tr(context, 'comprador_secundario.explora_catalogo_calendario'),
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(fontSize: 13,
               color: CraftHubColors.textoSecundario(oscuro))),
@@ -219,11 +220,11 @@ class _EstadoNoLogueado extends StatelessWidget {
           Icon(Icons.lock_outline_rounded, size: 64,
             color: CraftHubColors.textoSecundario(oscuro)),
           const SizedBox(height: 16),
-          Text('Inicia sesión para ver tus favoritos',
+          Text(tr(context, 'comprador_secundario.inicia_sesion_ver_favoritos'),
             style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600,
               color: CraftHubColors.textoPrincipal(oscuro))),
           const SizedBox(height: 8),
-          Text('Guarda tus productos y eventos favoritos\ny accede a ellos desde cualquier dispositivo.',
+          Text(tr(context, 'comprador_secundario.guarda_productos_eventos_favoritos'),
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(fontSize: 13,
               color: CraftHubColors.textoSecundario(oscuro))),

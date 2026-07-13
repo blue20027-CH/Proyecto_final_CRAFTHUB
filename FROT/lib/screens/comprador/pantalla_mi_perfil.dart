@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../pantalla_editar_perfil.dart';
 import '../../services/api_service.dart';
+import '../../core/i18n/i18n.dart';
 
 class PantallaMiPerfilComprador extends StatefulWidget {
   final String userId;
@@ -38,7 +39,7 @@ class _PantallaMiPerfilCompradorState extends State<PantallaMiPerfilComprador> {
       final perfil = await ApiService.getPerfil(widget.userId);
       if (!mounted) return;
       setState(() {
-        _nombre = (perfil['nombre'] ?? 'Usuario CraftHub').toString();
+        _nombre = (perfil['nombre'] ?? tr(context, 'comprador_secundario.usuario_crafthub')).toString();
         _email = (perfil['email'] ?? '').toString();
         _fotoUrl = (perfil['foto'] ?? '').toString();
         _bannerUrl = (perfil['foto_portada'] ?? '').toString();
@@ -79,7 +80,7 @@ class _PantallaMiPerfilCompradorState extends State<PantallaMiPerfilComprador> {
       appBar: AppBar(
         backgroundColor: CraftHubColors.fondo(esOscuro),
         elevation: 0,
-        title: Text('Mi perfil',
+        title: Text(tr(context, 'comprador_secundario.mi_perfil'),
             style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700,
                 color: CraftHubColors.textoPrincipal(esOscuro))),
       ),
@@ -173,7 +174,7 @@ class _PantallaMiPerfilCompradorState extends State<PantallaMiPerfilComprador> {
                                 ElevatedButton.icon(
                                   onPressed: _editarPerfil,
                                   icon: const Icon(Icons.edit_outlined, size: 16),
-                                  label: const Text('Editar perfil',
+                                  label: Text(tr(context, 'comprador_secundario.editar_perfil'),
                                       style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: CraftHubColors.vinoTinto,
@@ -207,29 +208,29 @@ class _PantallaMiPerfilCompradorState extends State<PantallaMiPerfilComprador> {
                                 children: [
                                   _FilaInfo(
                                     icono: Icons.description_outlined,
-                                    etiqueta: 'Descripción',
-                                    valor: _descripcion.isEmpty ? 'Sin descripción todavía' : _descripcion,
+                                    etiqueta: tr(context, 'comprador_secundario.descripcion'),
+                                    valor: _descripcion.isEmpty ? tr(context, 'comprador_secundario.sin_descripcion_todavia') : _descripcion,
                                     esOscuro: esOscuro,
                                   ),
                                   const Divider(height: 28),
                                   _FilaInfo(
                                     icono: Icons.map_outlined,
-                                    etiqueta: 'Provincia / comarca',
-                                    valor: _provincia.isEmpty ? 'Sin especificar' : _provincia,
+                                    etiqueta: tr(context, 'comprador_secundario.provincia_comarca'),
+                                    valor: _provincia.isEmpty ? tr(context, 'comprador_secundario.sin_especificar') : _provincia,
                                     esOscuro: esOscuro,
                                   ),
                                   const Divider(height: 28),
                                   _FilaInfo(
                                     icono: Icons.location_on_outlined,
-                                    etiqueta: 'Ciudad / dirección',
-                                    valor: _ubicacion.isEmpty ? 'Sin especificar' : _ubicacion,
+                                    etiqueta: tr(context, 'comprador_secundario.ciudad_direccion'),
+                                    valor: _ubicacion.isEmpty ? tr(context, 'comprador_secundario.sin_especificar') : _ubicacion,
                                     esOscuro: esOscuro,
                                   ),
                                   const Divider(height: 28),
                                   _FilaInfo(
                                     icono: Icons.phone_outlined,
-                                    etiqueta: 'Teléfono',
-                                    valor: _telefono.isEmpty ? 'Sin especificar' : _telefono,
+                                    etiqueta: tr(context, 'comprador_secundario.telefono'),
+                                    valor: _telefono.isEmpty ? tr(context, 'comprador_secundario.sin_especificar') : _telefono,
                                     esOscuro: esOscuro,
                                   ),
                                 ],

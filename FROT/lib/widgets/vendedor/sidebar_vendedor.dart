@@ -1,5 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../core/i18n/i18n.dart';
+import '../../core/locale_provider.dart';
 
 class SidebarVendedor extends StatelessWidget {
   final String nombre;
@@ -33,13 +36,13 @@ class SidebarVendedor extends StatelessWidget {
   // _obtenerPantallaActual y el menú "Explorar" del topbar en
   // pantalla_dashoard_vendedor.dart).
   static const _items = [
-    {'icono': Icons.dashboard_outlined,      'label': 'Dashboard'},
-    {'icono': Icons.inventory_2_outlined,    'label': 'Productos'},
-    {'icono': Icons.video_library_outlined,  'label': 'Tutoriales'},
-    {'icono': Icons.forum_outlined,          'label': 'Mensajes'},
-    {'icono': Icons.receipt_long_outlined,   'label': 'Pedidos'},
-    {'icono': Icons.map_outlined,            'label': 'Mapa'},
-    {'icono': Icons.groups_2_outlined,       'label': 'Proveedores'},
+    {'icono': Icons.dashboard_outlined,      'label': 'vendedor_dashboard.nav_dashboard'},
+    {'icono': Icons.inventory_2_outlined,    'label': 'vendedor_dashboard.nav_productos'},
+    {'icono': Icons.video_library_outlined,  'label': 'vendedor_dashboard.nav_tutoriales'},
+    {'icono': Icons.forum_outlined,          'label': 'vendedor_dashboard.nav_mensajes'},
+    {'icono': Icons.receipt_long_outlined,   'label': 'vendedor_dashboard.nav_pedidos'},
+    {'icono': Icons.map_outlined,            'label': 'vendedor_dashboard.nav_mapa'},
+    {'icono': Icons.groups_2_outlined,       'label': 'vendedor_dashboard.nav_proveedores'},
   ];
 
   @override
@@ -55,7 +58,7 @@ class SidebarVendedor extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildAvatar(),
+          _buildAvatar(context),
 
           Divider(
             color: Colors.white.withValues(alpha: 0.12),
@@ -71,11 +74,19 @@ class SidebarVendedor extends StatelessWidget {
               itemCount: _items.length,
               itemBuilder: (_, i) => _ItemNav(
                 icono:  _items[i]['icono'] as IconData,
-                label:  _items[i]['label'] as String,
+                label:  tr(context, _items[i]['label'] as String),
                 activo: indiceActivo == i,
                 onTap:  () => alSeleccionar(i),
                 mostrarPunto: i == _indiceMensajes && tieneNotificacionMensajes,
               ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: _BotonIdiomaSidebar(
+              esIngles: context.watch<LocaleProvider>().esIngles,
+              onTap: () => context.read<LocaleProvider>().alternarIdioma(),
             ),
           ),
 
@@ -89,7 +100,7 @@ class SidebarVendedor extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
             child: _ItemNav(
               icono:    Icons.logout_rounded,
-              label:    'Cerrar sesiÃ³n',
+              label:    tr(context, 'vendedor_dashboard.sidebar_cerrar_sesion'),
               activo:   false,
               // ðŸ”Œ POST /api/auth/logout â†’ limpiar token
               onTap:    alCerrarSesion,
@@ -107,11 +118,11 @@ class SidebarVendedor extends StatelessWidget {
     return texto.isEmpty ? 'V' : texto;
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Tooltip(
-        message: 'Editar perfil',
+        message: tr(context, 'vendedor_dashboard.sidebar_editar_perfil'),
         preferBelow: false,
         decoration: BoxDecoration(
           color: const Color(0xFF1a1a1a),
@@ -163,6 +174,62 @@ class _AvatarIniciales extends StatelessWidget {
 }
 
 // â”€â”€ Ãtem de navegaciÃ³n (solo icono + tooltip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// ── BOTÓN DE IDIOMA (ES/EN) — misma altura/estilo que un _ItemNav ────────
+class _BotonIdiomaSidebar extends StatefulWidget {
+  final bool esIngles;
+  final VoidCallback onTap;
+  const _BotonIdiomaSidebar({required this.esIngles, required this.onTap});
+
+  @override
+  State<_BotonIdiomaSidebar> createState() => _BotonIdiomaSidebarState();
+}
+
+class _BotonIdiomaSidebarState extends State<_BotonIdiomaSidebar> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final resaltado = _hover;
+    return Tooltip(
+      message: tr(context, 'topbar.cambiar_idioma'),
+      preferBelow: false,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1a1a1a),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      textStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit:  (_) => setState(() => _hover = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.only(bottom: 3),
+            padding: const EdgeInsets.symmetric(vertical: 9),
+            decoration: BoxDecoration(
+              color: resaltado ? Colors.white.withValues(alpha: 0.09) : Colors.transparent,
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 0.8),
+            ),
+            child: Center(
+              child: Text(
+                widget.esIngles ? 'EN' : 'ES',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: resaltado ? 1 : 0.7),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ItemNav extends StatefulWidget {
   final IconData icono;
