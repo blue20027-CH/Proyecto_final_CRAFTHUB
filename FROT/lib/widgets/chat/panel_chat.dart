@@ -15,6 +15,7 @@ class PanelChat extends StatefulWidget {
   final List<PublicacionCompartidaModelo> misPublicaciones;
   final String usuarioId;
   final String usuarioNombre;
+  final String tituloVacioCompartir;
 
   const PanelChat({
     super.key,
@@ -23,6 +24,7 @@ class PanelChat extends StatefulWidget {
     this.misPublicaciones = const [],
     required this.usuarioId,
     required this.usuarioNombre,
+    this.tituloVacioCompartir = 'No tienes nada para compartir todavía.',
   });
 
   @override
@@ -127,6 +129,7 @@ class _PanelChatState extends State<PanelChat> {
       context: context,
       builder: (_) => ModalCompartirPublicacion(
         publicaciones: widget.misPublicaciones,
+        tituloVacio: widget.tituloVacioCompartir,
         alCompartir: (pub) {
           _enviarYPersistir(
             MensajeModelo(

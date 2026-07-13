@@ -149,7 +149,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
     });
     try {
       await ApiService.actualizarPerfil(widget.userId, {
-        'descripcion': _ctrlDescripcion.text.trim(),
+        if (_modo == 'vendedor') 'descripcion': _ctrlDescripcion.text.trim(),
         'ubicacion': _ctrlUbicacion.text.trim(),
         if (_provincia != null) 'provincia': _provincia,
         if (_categoria != null) 'categoria': _categoria,
@@ -383,7 +383,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                     _EtiquetaCampo(icono: Icons.category_outlined, texto: tr(context, 'compartido.categoria_principal_label'), esOscuro: esOscuro),
                                     const SizedBox(height: 8),
                                     DropdownButtonFormField<String>(
-                                      value: _categoria,
+                                      initialValue: _categoria,
                                       decoration: _decoracion(esOscuro, icono: Icons.category_outlined, hint: tr(context, 'compartido.selecciona_categoria_hint')),
                                       items: _categoriasArtesano
                                           .map((c) => DropdownMenuItem(value: c, child: Text(c)))
@@ -396,7 +396,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                   _EtiquetaCampo(icono: Icons.map_outlined, texto: tr(context, 'compartido.provincia_comarca_label'), esOscuro: esOscuro),
                                   const SizedBox(height: 8),
                                   DropdownButtonFormField<String>(
-                                    value: _provincia,
+                                    initialValue: _provincia,
                                     decoration: _decoracion(esOscuro, icono: Icons.map_outlined, hint: tr(context, 'compartido.selecciona_provincia_hint')),
                                     items: kProvinciasPanama
                                         .map((p) => DropdownMenuItem(value: p, child: Text(p)))

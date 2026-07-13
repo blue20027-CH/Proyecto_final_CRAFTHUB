@@ -115,6 +115,15 @@ const Map<String, Map<String, String>> traducciones = {
   'comprador_secundario.sin_descripcion_todavia': {'es': 'Sin descripción todavía', 'en': 'No description yet'},
   'comprador_secundario.provincia_comarca': {'es': 'Provincia / comarca', 'en': 'Province / comarca'},
   'comprador_secundario.ciudad_direccion': {'es': 'Ciudad / dirección', 'en': 'City / address'},
+  'comprador_secundario.telefono': {'es': 'Teléfono', 'en': 'Phone'},
+  'comprador_secundario.preferencias': {'es': 'Preferencias', 'en': 'Preferences'},
+  'comprador_secundario.preferencias_subtitulo': {'es': 'Personaliza tu experiencia en CraftHub.', 'en': 'Personalize your CraftHub experience.'},
+  'comprador_secundario.tema': {'es': 'Tema', 'en': 'Theme'},
+  'comprador_secundario.idioma': {'es': 'Idioma', 'en': 'Language'},
+  'comprador_secundario.cuenta_activa': {'es': 'Cuenta activa', 'en': 'Active account'},
+  'comprador_secundario.footer_hecho_en_panama': {'es': 'CraftHub © {anio} · Hecho con ❤️ en Panamá', 'en': 'CraftHub © {anio} · Made with ❤️ in Panama'},
+  'comprador_secundario.error_selector_imagenes': {'es': 'No se pudo abrir el selector de imágenes: ', 'en': "Couldn't open the image picker: "},
+  'comprador_secundario.error_subir_foto': {'es': 'No se pudo subir la foto: ', 'en': "Couldn't upload the photo: "},
 
   // pantalla_pago.dart
   'comprador_secundario.finalizar_compra': {'es': 'Finalizar compra', 'en': 'Checkout'},

@@ -1,6 +1,8 @@
 const Map<String, Map<String, String>> traducciones = {
   // pantalla_mensajes_comprador.dart
   'comprador_social.mensajes_error_cargar': {'es': 'No se pudieron cargar los mensajes: ', 'en': "Couldn't load messages: "},
+  'comprador_social.mensajes_error_abrir_chat': {'es': 'No se pudo abrir la conversación: ', 'en': "Couldn't open the conversation: "},
+  'comprador_social.mensajes_sin_favoritos_compartir': {'es': 'No tienes productos en favoritos para compartir.', 'en': "You don't have any favorited products to share."},
   'comprador_social.mensajes_vacio_titulo': {'es': 'Tus mensajes', 'en': 'Your messages'},
   'comprador_social.mensajes_vacio_subtitulo': {'es': 'Selecciona una conversación para chatear\ncon un artesano.', 'en': 'Select a conversation to chat\nwith an artisan.'},
   'comprador_social.reintentar': {'es': 'Reintentar', 'en': 'Retry'},
@@ -27,7 +29,7 @@ const Map<String, Map<String, String>> traducciones = {
   'comprador_social.video_vistas_label': {'es': 'vistas', 'en': 'views'},
   'comprador_social.video_vista_singular': {'es': 'vista', 'en': 'view'},
   'comprador_social.video_no_se_pudo_abrir': {'es': 'No se pudo abrir el video', 'en': 'Could not open the video'},
-  'comprador_social.video_toca_reproducir_youtube': {'es': 'Toca para reproducir en YouTube', 'en': 'Tap to play on YouTube'},
+  'comprador_social.video_toca_reproducir_youtube': {'es': 'Este dispositivo abrirá el video en YouTube', 'en': 'This device will open the video on YouTube'},
   'comprador_social.video_artesano_en_crafthub': {'es': 'Artesano en CraftHub', 'en': 'Artisan on CraftHub'},
   'comprador_social.video_descripcion_titulo': {'es': 'Descripción', 'en': 'Description'},
 

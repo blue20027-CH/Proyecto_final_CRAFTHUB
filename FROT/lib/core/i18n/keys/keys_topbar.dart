@@ -8,4 +8,8 @@ const Map<String, Map<String, String>> traducciones = {
   'topbar.cambiar_idioma': {'es': 'Cambiar idioma', 'en': 'Switch language'},
   'topbar.explorar': {'es': 'Explorar', 'en': 'Explore'},
   'topbar.explorar_secciones': {'es': 'Explorar secciones', 'en': 'Explore sections'},
+  'topbar.sin_resultados': {'es': 'Sin resultados.', 'en': 'No results.'},
+  'topbar.artesanos': {'es': 'Artesanos', 'en': 'Artisans'},
+  'topbar.productos': {'es': 'Productos', 'en': 'Products'},
+  'topbar.crear_producto': {'es': 'Crear producto', 'en': 'Create product'},
 };

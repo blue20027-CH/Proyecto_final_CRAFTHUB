@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/favoritos_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
@@ -13,7 +15,19 @@ import '../../widgets/chat/banner_anuncio_crafthub.dart';
 class PantallaMensajesComprador extends StatefulWidget {
   final String userId;
   final String nombreComprador;
-  const PantallaMensajesComprador({super.key, this.userId = '', this.nombreComprador = ''});
+  // Si se llega aquí desde "Enviar mensaje" en el perfil de un artesano, se
+  // abre (o encuentra) esa conversación y se selecciona automáticamente.
+  final String? contactoIdInicial;
+  final String? contactoNombreInicial;
+  final String contactoRolInicial;
+  const PantallaMensajesComprador({
+    super.key,
+    this.userId = '',
+    this.nombreComprador = '',
+    this.contactoIdInicial,
+    this.contactoNombreInicial,
+    this.contactoRolInicial = 'Vendedor',
+  });
 
   @override
   State<PantallaMensajesComprador> createState() =>
@@ -33,7 +47,7 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
   @override
   void initState() {
     super.initState();
-    _cargarConversaciones();
+    _iniciar();
     _pollConversaciones = Timer.periodic(const Duration(seconds: 6), (_) => _refrescarConversaciones());
   }
 
@@ -42,6 +56,46 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
     _pollConversaciones?.cancel();
     _pollMensajes?.cancel();
     super.dispose();
+  }
+
+  Future<void> _iniciar() async {
+    await _cargarConversaciones();
+    if (widget.contactoNombreInicial != null && widget.contactoNombreInicial!.isNotEmpty) {
+      await _abrirConversacionInicial();
+    }
+  }
+
+  Future<void> _abrirConversacionInicial() async {
+    if (widget.userId.isEmpty) return;
+    try {
+      final contactoId = widget.contactoIdInicial;
+      final conv = await ChatApiService.abrirConversacion(
+        usuarioId: widget.userId,
+        usuarioNombre: widget.nombreComprador,
+        contactoId: (contactoId == null || contactoId.isEmpty) ? null : contactoId,
+        contactoNombre: widget.contactoNombreInicial!,
+        contactoRol: widget.contactoRolInicial,
+      );
+      if (!mounted) return;
+      _agregarYSeleccionarConversacion(conv);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${tr(context, 'comprador_social.mensajes_error_abrir_chat')}${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
+  }
+
+  /// Agrega la conversación a la lista si es nueva (no venía del historial)
+  /// y la selecciona. Usado tanto al llegar desde "Enviar mensaje" como al
+  /// iniciar una conversación nueva desde el buscador de PanelConversaciones.
+  void _agregarYSeleccionarConversacion(ConversacionModelo conv) {
+    setState(() {
+      if (!_conversaciones.any((c) => c.id == conv.id)) {
+        _conversaciones = [conv, ..._conversaciones];
+      }
+    });
+    _seleccionar(conv);
   }
 
   // Refresca la lista de conversaciones en segundo plano (sin spinner) para
@@ -166,6 +220,10 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
                         conversaciones: _conversaciones,
                         idSeleccionado: _conversacionActiva?.id,
                         alSeleccionar: _seleccionar,
+                        userId: widget.userId,
+                        nombreUsuario: widget.nombreComprador,
+                        alAbrirConversacion: _agregarYSeleccionarConversacion,
+                        buscarNuevosContactos: true,
                       ),
                 Expanded(
                   child: _error != null
@@ -184,8 +242,22 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
                                   key: ValueKey('${_conversacionActiva!.id}_${_mensajesActivos.length}'),
                                   conversacion: _conversacionActiva!,
                                   mensajes: _mensajesActivos,
+                                  // El comprador comparte desde sus favoritos, no
+                                  // desde publicaciones propias (no es vendedor).
+                                  misPublicaciones: context
+                                      .watch<FavoritosProvider>()
+                                      .productos
+                                      .map((p) => PublicacionCompartidaModelo(
+                                            id: p.id,
+                                            titulo: p.nombre,
+                                            imagenUrl: p.imagenUrl,
+                                            precio: p.precio,
+                                            artesano: p.artesano,
+                                          ))
+                                      .toList(),
                                   usuarioId: widget.userId,
                                   usuarioNombre: widget.nombreComprador,
+                                  tituloVacioCompartir: tr(context, 'comprador_social.mensajes_sin_favoritos_compartir'),
                                 ),
                 ),
               ],

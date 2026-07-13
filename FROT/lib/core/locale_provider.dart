@@ -25,7 +25,14 @@ class LocaleProvider extends ChangeNotifier {
   }
 
   Future<void> alternarIdioma() async {
-    _locale = Locale(esIngles ? 'es' : 'en');
+    await establecerIdioma(esIngles ? 'es' : 'en');
+  }
+
+  // Selección explícita (p. ej. desde un menú con "Español"/"English" en vez
+  // de un simple toggle de dos estados).
+  Future<void> establecerIdioma(String codigo) async {
+    if (codigo != 'es' && codigo != 'en') return;
+    _locale = Locale(codigo);
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_clavePrefs, _locale.languageCode);

@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
 import '../../services/chat_api_service.dart';
+import '../../services/vendedor_api_service.dart';
 import '../../widgets/chat/panel_conversaciones.dart';
 import '../../widgets/chat/panel_chat.dart';
 import '../../widgets/chat/banner_anuncio_crafthub.dart';
@@ -50,38 +51,15 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
   Timer? _pollConversaciones;
   Timer? _pollMensajes;
 
-  // Publicaciones del vendedor para compartir en chat
-  // TODO: GET /api/productos/mios?vendedorId={id}
-  final List<PublicacionCompartidaModelo> _misPublicaciones = [
-    PublicacionCompartidaModelo(
-      id: 'vp1',
-      titulo: 'Bolso tejido iraca',
-      imagenUrl: 'https://i.imgur.com/ZWRiMCb.jpeg',
-      precio: 45.00,
-      artesano: 'Rosa Martinez',
-    ),
-    PublicacionCompartidaModelo(
-      id: 'vp2',
-      titulo: 'Mola Guna Yala',
-      imagenUrl:
-          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-      precio: 38.00,
-      artesano: 'Rosa Martinez',
-    ),
-    PublicacionCompartidaModelo(
-      id: 'vp3',
-      titulo: 'Cesta de fibra natural',
-      imagenUrl:
-          'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      precio: 22.50,
-      artesano: 'Rosa Martinez',
-    ),
-  ];
+  // Publicaciones propias del vendedor para compartir en chat.
+  // 🔌 GET /api/vendedor/{nombreVendedor}/productos
+  List<PublicacionCompartidaModelo> _misPublicaciones = [];
 
   @override
   void initState() {
     super.initState();
     _cargarConversaciones();
+    _cargarMisPublicaciones();
     _pollConversaciones = Timer.periodic(const Duration(seconds: 6), (_) => _refrescarConversaciones());
   }
 
@@ -90,6 +68,27 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
     _pollConversaciones?.cancel();
     _pollMensajes?.cancel();
     super.dispose();
+  }
+
+  Future<void> _cargarMisPublicaciones() async {
+    if (widget.nombreVendedor.isEmpty) return;
+    try {
+      final respuesta = await VendedorApiService.cargarProductos(widget.nombreVendedor);
+      if (!mounted) return;
+      setState(() {
+        _misPublicaciones = respuesta.productos
+            .map((p) => PublicacionCompartidaModelo(
+                  id: p.id,
+                  titulo: p.nombre,
+                  imagenUrl: p.rutaImagen,
+                  precio: p.precio,
+                  artesano: widget.nombreVendedor,
+                ))
+            .toList();
+      });
+    } catch (e) {
+      debugPrint('Error cargando mis publicaciones para compartir: $e');
+    }
   }
 
   // Refresca la lista de conversaciones en segundo plano (sin spinner) para
@@ -163,7 +162,35 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
   // Busca (o crea en el backend) la conversación con ese contacto y la deja
   // seleccionada — usado al llegar desde "Chatear" en Proveedores o el
   // ícono de chat en Mis Órdenes.
+  //
+  // El vendedor NUNCA puede iniciar una conversación con un Cliente: solo
+  // puede responder a quien ya le escribió primero. Por eso, cuando
+  // rolContacto == 'Cliente', esto solo busca una conversación EXISTENTE en
+  // la lista ya cargada y nunca llama a abrirConversacion() (que crearía una
+  // nueva). Con un Proveedor sí se puede crear, porque los proveedores son
+  // un directorio sin cuenta propia con la que "escribir primero".
   Future<void> _abrirConversacionCon(String nombreContacto, String rolContacto, {String? idContacto}) async {
+    if (rolContacto == 'Cliente') {
+      ConversacionModelo? existente;
+      for (final c in _conversaciones) {
+        final mismoId = idContacto != null && idContacto.isNotEmpty && c.idContacto == idContacto;
+        final mismoNombre = c.nombreContacto.trim().toLowerCase() == nombreContacto.trim().toLowerCase();
+        if (mismoId || mismoNombre) {
+          existente = c;
+          break;
+        }
+      }
+      if (existente == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Aún no puedes escribirle a $nombreContacto: debe enviarte un mensaje primero.')),
+        );
+        return;
+      }
+      await _seleccionar(existente);
+      return;
+    }
+
     try {
       final conv = await ChatApiService.abrirConversacion(
         usuarioId: widget.userId,
@@ -184,6 +211,16 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
         SnackBar(content: Text('${tr(context, 'vendedor_operaciones.mensajes_error_abrir_chat_prefijo')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     }
+  }
+
+  // Usado por el buscador de PanelConversaciones para iniciar una
+  // conversación nueva con un contacto que todavía no tenía una.
+  void _agregarYSeleccionarConversacion(ConversacionModelo conv) {
+    final yaExiste = _conversaciones.any((c) => c.id == conv.id);
+    setState(() {
+      if (!yaExiste) _conversaciones = [conv, ..._conversaciones];
+    });
+    _seleccionar(conv);
   }
 
   Future<void> _seleccionar(ConversacionModelo conv) async {
@@ -247,6 +284,9 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
                         conversaciones: _conversaciones,
                         idSeleccionado: _conversacionActiva?.id,
                         alSeleccionar: _seleccionar,
+                        userId: widget.userId,
+                        nombreUsuario: widget.nombreVendedor,
+                        alAbrirConversacion: _agregarYSeleccionarConversacion,
                       ),
                 Expanded(
                   child: _error != null
@@ -262,6 +302,7 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
                                   misPublicaciones: _misPublicaciones,
                                   usuarioId: widget.userId,
                                   usuarioNombre: widget.nombreVendedor,
+                                  tituloVacioCompartir: 'Aún no tienes productos publicados para compartir.',
                                 ),
                 ),
               ],

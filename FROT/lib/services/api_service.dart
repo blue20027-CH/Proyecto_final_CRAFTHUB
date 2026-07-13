@@ -172,6 +172,108 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  // ── TARJETAS GUARDADAS / SEGURIDAD ──────────────────────────
+
+  /// 🔗 POST /api/auth/verificar-password — reautentica al usuario (confirma
+  /// su contraseña) antes de una acción sensible.
+  static Future<bool> verificarPassword(String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/auth/verificar-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    if (response.statusCode == 200) return true;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    throw Exception(data['detail'] ?? 'No se pudo verificar tu contraseña.');
+  }
+
+  /// 🔗 PATCH /api/auth/cambiar-password — cambia la contraseña de la
+  /// cuenta, reautenticando con la contraseña actual.
+  static Future<void> cambiarPassword(String email, String passwordActual, String passwordNueva) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/auth/cambiar-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'password_actual': passwordActual,
+        'password_nueva': passwordNueva,
+      }),
+    );
+    if (response.statusCode != 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(data['detail'] ?? 'No se pudo cambiar tu contraseña.');
+    }
+  }
+
+  /// 🔗 GET /api/tarjetas/{userId} — tarjetas guardadas (enmascaradas).
+  static Future<List<Map<String, dynamic>>> getTarjetas(String userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/tarjetas/$userId'));
+    if (response.statusCode != 200) {
+      throw Exception('No se pudieron cargar tus tarjetas guardadas.');
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ((data['tarjetas'] as List?) ?? []).cast<Map<String, dynamic>>();
+  }
+
+  /// 🔗 POST /api/tarjetas/ — guarda una tarjeta nueva (solo datos
+  /// enmascarados: marca, últimos 4 dígitos, titular, vencimiento).
+  static Future<Map<String, dynamic>> agregarTarjeta(Map<String, dynamic> datos) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/tarjetas/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(datos),
+    );
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(data['detail'] ?? 'No se pudo guardar la tarjeta.');
+    }
+    return data;
+  }
+
+  /// 🔗 DELETE /api/tarjetas/{tarjetaId} — requiere confirmar contraseña.
+  static Future<void> eliminarTarjeta(
+    String tarjetaId, {
+    required String email,
+    required String password,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/tarjetas/$tarjetaId'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    if (response.statusCode != 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(data['detail'] ?? 'No se pudo eliminar la tarjeta.');
+    }
+  }
+
+  /// 🔗 PATCH /api/tarjetas/{tarjetaId}/predeterminada — requiere contraseña.
+  static Future<void> marcarTarjetaPredeterminada(
+    String tarjetaId, {
+    required String email,
+    required String password,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/tarjetas/$tarjetaId/predeterminada'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    if (response.statusCode != 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(data['detail'] ?? 'No se pudo actualizar la tarjeta.');
+    }
+  }
+
+  /// 🔗 GET /api/pagos/historial/{userId} — historial de pedidos/facturas.
+  static Future<List<Map<String, dynamic>>> getHistorialPedidos(String userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/api/pagos/historial/$userId'));
+    if (response.statusCode != 200) {
+      throw Exception('No se pudo cargar tu historial de pedidos.');
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ((data['pedidos'] as List?) ?? []).cast<Map<String, dynamic>>();
+  }
+
   // ── CARRITO ──────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> getCarritos(String userId) async {

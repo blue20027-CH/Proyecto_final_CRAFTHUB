@@ -65,7 +65,7 @@ class _BarraSuperior extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/logo_crafthub.png',
+                  CraftHubColors.logoPath(esOscuro),
                   width: 28,
                   height: 28,
                   fit: BoxFit.contain,

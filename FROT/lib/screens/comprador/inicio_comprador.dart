@@ -10,9 +10,9 @@ import 'pantalla_eventos_comprador.dart';
 import 'pantalla_tutoriales_comprador.dart';
 import 'pantalla_mensajes_comprador.dart';
 import 'pantalla_detalle_producto.dart';
-import 'pantalla_perfil_artesano.dart';
 import '../auth/inicio_screen.dart';
 import '../pantalla_editar_perfil.dart';
+import '../navegacion_artesano.dart';
 import 'pantalla_mi_perfil.dart';
 import '../../core/theme/app_theme.dart';
 import '../../main.dart';
@@ -176,6 +176,24 @@ class _HomeCompradorState extends State<HomeComprador> {
     }
   }
 
+  // Contacto pendiente por abrir en la pestaña de Mensajes (llegó desde
+  // "Enviar mensaje" en la lista o el perfil completo de un artesano). Se
+  // consume una sola vez al construir esa pestaña, ver _obtenerPantallaActual.
+  String? _chatContactoIdPendiente;
+  String? _chatContactoNombrePendiente;
+
+  void _abrirChatConArtesano(String? contactoId, String contactoNombre) {
+    setState(() {
+      _navIndice = 5;
+      _tieneAnuncioSinLeer = false;
+      _chatContactoIdPendiente = contactoId;
+      _chatContactoNombrePendiente = contactoNombre;
+    });
+    if (widget.userId.isNotEmpty) {
+      ApiService.marcarAnunciosLeidos(widget.userId);
+    }
+  }
+
   void _abrirMensajes() {
     setState(() {
       _navIndice = 5;
@@ -317,53 +335,7 @@ class _HomeCompradorState extends State<HomeComprador> {
 
   // Conecta la tarjeta de "Artesanos destacados" con su perfil completo,
   // cargando sus productos reales desde GET /artesanos/{nombre}.
-  Future<void> _abrirPerfilArtesano(ArtesanoModelo a) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: CraftHubColors.vinoTinto)),
-    );
-
-    var productos = <ModeloProductoResumen>[];
-    try {
-      final detalle = await ApiService.getDetalleArtesano(a.nombre);
-      productos = ((detalle['productos'] as List<dynamic>?) ?? [])
-          .map((p) => ModeloProductoResumen.fromJson(Map<String, dynamic>.from(p as Map)))
-          .toList();
-    } catch (e) {
-      debugPrint('Error cargando productos del artesano: $e');
-    }
-
-    if (!mounted) return;
-    Navigator.pop(context);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PantallaPerfilArtesano(
-          artesano: ModeloArtesano(
-            nombre: a.nombre,
-            specialty: a.especialidad,
-            especialidad: a.especialidad,
-            ubicacion: a.provincia,
-            fotoUrl: a.fotoUrl,
-            bannerUrl: a.bannerEfectivo,
-            calificacion: a.rating,
-            totalResenas: a.totalResenas,
-            verificado: a.estaVerificado,
-            totalProductos: a.totalVentas,
-            anosEnCraftHub: a.anosExperiencia,
-            valoracionesPositivas: (a.rating / 5 * 100).round(),
-            ventasRealizadas: a.totalVentas,
-            descripcion: a.descripcion,
-            etiquetas: a.especialidades,
-            colecciones: productos.map((p) => p.coleccion).toSet().toList(),
-            productos: productos,
-          ),
-        ),
-      ),
-    );
-  }
+  Future<void> _abrirPerfilArtesano(ArtesanoModelo a) => abrirPerfilArtesano(context, a);
 
   @override
   void dispose() {
@@ -415,13 +387,24 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 1:
         return const PantallaCarrito();
       case 2:
-        return const ArtesanosScreen();
+        return ArtesanosScreen(onEnviarMensaje: _abrirChatConArtesano);
       case 3:
         return PantallaFavoritos(userId: widget.userId);
       case 4:
         return PantallaTutorialesComprador(userId: widget.userId);
       case 5:
-        return PantallaMensajesComprador(userId: widget.userId, nombreComprador: _nombreUsuario);
+        // Se consume una sola vez: si el usuario vuelve a esta pestaña por
+        // otro camino (sidebar), no debe reabrir el mismo contacto de nuevo.
+        final contactoId = _chatContactoIdPendiente;
+        final contactoNombre = _chatContactoNombrePendiente;
+        _chatContactoIdPendiente = null;
+        _chatContactoNombrePendiente = null;
+        return PantallaMensajesComprador(
+          userId: widget.userId,
+          nombreComprador: _nombreUsuario,
+          contactoIdInicial: contactoId,
+          contactoNombreInicial: contactoNombre,
+        );
       default:
         return _buildContenido(oscuro);
     }
@@ -442,6 +425,8 @@ class _HomeCompradorState extends State<HomeComprador> {
     return TopbarFlotante(
       controladorBusqueda: _busquedaCtrl,
       alBuscar: (q) => _cargarProductos(),
+      userId: widget.userId,
+      mostrarExplorar: false,
       tieneNotificaciones: true,
       alPresionarUbicacion: abrirMapa,
       alPresionarLogo: () => setState(() => _navIndice = 0),
@@ -451,22 +436,6 @@ class _HomeCompradorState extends State<HomeComprador> {
           builder: (_) => PantallaEventosComprador(userId: widget.userId),
         ),
       ),
-      itemsExplorar: [
-        ItemExplorar(icono: Icons.home_outlined, etiqueta: tr(context, 'comprador_home.nav_inicio'),
-            onTap: () => setState(() => _navIndice = 0)),
-        ItemExplorar(icono: Icons.shopping_bag_outlined, etiqueta: tr(context, 'comprador_home.nav_carrito'),
-            onTap: () => setState(() => _navIndice = 1)),
-        ItemExplorar(icono: Icons.storefront_outlined, etiqueta: tr(context, 'comprador_home.nav_artesanos'),
-            onTap: () => setState(() => _navIndice = 2)),
-        ItemExplorar(icono: Icons.favorite_border_rounded, etiqueta: tr(context, 'comprador_home.nav_favoritos'),
-            onTap: () => setState(() => _navIndice = 3)),
-        ItemExplorar(icono: Icons.video_library_outlined, etiqueta: tr(context, 'comprador_home.nav_tutoriales'),
-            onTap: () => setState(() => _navIndice = 4)),
-        ItemExplorar(icono: Icons.chat_bubble_outline_rounded, etiqueta: tr(context, 'comprador_home.nav_mensajes'),
-            onTap: () => setState(() => _navIndice = 5)),
-        ItemExplorar(icono: Icons.map_outlined, etiqueta: tr(context, 'comprador_home.nav_mapa_artesanos'),
-            onTap: abrirMapa),
-      ],
     );
   }
 

@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -7,15 +8,19 @@ import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../../widgets/vendedor/tarjeta_tutorial.dart';
 import '../../widgets/comprador/reproductor_youtube/reproductor_youtube.dart';
+import '../../widgets/comprador/reproductor_youtube/reproductor_youtube_nativo.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // PANTALLA DETALLE DE VIDEO
-// El video ocupa la mayor parte de la pantalla (arriba); la información
-// (título, vistas, artesano, descripción) va debajo y scrollea.
+// El video ocupa toda la pantalla disponible; debajo va una pequeña barra
+// con los datos esenciales (título, vistas, categoría, artesano), que se
+// puede ocultar/mostrar con un botón para que el video use el 100% de la
+// pantalla.
 // 🔌 Backend: GET /api/tutoriales/{id}, POST /api/tutoriales/{id}/vista.
-// En Flutter Web se embebe el reproductor real de YouTube. En el resto de
-// plataformas (Android/iOS/Windows) se usa un reproductor de respaldo con
-// miniatura + controles, que abre el video en YouTube al presionarlo.
+// El video se reproduce SIEMPRE dentro de la propia app (nunca redirige a
+// YouTube): en Flutter Web vía iframe embebido y en Android/iOS/macOS/
+// Windows vía un WebView nativo (flutter_inappwebview) apuntando al
+// reproductor embed de YouTube.
 // ──────────────────────────────────────────────────────────────────────────
 class PantallaDetalleVideo extends StatefulWidget {
   final ModeloTutorial tutorial;
@@ -27,6 +32,7 @@ class PantallaDetalleVideo extends StatefulWidget {
 
 class _PantallaDetalleVideoState extends State<PantallaDetalleVideo> {
   late ModeloTutorial _tutorial;
+  bool _mostrarBarraInfo = true;
 
   @override
   void initState() {
@@ -69,51 +75,84 @@ class _PantallaDetalleVideoState extends State<PantallaDetalleVideo> {
     return '$vistas ${vistas == 1 ? tr(context, 'comprador_social.video_vista_singular') : tr(context, 'comprador_social.video_vistas_label')}';
   }
 
+  // El video se reproduce siempre dentro de la app: iframe embebido en Web,
+  // WebView nativo en Android/iOS/macOS/Windows, y solo como último recurso
+  // (plataformas sin soporte de WebView, o sin id de YouTube) la miniatura.
+  Widget _construirReproductor(String videoId) {
+    if (videoId.isEmpty) {
+      return _ReproductorRespaldo(tutorial: _tutorial, videoId: videoId);
+    }
+    if (kIsWeb) {
+      return ReproductorYoutubeEmbed(videoId: videoId);
+    }
+    const plataformasConWebViewNativo = [
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+      TargetPlatform.macOS,
+      TargetPlatform.windows,
+    ];
+    if (plataformasConWebViewNativo.contains(defaultTargetPlatform)) {
+      return ReproductorYoutubeNativo(videoId: videoId);
+    }
+    return _ReproductorRespaldo(tutorial: _tutorial, videoId: videoId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
-    final tamano = MediaQuery.of(context).size;
-    // El video ocupa la mayor parte de la pantalla (~62% del alto visible).
-    final alturaVideo = (tamano.height * 0.62).clamp(240.0, 720.0);
     final videoId = _extraerIdYoutube(_tutorial.youtubeUrl);
+    final textoVistas = _formatearVistas(_tutorial.vistas);
 
     return Scaffold(
-      backgroundColor: CraftHubColors.fondo(oscuro),
+      backgroundColor: Colors.black,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            SizedBox(
-              height: alturaVideo,
-              width: double.infinity,
-              child: ColoredBox(
-                color: Colors.black,
-                child: Stack(children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: (kIsWeb && videoId.isNotEmpty)
-                          ? ReproductorYoutubeEmbed(videoId: videoId)
-                          : _ReproductorRespaldo(tutorial: _tutorial, videoId: videoId),
-                    ),
+            // Barra de controles fina, FUERA del área del video: el
+            // reproductor embebido (iframe en Web / WebView nativo) siempre
+            // se compone por encima de los widgets de Flutter, así que un
+            // botón superpuesto sobre el video quedaría invisible e
+            // inalcanzable al toque. Por eso viven en su propia franja.
+            Container(
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Row(
+                children: [
+                  _BotonCircular(
+                    icono: Icons.arrow_back_rounded,
+                    onTap: () => Navigator.of(context).maybePop(),
                   ),
-                  Positioned(top: 12, left: 12, child: _BotonVolverVideo()),
-                ]),
+                  const Spacer(),
+                  _BotonCircular(
+                    icono: _mostrarBarraInfo
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.keyboard_arrow_up_rounded,
+                    onTap: () => setState(() => _mostrarBarraInfo = !_mostrarBarraInfo),
+                  ),
+                ],
               ),
             ),
+            // El video ocupa todo el espacio disponible de la pantalla.
             Expanded(
-              child: SingleChildScrollView(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 900),
-                    child: _PanelInfoVideo(
+              child: ColoredBox(
+                color: Colors.black,
+                child: _construirReproductor(videoId),
+              ),
+            ),
+            // Barra pequeña con los datos; se puede ocultar para que el
+            // video use el 100% de la pantalla.
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: _mostrarBarraInfo
+                  ? _BarraInfoVideo(
                       tutorial: _tutorial,
                       oscuro: oscuro,
-                      textoVistas: _formatearVistas(_tutorial.vistas),
-                    ),
-                  ),
-                ),
-              ),
+                      textoVistas: textoVistas,
+                    )
+                  : const SizedBox(width: double.infinity),
             ),
           ],
         ),
@@ -122,27 +161,31 @@ class _PantallaDetalleVideoState extends State<PantallaDetalleVideo> {
   }
 }
 
-class _BotonVolverVideo extends StatelessWidget {
-  const _BotonVolverVideo();
+class _BotonCircular extends StatelessWidget {
+  final IconData icono;
+  final VoidCallback onTap;
+  const _BotonCircular({required this.icono, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).maybePop(),
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(9),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.55),
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
+        child: Icon(icono, color: Colors.white, size: 20),
       ),
     );
   }
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// REPRODUCTOR DE RESPALDO (Android/iOS/Windows/desktop)
+// REPRODUCTOR DE RESPALDO
+// Último recurso: solo se usa si no hay id de YouTube válido o si la
+// plataforma no tiene soporte de WebView nativo (p. ej. Linux).
 // ──────────────────────────────────────────────────────────────────────────
 class _ReproductorRespaldo extends StatelessWidget {
   final ModeloTutorial tutorial;
@@ -201,63 +244,135 @@ class _ReproductorRespaldo extends StatelessWidget {
                 style: GoogleFonts.poppins(color: Colors.white, fontSize: 10.5)),
           ),
         ),
-        // Barra de controles (estética de reproductor; abre YouTube al tocar)
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 20, 14, 10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: const LinearProgressIndicator(
-                    value: 0,
-                    minHeight: 3,
-                    backgroundColor: Colors.white24,
-                    valueColor: AlwaysStoppedAnimation(CraftHubColors.vinoTintoClaro),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(children: [
-                  const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    '0:00 / ${tutorial.duracion.isNotEmpty ? tutorial.duracion : '--:--'}',
-                    style: GoogleFonts.poppins(color: Colors.white, fontSize: 11),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.volume_up_rounded, color: Colors.white, size: 19),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 20),
-                ]),
-              ],
-            ),
-          ),
-        ),
       ]),
     );
   }
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// PANEL DE INFORMACIÓN (debajo del video)
+// BARRA PEQUEÑA DE INFORMACIÓN (debajo del video, ocultable)
+// Muestra lo esencial en una sola franja compacta; al tocarla se abre una
+// hoja con el detalle completo (descripción, artesano, categoría).
 // ──────────────────────────────────────────────────────────────────────────
-class _PanelInfoVideo extends StatelessWidget {
+class _BarraInfoVideo extends StatelessWidget {
   final ModeloTutorial tutorial;
   final bool oscuro;
   final String textoVistas;
 
-  const _PanelInfoVideo({
+  const _BarraInfoVideo({
+    required this.tutorial,
+    required this.oscuro,
+    required this.textoVistas,
+  });
+
+  void _abrirDetalleCompleto(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CraftHubColors.fondo(oscuro),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.35,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (context, controlador) => SingleChildScrollView(
+          controller: controlador,
+          child: _PanelDetalleCompleto(
+            tutorial: tutorial,
+            oscuro: oscuro,
+            textoVistas: textoVistas,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textoPrincipal = CraftHubColors.textoPrincipal(oscuro);
+    final textoSecundario = CraftHubColors.textoSecundario(oscuro);
+
+    return Material(
+      color: CraftHubColors.fondo(oscuro),
+      child: InkWell(
+        onTap: () => _abrirDetalleCompleto(context),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: CraftHubColors.vinoTintoSuave,
+                  backgroundImage: tutorial.avatarArtesano.isNotEmpty
+                      ? NetworkImage(tutorial.avatarArtesano)
+                      : null,
+                  child: tutorial.avatarArtesano.isEmpty
+                      ? Text(
+                          tutorial.nombreArtesano.isNotEmpty
+                              ? tutorial.nombreArtesano[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                              color: CraftHubColors.vinoTinto, fontWeight: FontWeight.bold, fontSize: 13),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        tutorial.titulo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                            fontSize: 13.5, fontWeight: FontWeight.w700, color: textoPrincipal),
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(Icons.visibility_outlined, size: 13, color: textoSecundario),
+                          const SizedBox(width: 3),
+                          Text(textoVistas,
+                              style: GoogleFonts.poppins(fontSize: 11, color: textoSecundario)),
+                          if (tutorial.publicadoHace.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Text('•', style: TextStyle(color: textoSecundario, fontSize: 11)),
+                            const SizedBox(width: 8),
+                            Text(tutorial.publicadoHace,
+                                style: GoogleFonts.poppins(fontSize: 11, color: textoSecundario)),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.keyboard_arrow_up_rounded, color: textoSecundario, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// PANEL DE DETALLE COMPLETO (hoja modal con toda la información)
+// ──────────────────────────────────────────────────────────────────────────
+class _PanelDetalleCompleto extends StatelessWidget {
+  final ModeloTutorial tutorial;
+  final bool oscuro;
+  final String textoVistas;
+
+  const _PanelDetalleCompleto({
     required this.tutorial,
     required this.oscuro,
     required this.textoVistas,
@@ -269,10 +384,21 @@ class _PanelInfoVideo extends StatelessWidget {
     final textoSecundario = CraftHubColors.textoSecundario(oscuro);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 18),
+              decoration: BoxDecoration(
+                color: CraftHubColors.borde(oscuro),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
           Text(
             tutorial.titulo,
             style: GoogleFonts.poppins(
