@@ -833,7 +833,7 @@ class _DialogoAgregarProveedorState extends State<_DialogoAgregarProveedor> {
 
   Future<void> _guardar() async {
     if (_ctrlNombre.text.trim().isEmpty) {
-      setState(() => _error = tr(context, 'vendedor_operaciones.proveedores_error_nombre_obligatorio'));
+      setState(() => _error = 'vendedor_operaciones.proveedores_error_nombre_obligatorio');
       return;
     }
     setState(() {
@@ -957,7 +957,7 @@ class _DialogoAgregarProveedorState extends State<_DialogoAgregarProveedor> {
                 _campo(tr(context, 'vendedor_operaciones.proveedores_campo_imagen_url'), _ctrlImagen),
                 if (_error != null) ...[
                   const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: CraftHubColors.error)),
+                  Text(tr(context, _error!), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: CraftHubColors.error)),
                 ],
                 const SizedBox(height: 20),
                 SizedBox(

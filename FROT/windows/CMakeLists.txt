@@ -32,6 +32,17 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# flutter_inappwebview_windows still targets the old Coroutines TS
+# (<experimental/coroutine>), which newer MSVC/STL releases treat as a hard
+# error unless explicitly silenced. This must be defined project-wide (not
+# just on our own targets) so it also reaches that plugin's build.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
+# Force synchronous PDB writes so parallel cl.exe invocations within the same
+# plugin project (e.g. file_selector_windows) don't clash writing to the same
+# .pdb file (MSVC error C1041). Project-wide so it also reaches plugin builds.
+add_compile_options(/FS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by

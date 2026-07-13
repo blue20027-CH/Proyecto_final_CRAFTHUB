@@ -318,7 +318,7 @@ class _HomeCompradorState extends State<HomeComprador> {
       );
       setState(() => _productos = _ordenarPorPreferencias(productos));
     } catch (e) {
-      setState(() => _error = '${tr(context, 'comprador_home.error_cargando_productos')}: $e');
+      setState(() => _error = '$e');
     } finally {
       setState(() => _cargando = false);
     }
@@ -517,7 +517,7 @@ class _HomeCompradorState extends State<HomeComprador> {
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Center(
                 child: Text(
-                  _error!,
+                  '${tr(context, 'comprador_home.error_cargando_productos')}: ${_error!}',
                   style: GoogleFonts.poppins(color: Colors.red),
                 ),
               ),

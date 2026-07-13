@@ -115,7 +115,6 @@ const Map<String, Map<String, String>> traducciones = {
   'comprador_secundario.sin_descripcion_todavia': {'es': 'Sin descripción todavía', 'en': 'No description yet'},
   'comprador_secundario.provincia_comarca': {'es': 'Provincia / comarca', 'en': 'Province / comarca'},
   'comprador_secundario.ciudad_direccion': {'es': 'Ciudad / dirección', 'en': 'City / address'},
-  'comprador_secundario.telefono': {'es': 'Teléfono', 'en': 'Phone'},
   'comprador_secundario.preferencias': {'es': 'Preferencias', 'en': 'Preferences'},
   'comprador_secundario.preferencias_subtitulo': {'es': 'Personaliza tu experiencia en CraftHub.', 'en': 'Personalize your CraftHub experience.'},
   'comprador_secundario.tema': {'es': 'Tema', 'en': 'Theme'},

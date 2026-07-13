@@ -64,7 +64,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
       if (!mounted) return;
       setState(() => _eventos = eventos);
     } catch (e) {
-      if (mounted) setState(() => _error = tr(context, 'vendedor_operaciones.eventos_error_carga'));
+      if (mounted) setState(() => _error = 'vendedor_operaciones.eventos_error_carga');
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -384,7 +384,7 @@ class _PantallaEventosVendedorState extends State<PantallaEventosVendedor> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
-          child: Text(_error!, style: const TextStyle(fontFamily: 'Poppins', color: CraftHubColors.error)),
+          child: Text(tr(context, _error!), style: const TextStyle(fontFamily: 'Poppins', color: CraftHubColors.error)),
         ),
       );
     }

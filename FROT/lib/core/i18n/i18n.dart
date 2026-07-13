@@ -33,10 +33,20 @@ const Map<String, Map<String, String>> _traducciones = {
   ...k_vendedor_operaciones2.traducciones,
 };
 
-// Se usa dentro de build() — depende del Provider, así que reconstruye el
-// widget automáticamente cuando el usuario cambia de idioma.
+// Pensado para usarse dentro de build(): usa watch() para que el widget se
+// reconstruya solo cuando el usuario cambia de idioma. Pero también se llama
+// desde muchos lugares fuera de la fase de construcción (SnackBars armados
+// en un catch, mensajes de error guardados en setState desde un callback
+// async, etc.) — watch() revienta con una aserción ahí ("Tried to listen...
+// from outside of the widget tree"), así que si eso pasa, se degrada a una
+// lectura puntual con read() en vez de propagar el error.
 String tr(BuildContext context, String clave) {
-  final ingles = context.watch<LocaleProvider>().esIngles;
+  bool ingles;
+  try {
+    ingles = context.watch<LocaleProvider>().esIngles;
+  } catch (_) {
+    ingles = context.read<LocaleProvider>().esIngles;
+  }
   final entrada = _traducciones[clave];
   if (entrada == null) return clave;
   return entrada[ingles ? 'en' : 'es'] ?? entrada['es'] ?? clave;

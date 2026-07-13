@@ -39,6 +39,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
   bool _subiendoFoto = false;
   bool _subiendoBanner = false;
   String? _error;
+  String? _errorPrefijoKey;
   bool _huboExito = false;
 
   @override
@@ -78,7 +79,12 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
         _categoria = _categoriasArtesano.contains(categoriaActual) ? categoriaActual : null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = '${tr(context, 'compartido.error_cargar_perfil')}${e.toString().replaceAll('Exception: ', '')}');
+      if (mounted) {
+        setState(() {
+          _errorPrefijoKey = 'compartido.error_cargar_perfil';
+          _error = e.toString().replaceAll('Exception: ', '');
+        });
+      }
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -162,7 +168,10 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
       );
       Navigator.pop(context, true);
     } catch (e) {
-      setState(() => _error = '${tr(context, 'compartido.error_guardar_perfil')}${e.toString().replaceAll('Exception: ', '')}');
+      setState(() {
+        _errorPrefijoKey = 'compartido.error_guardar_perfil';
+        _error = e.toString().replaceAll('Exception: ', '');
+      });
     } finally {
       if (mounted) setState(() => _guardando = false);
     }

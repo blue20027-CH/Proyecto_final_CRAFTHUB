@@ -855,7 +855,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     final precio = double.tryParse(_ctrlPrecio.text.trim().replaceAll(',', '.'));
     final stock = int.tryParse(_ctrlStock.text.trim());
     if (_ctrlNombre.text.trim().isEmpty || precio == null || stock == null) {
-      setState(() => _error = tr(context, 'vendedor_inventario.error_validacion_producto'));
+      setState(() => _error = 'vendedor_inventario.error_validacion_producto');
       return;
     }
     setState(() {
@@ -1033,7 +1033,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                       ),
                       if (_error != null) ...[
                         const SizedBox(height: 14),
-                        Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
+                        Text(tr(context, _error!), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
                       ],
                     ],
                   ),
@@ -1323,7 +1323,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
     final precio = double.tryParse(_ctrlPrecio.text.trim().replaceAll(',', '.'));
     final stock = int.tryParse(_ctrlStock.text.trim());
     if (_ctrlNombre.text.trim().isEmpty || precio == null || stock == null) {
-      setState(() => _error = tr(context, 'vendedor_inventario.error_validacion_producto'));
+      setState(() => _error = 'vendedor_inventario.error_validacion_producto');
       return;
     }
     setState(() {
@@ -1483,7 +1483,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                       ),
                       if (_error != null) ...[
                         const SizedBox(height: 14),
-                        Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
+                        Text(tr(context, _error!), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
                       ],
                     ],
                   ),
