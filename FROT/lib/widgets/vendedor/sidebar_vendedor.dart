@@ -102,7 +102,7 @@ class SidebarVendedor extends StatelessWidget {
               icono:    Icons.logout_rounded,
               label:    tr(context, 'vendedor_dashboard.sidebar_cerrar_sesion'),
               activo:   false,
-              // ðŸ”Œ POST /api/auth/logout â†’ limpiar token
+              // 🔌 POST /api/auth/logout → limpiar token
               onTap:    alCerrarSesion,
               esLogout: true,
             ),
@@ -173,7 +173,7 @@ class _AvatarIniciales extends StatelessWidget {
   }
 }
 
-// â”€â”€ Ãtem de navegaciÃ³n (solo icono + tooltip) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Ítem de navegación (solo icono + tooltip) ─────────────────────────────
 
 // ── BOTÓN DE IDIOMA (ES/EN) — misma altura/estilo que un _ItemNav ────────
 class _BotonIdiomaSidebar extends StatefulWidget {

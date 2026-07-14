@@ -32,8 +32,8 @@ class PanelPerfilArtesano extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-          // â”€â”€ Foto portada â”€â”€
-          // ðŸ”Œ artesano.fotoPortadaUrl viene del backend
+          // ── Foto portada ──
+          // 🔌 artesano.fotoPortadaUrl viene del backend
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child:artesano.bannerEfectivo.isEmpty
@@ -51,7 +51,7 @@ class PanelPerfilArtesano extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // â”€â”€ Avatar + nombre â”€â”€
+          // ── Avatar + nombre ──
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Stack(children: [
               CircleAvatar(
@@ -122,12 +122,12 @@ class PanelPerfilArtesano extends StatelessWidget {
           _Separador(),
           const SizedBox(height: 4),
 
-          // â”€â”€ UbicaciÃ³n y rating â”€â”€
+          // ── Ubicación y rating ──
           Row(children: [
             const Icon(Icons.location_on_outlined, size: 13,
                 color: CraftHubColors.vinoTinto),
             const SizedBox(width: 4),
-            Expanded(child: Text('${artesano.provincia}, PanamÃ¡',
+            Expanded(child: Text('${artesano.provincia}, Panamá',
               style: GoogleFonts.poppins(fontSize: 11,
                   color: CraftHubColors.textoSecundario(oscuro)))),
             const Icon(Icons.star_rounded, size: 13, color: Color(0xFFC9A84C)),
@@ -136,19 +136,19 @@ class PanelPerfilArtesano extends StatelessWidget {
               style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
                   color: CraftHubColors.textoPrincipal(oscuro))),
             const SizedBox(width: 2),
-            Text('(${artesano.totalResenas} reseÃ±as)',
+            Text('(${artesano.totalResenas} reseñas)',
               style: GoogleFonts.poppins(fontSize: 10,
                   color: CraftHubColors.textoSecundario(oscuro))),
           ]),
           const SizedBox(height: 10),
 
-          // â”€â”€ DescripciÃ³n â”€â”€
+          // ── Descripción ──
           Text(artesano.descripcion,
             style: GoogleFonts.poppins(fontSize: 11, height: 1.65,
                 color: CraftHubColors.textoSecundario(oscuro))),
           const SizedBox(height: 14),
 
-          // â”€â”€ Especialidades â”€â”€
+          // ── Especialidades ──
           Text('Especialidades',
             style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
                 color: CraftHubColors.textoPrincipal(oscuro))),
@@ -169,12 +169,12 @@ class PanelPerfilArtesano extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // â”€â”€ Stats: reseÃ±as, ventas, experiencia â”€â”€
+          // ── Stats: reseñas, ventas, experiencia ──
           Row(children: [
             _StatItem(
               icono: Icons.star_outline_rounded,
               valor: '${artesano.totalResenas}',
-              etiqueta: 'ReseÃ±as',
+              etiqueta: 'Reseñas',
             ),
             const SizedBox(width: 8),
             _StatItem(
@@ -186,17 +186,17 @@ class PanelPerfilArtesano extends StatelessWidget {
             _StatItem(
               icono: Icons.emoji_events_outlined,
               valor: '${artesano.anosExperiencia}+',
-              etiqueta: 'AÃ±os de exp.',
+              etiqueta: 'Años de exp.',
             ),
           ]),
           const SizedBox(height: 16),
 
-          // â”€â”€ BotÃ³n Ver productos â”€â”€
+          // ── Botón Ver productos ──
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: alVerProductos,
-              // ðŸ”Œ navegar a CatÃ¡logoArtesano(artesanoId: artesano.id)
+              // 🔌 navegar a CatálogoArtesano(artesanoId: artesano.id)
               icon: const SizedBox.shrink(),
               label: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text('Ver productos',
@@ -215,12 +215,12 @@ class PanelPerfilArtesano extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // â”€â”€ BotÃ³n Enviar mensaje â”€â”€
+          // ── Botón Enviar mensaje ──
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: alEnviarMensaje,
-              // ðŸ”Œ navegar a ChatPrivado(artesanoId: artesano.id)
+              // 🔌 navegar a ChatPrivado(artesanoId: artesano.id)
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14,
                   color: CraftHubColors.vinoTinto),
               label: Text('Enviar mensaje',
@@ -239,7 +239,7 @@ class PanelPerfilArtesano extends StatelessWidget {
   }
 }
 
-// â”€â”€ Widgets internos del panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Widgets internos del panel ──────────────────────────────────────────
 
 class _Separador extends StatelessWidget {
   @override

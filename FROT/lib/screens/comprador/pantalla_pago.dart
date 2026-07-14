@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/carrito_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
@@ -45,6 +46,7 @@ class _PantallaPagoState extends State<PantallaPago> {
   double _envio = 0;
   double _total = 0;
   bool _cargandoResumen = false;
+  String _itemsFirma = '';
 
   bool _procesando = false;
   String? _error;
@@ -259,8 +261,22 @@ class _PantallaPagoState extends State<PantallaPago> {
     );
   }
 
+  // El carrito puede terminar de cargar DESPUÉS de que esta pantalla ya
+  // intentó calcular el resumen (p. ej. si se entra aquí antes de que
+  // CarritoProvider termine su fetch inicial): sin esto, _subtotal/_total
+  // se quedaban en $0.00 para siempre aunque los items ya se vieran en
+  // pantalla. Se recalcula cada vez que cambia la composición del carrito.
+  void _recalcularSiElCarritoCambio(List<dynamic> items) {
+    final firma = items.map((i) => '${i.productoId}:${i.cantidad}').join(',');
+    if (items.isNotEmpty && firma != _itemsFirma && !_cargandoResumen) {
+      _itemsFirma = firma;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _cargarResumen());
+    }
+  }
+
   Widget _buildContenido(bool oscuro) {
     final items = context.watch<CarritoProvider>().carritoActivo?.items ?? [];
+    _recalcularSiElCarritoCambio(items);
     if (items.isEmpty) {
       return Center(
         child: Text(tr(context, 'comprador_secundario.tu_carrito_esta_vacio_punto'),
@@ -295,7 +311,7 @@ class _PantallaPagoState extends State<PantallaPago> {
                   ),
                 ]),
               ]),
-            ),
+            ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.06, end: 0),
             const SizedBox(height: 20),
             _SeccionCheckout(
               oscuro: oscuro,
@@ -309,7 +325,7 @@ class _PantallaPagoState extends State<PantallaPago> {
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoSecundario(oscuro))),
                 ),
               ]),
-            ),
+            ).animate().fadeIn(duration: 350.ms, delay: 60.ms).slideY(begin: 0.06, end: 0),
             const SizedBox(height: 20),
             _SeccionCheckout(
               oscuro: oscuro,
@@ -335,7 +351,7 @@ class _PantallaPagoState extends State<PantallaPago> {
                   _formularioMetodo(oscuro),
                 ],
               ),
-            ),
+            ).animate().fadeIn(duration: 350.ms, delay: 120.ms).slideY(begin: 0.06, end: 0),
             if (_error != null) ...[
               const SizedBox(height: 16),
               Container(
@@ -597,7 +613,7 @@ class _SelectorPago extends StatelessWidget {
 }
 
 // ── TARJETA DE MÉTODO DE PAGO (con el "logo" de cada servicio) ─────────────
-class _TarjetaMetodoPago extends StatelessWidget {
+class _TarjetaMetodoPago extends StatefulWidget {
   final String id;
   final String titulo;
   final bool seleccionado;
@@ -613,46 +629,63 @@ class _TarjetaMetodoPago extends StatelessWidget {
   });
 
   @override
+  State<_TarjetaMetodoPago> createState() => _TarjetaMetodoPagoState();
+}
+
+class _TarjetaMetodoPagoState extends State<_TarjetaMetodoPago> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        width: 148,
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: seleccionado ? CraftHubColors.vinoTinto : CraftHubColors.borde(oscuro),
-            width: seleccionado ? 1.6 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (seleccionado ? CraftHubColors.vinoTinto : Colors.black).withValues(alpha: seleccionado ? 0.16 : 0.05),
-              blurRadius: seleccionado ? 12 : 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Center(child: _LogoMetodoPago(id: id, titulo: titulo)),
-            if (seleccionado)
-              Positioned(
-                top: -8,
-                right: -8,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(color: CraftHubColors.vinoTinto, shape: BoxShape.circle),
-                  child: const Icon(Icons.check_rounded, size: 12, color: Colors.white),
-                ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 160),
+          scale: _hover ? 1.035 : 1,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 168,
+            height: 66,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: widget.seleccionado ? CraftHubColors.vinoTinto : CraftHubColors.borde(widget.oscuro),
+                width: widget.seleccionado ? 1.8 : 1,
               ),
-          ],
+              boxShadow: [
+                BoxShadow(
+                  color: (widget.seleccionado ? CraftHubColors.vinoTinto : Colors.black)
+                      .withValues(alpha: widget.seleccionado ? 0.18 : (_hover ? 0.1 : 0.05)),
+                  blurRadius: widget.seleccionado || _hover ? 14 : 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Center(child: _LogoMetodoPago(id: widget.id, titulo: widget.titulo)),
+                if (widget.seleccionado)
+                  Positioned(
+                    top: -9,
+                    right: -9,
+                    child: Container(
+                      width: 19,
+                      height: 19,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(color: CraftHubColors.vinoTinto, shape: BoxShape.circle),
+                      child: const Icon(Icons.check_rounded, size: 13, color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -673,16 +706,33 @@ class _LogoMetodoPago extends StatelessWidget {
     // Si alguien coloca el logo real en assets/images/logos/<archivo>.png, se
     // usa esa imagen; si no existe todavía, cae automáticamente al logotipo
     // dibujado (ver assets/images/logos/README.txt).
+    //
+    // "visa" se descargó como una mini tarjeta completa (borde + barra azul +
+    // barra amarilla) en vez de solo el wordmark, así que a tamaño de ícono
+    // se ve como un fragmento irreconocible en vez del logo — se dibuja en
+    // su lugar, igual que Yappy/PayPal/Banistmo cuando no hay imagen.
     if (id == 'Tarjeta') {
       // "Tarjeta" no es una sola marca: se muestran los logos de las redes
       // que se aceptan (Visa + Mastercard) uno junto al otro.
       return Row(mainAxisSize: MainAxisSize.min, children: [
-        _imagenLogo('visa', alto: 18),
-        const SizedBox(width: 8),
-        _imagenLogo('mastercard', alto: 24),
+        _logoVisaDibujado(),
+        const SizedBox(width: 10),
+        _imagenLogo('mastercard', ancho: 46, alto: 30),
       ]);
     }
-    return _imagenLogo(id.toLowerCase(), alto: 28);
+    return _imagenLogo(id.toLowerCase(), ancho: 92, alto: id == 'Banistmo' ? 40 : 32);
+  }
+
+  Widget _logoVisaDibujado() {
+    return const Text('VISA',
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 19,
+          fontWeight: FontWeight.w800,
+          fontStyle: FontStyle.italic,
+          letterSpacing: -0.5,
+          color: Color(0xFF1A1F71),
+        ));
   }
 
   // Algunos logos se guardaron como .webp (formato en el que llegaron al
@@ -694,13 +744,21 @@ class _LogoMetodoPago extends StatelessWidget {
     'paypal': 'webp',
   };
 
-  Widget _imagenLogo(String archivo, {required double alto}) {
+  // Se acota ancho Y alto (no solo alto) para que ningún logo pueda
+  // desbordarse fuera de su tarjeta ni verse recortado por el vecino,
+  // sin importar la relación de aspecto real de cada imagen.
+  Widget _imagenLogo(String archivo, {required double ancho, required double alto}) {
     final extension = _extensiones[archivo] ?? 'png';
-    return Image.asset(
-      'assets/images/logos/$archivo.$extension',
+    return SizedBox(
+      width: ancho,
       height: alto,
-      fit: BoxFit.contain,
-      errorBuilder: (_, _, _) => _logotipoDibujado(),
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Image.asset(
+          'assets/images/logos/$archivo.$extension',
+          errorBuilder: (_, _, _) => _logotipoDibujado(),
+        ),
+      ),
     );
   }
 

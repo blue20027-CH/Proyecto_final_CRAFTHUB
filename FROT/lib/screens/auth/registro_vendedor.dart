@@ -97,7 +97,7 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
         context,
         MaterialPageRoute(
           builder: (_) => HomeVendedor(
-            esOscuro: false,
+            esOscuro: Theme.of(context).brightness == Brightness.dark,
             nombreVendedor: nombre,
             userId: userId,
           ),
@@ -126,11 +126,10 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
 
   @override
   Widget build(BuildContext context) {
-    // Solo tema claro según indicación
-    const esOscuro = false;
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: CraftHubColors.fondoClaro,
+      backgroundColor: CraftHubColors.fondo(esOscuro),
       body: Row(
         children: [
           // ── LADO IZQUIERDO: imagen ──────────────────────────────────
@@ -152,8 +151,8 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
                       end: Alignment.centerRight,
                       colors: [
                         Colors.transparent,
-                        CraftHubColors.fondoClaro.withValues(alpha: 0.5),
-                        CraftHubColors.fondoClaro,
+                        CraftHubColors.fondo(esOscuro).withValues(alpha: 0.5),
+                        CraftHubColors.fondo(esOscuro),
                       ],
                       stops: const [0.0, 0.65, 1.0],
                     ),
@@ -167,7 +166,7 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
           Expanded(
             flex: 55,
             child: Container(
-              color: CraftHubColors.fondoClaro,
+              color: CraftHubColors.fondo(esOscuro),
               child: Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
@@ -286,11 +285,11 @@ class _FormularioRegistro extends StatelessWidget {
             children: [
               TextSpan(
                 text: tr(context, 'auth.crea_tu_cuenta_como'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
-                  color: CraftHubColors.textoClaro,
+                  color: CraftHubColors.textoPrincipal(esOscuro),
                 ),
               ),
               TextSpan(
@@ -314,7 +313,7 @@ class _FormularioRegistro extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
-            color: CraftHubColors.textoSecClaro,
+            color: CraftHubColors.textoSecundario(esOscuro),
           ),
         ),
 
@@ -448,7 +447,11 @@ class _FormularioRegistro extends StatelessWidget {
         const SizedBox(height: 14),
 
         // ── TOGGLE DELIVERY ───────────────────────────────────────────
-        _ToggleDelivery(valor: ofrecDelivery, alCambiar: alCambiarDelivery),
+        _ToggleDelivery(
+          valor: ofrecDelivery,
+          alCambiar: alCambiarDelivery,
+          esOscuro: esOscuro,
+        ),
 
         const SizedBox(height: 10),
 
@@ -485,7 +488,7 @@ class _FormularioRegistro extends StatelessWidget {
         const SizedBox(height: 16),
 
         // ── SEPARADOR ─────────────────────────────────────────────────
-        _Separador(),
+        _Separador(esOscuro: esOscuro),
 
         const SizedBox(height: 16),
 
@@ -500,10 +503,10 @@ class _FormularioRegistro extends StatelessWidget {
           children: [
             Text(
               tr(context, 'auth.ya_tienes_cuenta'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
-                color: CraftHubColors.textoSecClaro,
+                color: CraftHubColors.textoSecundario(esOscuro),
               ),
             ),
             MouseRegion(
@@ -544,7 +547,7 @@ class _Encabezado extends StatelessWidget {
     return Column(
       children: [
         // Botón volver alineado a la izquierda
-        Align(alignment: Alignment.centerLeft, child: _BotonVolver()),
+        Align(alignment: Alignment.centerLeft, child: _BotonVolver(esOscuro: esOscuro)),
         const SizedBox(height: 8),
         // Logo centrado
         Row(
@@ -614,6 +617,10 @@ class _Encabezado extends StatelessWidget {
 // BOTÓN VOLVER
 // ─────────────────────────────────────────────────────────────
 class _BotonVolver extends StatefulWidget {
+  final bool esOscuro;
+
+  const _BotonVolver({required this.esOscuro});
+
   @override
   State<_BotonVolver> createState() => _BotonVolverState();
 }
@@ -641,19 +648,19 @@ class _BotonVolverState extends State<_BotonVolver> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.arrow_back_rounded,
                 size: 16,
-                color: CraftHubColors.textoClaro,
+                color: CraftHubColors.textoPrincipal(widget.esOscuro),
               ),
               const SizedBox(width: 6),
               Text(
                 tr(context, 'auth.volver'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: CraftHubColors.textoClaro,
+                  color: CraftHubColors.textoPrincipal(widget.esOscuro),
                 ),
               ),
             ],
@@ -691,26 +698,31 @@ class _FilaDos extends StatelessWidget {
 class _ToggleDelivery extends StatelessWidget {
   final bool valor;
   final ValueChanged<bool> alCambiar;
+  final bool esOscuro;
 
-  const _ToggleDelivery({required this.valor, required this.alCambiar});
+  const _ToggleDelivery({
+    required this.valor,
+    required this.alCambiar,
+    required this.esOscuro,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
+        Icon(
           Icons.delivery_dining_outlined,
           size: 20,
-          color: CraftHubColors.textoSecClaro,
+          color: CraftHubColors.textoSecundario(esOscuro),
         ),
         const SizedBox(width: 10),
         Text(
           tr(context, 'auth.ofreces_delivery'),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13.5,
             fontWeight: FontWeight.w500,
-            color: CraftHubColors.textoClaro,
+            color: CraftHubColors.textoPrincipal(esOscuro),
           ),
         ),
         const SizedBox(width: 12),
@@ -719,8 +731,8 @@ class _ToggleDelivery extends StatelessWidget {
           onChanged: alCambiar,
           activeThumbColor: CraftHubColors.vinoTinto,
           activeTrackColor: CraftHubColors.vinoTinto.withValues(alpha: 0.3),
-          inactiveThumbColor: CraftHubColors.textoSecClaro,
-          inactiveTrackColor: CraftHubColors.bordeClaro,
+          inactiveThumbColor: CraftHubColors.textoSecundario(esOscuro),
+          inactiveTrackColor: CraftHubColors.borde(esOscuro),
         ),
       ],
     );
@@ -731,6 +743,10 @@ class _ToggleDelivery extends StatelessWidget {
 // SEPARADOR
 // ─────────────────────────────────────────────────────────────
 class _Separador extends StatelessWidget {
+  final bool esOscuro;
+
+  const _Separador({required this.esOscuro});
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -742,10 +758,10 @@ class _Separador extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
             tr(context, 'auth.o_continua_con'),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
-              color: CraftHubColors.textoSecClaro,
+              color: CraftHubColors.textoSecundario(esOscuro),
             ),
           ),
         ),

@@ -89,9 +89,9 @@ const Map<String, Map<String, String>> traducciones = {
   'comprador_secundario.no_hay_artesanos_con_productos': {'es': 'No hay artesanos con productos', 'en': 'No artisans with products yet'},
   'comprador_secundario.aparecera_cuando_vendedor_publique': {'es': 'Cuando un vendedor tenga productos publicados aparecera aqui.', 'en': "When a seller has published products, they'll appear here."},
   'comprador_secundario.artesanos_titulo': {'es': 'Artesanos', 'en': 'Artisans'},
-  'comprador_secundario.conoce_artesanos_descripcion': {'es': 'Conoce a los talentosos artesanos que mantienen vivas\nnuestras tradiciones y cultura panameÃ±a.', 'en': 'Meet the talented artisans who keep our\nPanamanian traditions and culture alive.'},
+  'comprador_secundario.conoce_artesanos_descripcion': {'es': 'Conoce a los talentosos artesanos que mantienen vivas\nnuestras tradiciones y cultura panameña.', 'en': 'Meet the talented artisans who keep our\nPanamanian traditions and culture alive.'},
   'comprador_secundario.artesanos_activos': {'es': 'Artesanos activos', 'en': 'Active artisans'},
-  'comprador_secundario.mas_filtros': {'es': 'MÃ¡s filtros', 'en': 'More filters'},
+  'comprador_secundario.mas_filtros': {'es': 'Más filtros', 'en': 'More filters'},
 
   // pantalla_perfil_artesano.dart
   'comprador_secundario.productos_de': {'es': 'Productos de', 'en': 'Products by'},

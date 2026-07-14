@@ -30,19 +30,15 @@ class EncabezadoEventos extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(children: [
-            Text(
-              titulo,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: compacto ? 22 : 26,
-                fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoPrincipal(oscuro),
-              ),
+          Text(
+            titulo,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: compacto ? 22 : 26,
+              fontWeight: FontWeight.w700,
+              color: CraftHubColors.textoPrincipal(oscuro),
             ),
-            const SizedBox(width: 6),
-            const Icon(Icons.auto_awesome, size: 16, color: CraftHubColors.vinoTinto),
-          ]),
+          ),
           const SizedBox(height: 4),
           Text(
             subtitulo,

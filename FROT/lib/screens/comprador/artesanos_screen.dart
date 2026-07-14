@@ -9,27 +9,28 @@ import 'pantalla_perfil_artesano.dart';
 import '../../core/i18n/i18n.dart';
 
 
-// CategorÃ­as y provincias para filtros
-// ðŸ”Œ GET /api/categorias y GET /api/provincias
+// Categorías y provincias para filtros
+// 🔌 GET /api/categorias y GET /api/provincias
 const List<String> _categorias = [
-  'Todas las categorÃ­as', 'Textiles', 'CerÃ¡mica', 'Madera',
-  'JoyerÃ­a', 'Sombreros', 'CesterÃ­a', 'ArtesanÃ­as',
+  'Todas las categorías', 'Textiles', 'Cerámica', 'Madera',
+  'Joyería', 'Sombreros', 'Cestería', 'Artesanías',
 ];
 const List<String> _provincias = [
-  'Todas las provincias', 'Bocas del Toro', 'ChiriquÃ­', 'CoclÃ©',
-  'ColÃ³n', 'DariÃ©n', 'Herrera', 'Los Santos', 'PanamÃ¡',
-  'PanamÃ¡ Oeste', 'Veraguas', 'Guna Yala', 'NgÃ¤be-BuglÃ©',
-  'EmberÃ¡-Wounaan',
+  'Todas las provincias', 'Bocas del Toro', 'Chiriquí', 'Coclé',
+  'Colón', 'Darién', 'Herrera', 'Los Santos', 'Panamá',
+  'Panamá Oeste', 'Veraguas', 'Guna Yala', 'Ngäbe-Buglé',
+  'Emberá-Wounaan',
 ];
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────
 
 class ArtesanosScreen extends StatefulWidget {
   // Se invoca al presionar "Enviar mensaje" (aquí o en el perfil completo
   // del artesano) para que la pantalla contenedora (inicio_comprador.dart)
   // cambie a la pestaña de Mensajes y abra la conversación con ese vendedor.
   final void Function(String? contactoId, String contactoNombre)? onEnviarMensaje;
+  final String userId;
 
-  const ArtesanosScreen({super.key, this.onEnviarMensaje});
+  const ArtesanosScreen({super.key, this.onEnviarMensaje, this.userId = ''});
 
   @override
   State<ArtesanosScreen> createState() => _ArtesanosScreenState();
@@ -61,6 +62,7 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
       final artesanos = await ApiService.getArtesanos(
         categoria: _categoriaSeleccionada,
         provincia: _provinciaSeleccionada,
+        userId: widget.userId,
         limite: 8,
       );
       if (!mounted) return;
@@ -78,6 +80,23 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
     }
   }
 
+  // El corazón de la tarjeta ya cambió su propio estado visual al presionarlo;
+  // acá solo se persiste en el backend y se actualiza el modelo para que el
+  // estado sobreviva un refresh/filtro sin depender de un nuevo fetch.
+  Future<void> _alternarFavorito(ArtesanoModelo artesano, bool esFavorito) async {
+    if (widget.userId.isEmpty) return;
+    artesano.esFavorito = esFavorito;
+    try {
+      await ApiService.toggleFavoritoArtesano(
+        userId: widget.userId,
+        artesanoId: artesano.id,
+      );
+    } catch (_) {
+      // Si falla, se deja el estado visual como está: el próximo refresh
+      // traerá el valor real del backend.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
@@ -86,15 +105,15 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
       backgroundColor: CraftHubColors.fondo(oscuro),
       body: Row(children: [
 
-        // â”€â”€ CONTENIDO PRINCIPAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── CONTENIDO PRINCIPAL ──────────────────────────────
         Expanded(
           child: Column(children: [
 
-            // â”€â”€ CUERPO (TopBar eliminado desde aquÃ­) â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── CUERPO (TopBar eliminado desde aquí) ─────────
             Expanded(
               child: Row(children: [
 
-                // â”€â”€ PANEL IZQUIERDO: lista â”€â”€
+                // ── PANEL IZQUIERDO: lista ──
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -157,14 +176,15 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
                             artesano: _artesanosFiltrados[i],
                             estaSeleccionado: _artesanoSeleccionado == i,
                             alPresionar: () => setState(() => _artesanoSeleccionado = i),
-                            alCambiarFavorito: (_) {},
+                            alCambiarFavorito: (esFavorito) =>
+                                _alternarFavorito(_artesanosFiltrados[i], esFavorito),
                           ),
                         ),
                     ]),
                   ),
                 ),
 
-                // â”€â”€ PANEL DERECHO: perfil â”€â”€
+                // ── PANEL DERECHO: perfil ──
                 if (!_cargando && _error == null && _artesanosFiltrados.isNotEmpty)
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 280),
@@ -233,7 +253,7 @@ class _ArtesanosScreenState extends State<ArtesanosScreen> {
   }
 }
 
-// â”€â”€ Widgets auxiliares de la pantalla â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Widgets auxiliares de la pantalla ───────────────────────────────────
 
 class _EstadoVacio extends StatelessWidget {
   final bool oscuro;
@@ -290,16 +310,12 @@ class _EncabezadoSeccion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ðŸ”Œ totalArtesanos viene de GET /api/artesanos/stats
+    // 🔌 totalArtesanos viene de GET /api/artesanos/stats
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text(tr(context, 'comprador_secundario.artesanos_titulo'),
-            style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoPrincipal(oscuro))),
-          const SizedBox(width: 8),
-          const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFFC9A84C)),
-        ]),
+        Text(tr(context, 'comprador_secundario.artesanos_titulo'),
+          style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700,
+              color: CraftHubColors.textoPrincipal(oscuro))),
         const SizedBox(height: 4),
         Text(tr(context, 'comprador_secundario.conoce_artesanos_descripcion'),
           style: GoogleFonts.poppins(fontSize: 12, height: 1.55,
@@ -319,7 +335,7 @@ class _EncabezadoSeccion extends StatelessWidget {
               color: CraftHubColors.vinoTinto),
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('+250', // ðŸ”Œ reemplazar con total del backend
+            Text('+250', // 🔌 reemplazar con total del backend
               style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700,
                   color: CraftHubColors.textoPrincipal(oscuro))),
             Text(tr(context, 'comprador_secundario.artesanos_activos'),
@@ -350,7 +366,7 @@ class _FilasFiltos extends StatelessWidget {
     final oscuro = Theme.of(context).brightness == Brightness.dark;
 
     return Row(children: [
-      // Dropdown categorÃ­a â€” ðŸ”Œ GET /api/categorias
+      // Dropdown categoría — 🔌 GET /api/categorias
       _DropdownFiltro(
         valor: categoriaSeleccionada,
         opciones: _categorias,
@@ -358,7 +374,7 @@ class _FilasFiltos extends StatelessWidget {
         oscuro: oscuro,
       ),
       const SizedBox(width: 8),
-      // Dropdown provincia â€” ðŸ”Œ GET /api/provincias
+      // Dropdown provincia — 🔌 GET /api/provincias
       _DropdownFiltro(
         valor: provinciaSeleccionada,
         opciones: _provincias,
@@ -366,7 +382,7 @@ class _FilasFiltos extends StatelessWidget {
         oscuro: oscuro,
       ),
       const SizedBox(width: 8),
-      // BotÃ³n mÃ¡s filtros
+      // Botón más filtros
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(

@@ -300,12 +300,8 @@ class _HeroProveedores extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text(tr(context, 'vendedor_operaciones.proveedores_titulo'),
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 21, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
-                    const SizedBox(width: 6),
-                    const Icon(Icons.auto_awesome_rounded, size: 17, color: CraftHubColors.vinoTinto),
-                  ]),
+                  Text(tr(context, 'vendedor_operaciones.proveedores_titulo'),
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 21, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(esOscuro))),
                   Text(tr(context, 'vendedor_operaciones.proveedores_subtitulo'),
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoSecundario(esOscuro))),
                 ],

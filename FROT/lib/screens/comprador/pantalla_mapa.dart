@@ -78,8 +78,25 @@ const Map<String, LatLng> _coordenadasProvincia = {
 };
 const LatLng _centroPanama = LatLng(8.5940, -80.1099);
 
+// Busca primero un calce exacto (caso normal: la columna `provincia` de
+// `perfiles` ya guarda uno de estos nombres tal cual). Si no calza (cuentas
+// viejas sin esa columna, donde cae el texto libre de "ubicacion" tipo
+// "Colón, Colón"), busca cuál provincia conocida aparece como substring —
+// mejor una ubicación aproximada que mandar a todos al centro del país.
+LatLng _coordenadaProvincia(String texto) {
+  final limpio = texto.trim();
+  if (limpio.isEmpty) return _centroPanama;
+  final exacto = _coordenadasProvincia[limpio];
+  if (exacto != null) return exacto;
+  final minusculas = limpio.toLowerCase();
+  for (final entry in _coordenadasProvincia.entries) {
+    if (minusculas.contains(entry.key.toLowerCase())) return entry.value;
+  }
+  return _centroPanama;
+}
+
 LatLng _posicionParaArtesano(ArtesanoModelo a) {
-  final base = _coordenadasProvincia[a.provincia.trim()] ?? _centroPanama;
+  final base = _coordenadaProvincia(a.provincia);
   // Jitter determinístico (± ~0.05°, unos pocos km) a partir del id, para
   // que varios artesanos de la misma provincia no queden apilados.
   final hash = a.id.hashCode;

@@ -387,7 +387,7 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 1:
         return const PantallaCarrito();
       case 2:
-        return ArtesanosScreen(onEnviarMensaje: _abrirChatConArtesano);
+        return ArtesanosScreen(onEnviarMensaje: _abrirChatConArtesano, userId: widget.userId);
       case 3:
         return PantallaFavoritos(userId: widget.userId);
       case 4:

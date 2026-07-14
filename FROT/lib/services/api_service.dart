@@ -46,6 +46,7 @@ class ApiService {
   static Future<List<ArtesanoModelo>> getArtesanos({
     String? categoria,
     String? provincia,
+    String? userId,
     int limite = 8,
   }) async {
     final params = <String, String>{};
@@ -54,6 +55,9 @@ class ApiService {
     }
     if (provincia != null && !provincia.startsWith('Todas')) {
       params['provincia'] = provincia;
+    }
+    if (userId != null && userId.isNotEmpty) {
+      params['user_id'] = userId;
     }
 
     final uri = Uri.parse('$baseUrl/artesanos/').replace(
@@ -74,6 +78,21 @@ class ApiService {
         .take(limite)
         .map((json) => ArtesanoModelo.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  /// 🔗 POST /artesanos/favoritos/toggle — marca/desmarca un artesano como favorito.
+  static Future<void> toggleFavoritoArtesano({
+    required String userId,
+    required String artesanoId,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/artesanos/favoritos/toggle'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'user_id': userId, 'artesano_id': artesanoId}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('No se pudo actualizar el favorito.');
+    }
   }
 
   static Future<Map<String, dynamic>> login(

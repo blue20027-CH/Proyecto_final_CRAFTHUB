@@ -433,24 +433,14 @@ class _Encabezado extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    tr(context, 'vendedor_operaciones.titulo_mis_ordenes'),
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: CraftHubColors.textoPrincipal(esOscuro),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 20,
-                    color: CraftHubColors.vinoTinto,
-                  ),
-                ],
+              Text(
+                tr(context, 'vendedor_operaciones.titulo_mis_ordenes'),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: CraftHubColors.textoPrincipal(esOscuro),
+                ),
               ),
               Text(
                 tr(context, 'vendedor_operaciones.subtitulo_mis_ordenes'),

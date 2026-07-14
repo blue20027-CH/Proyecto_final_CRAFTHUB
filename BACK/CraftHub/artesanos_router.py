@@ -6,9 +6,26 @@ Endpoint para listar artesanos/vendedores combinando datos de
 
 from fastapi import APIRouter, HTTPException
 from typing import Optional, List
+from pydantic import BaseModel
 from supabase_client import supabase
 
 router = APIRouter(prefix="/artesanos", tags=["Artesanos"])
+
+
+class FavoritoArtesanoToggle(BaseModel):
+    user_id: str
+    artesano_id: str
+
+
+def _favoritos_de(user_id: Optional[str]) -> set:
+    """IDs de artesanos que `user_id` ya marcó como favoritos."""
+    if not user_id:
+        return set()
+    try:
+        resp = supabase.table("favoritos_artesanos").select("artesano_id").eq("user_id", user_id).execute()
+        return {f["artesano_id"] for f in (resp.data or [])}
+    except Exception:
+        return set()
 
 
 def _mapa_calificaciones_por_producto():
@@ -37,12 +54,13 @@ def _rating_vendedor(productos_vendedor, mapa_calificaciones) -> tuple[float, in
 
 
 @router.get("/")
-def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] = None):
+def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] = None, user_id: Optional[str] = None):
     """
     Lista todos los vendedores (rol=Vendedor) con estadísticas
     calculadas a partir de sus productos.
-    🔗 FLUTTER: GET /artesanos?categoria=X&provincia=Y
+    🔗 FLUTTER: GET /artesanos?categoria=X&provincia=Y&user_id=Z
     """
+    favoritos = _favoritos_de(user_id)
     try:
         # 1. Traer perfiles de vendedores
         perfiles_resp = supabase.table("perfiles").select("*").eq("rol", "Vendedor").execute()
@@ -88,14 +106,21 @@ def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] =
             continue
 
         rating, total_resenas = _rating_vendedor(productos_vendedor, mapa_calificaciones)
+        artesano_id = perfil.get("user_id") or perfil.get("id")
 
         artesanos.append({
-        "id": perfil.get("user_id") or perfil.get("id"),
+        "id": artesano_id,
         "nombre": nombre,
+        "es_favorito": artesano_id in favoritos,
         "foto_url": perfil.get("ft") or perfil.get("foto") or "",
         "foto_portada": perfil.get("foto_portada") or "",
         "categoria": perfil.get("categoria") or "",  # ← agrega esta línea
         "ubicacion": perfil.get("ubicacion") or (provincias_vendedor[0] if provincias_vendedor else ""),
+        # Provincia "limpia" (columna dedicada en `perfiles`, elegida de una
+        # lista fija al registrarse) — a diferencia de "ubicacion" (texto
+        # libre tipo "Colón, Colón"), esta sí calza exacto con las claves de
+        # _coordenadasProvincia en pantalla_mapa.dart para ubicar el pin.
+        "provincia": perfil.get("provincia") or (provincias_vendedor[0] if provincias_vendedor else ""),
         "telefono": perfil.get("telefono") or "",
         "categorias": categorias_vendedor,
         "especialidad": categorias_vendedor[0] if categorias_vendedor else "Artesanías",
@@ -107,6 +132,30 @@ def listar_artesanos(categoria: Optional[str] = None, provincia: Optional[str] =
        
 
     return {"total": len(artesanos), "artesanos": artesanos}
+
+
+@router.post("/favoritos/toggle")
+def toggle_favorito_artesano(data: FavoritoArtesanoToggle):
+    """
+    Marca/desmarca un artesano como favorito de un comprador.
+    🔗 FLUTTER: POST /artesanos/favoritos/toggle
+    """
+    try:
+        existe = (
+            supabase.table("favoritos_artesanos")
+            .select("*")
+            .eq("user_id", data.user_id)
+            .eq("artesano_id", data.artesano_id)
+            .execute()
+        )
+        if existe.data:
+            supabase.table("favoritos_artesanos").delete().eq("user_id", data.user_id).eq("artesano_id", data.artesano_id).execute()
+            return {"status": "success", "action": "removed"}
+        else:
+            supabase.table("favoritos_artesanos").insert({"user_id": data.user_id, "artesano_id": data.artesano_id}).execute()
+            return {"status": "success", "action": "added"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{nombre}")
@@ -139,6 +188,7 @@ def detalle_artesano(nombre: str):
         "foto_portada": perfil.get("foto_portada") or "",
         "categoria": perfil.get("categoria") or "",  # ← agrega esta línea
         "ubicacion": perfil.get("ubicacion") or "",
+        "provincia": perfil.get("provincia") or "",
         "telefono": perfil.get("telefono") or "",
         "descripcion": perfil.get("descripcion") or "",
         "categorias": categorias,

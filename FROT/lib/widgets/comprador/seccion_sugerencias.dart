@@ -61,20 +61,14 @@ class _SeccionSugerenciasState extends State<SeccionSugerencias> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Icon(Icons.auto_awesome_rounded, color: Color(0xFFC9A84C), size: 18),
-            const SizedBox(width: 8),
-            Text(
-              'También podría gustarte',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: CraftHubColors.textoPrincipal(oscuro),
-              ),
-            ),
-          ],
+        Text(
+          'También podría gustarte',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: CraftHubColors.textoPrincipal(oscuro),
+          ),
         ),
         const SizedBox(height: 16),
         SizedBox(

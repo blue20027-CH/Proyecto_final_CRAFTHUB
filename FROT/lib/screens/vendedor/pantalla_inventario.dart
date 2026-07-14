@@ -305,25 +305,16 @@ class _PantallaInventarioState extends State<PantallaInventario> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text(
-                  tr(context, 'vendedor_inventario.titulo_pantalla'),
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 30,
-                    fontWeight: FontWeight.w700,
-                    color: esModoOscuro
-                        ? Colors.white
-                        : const Color(0xFF2C1810),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  '✦',
-                  style: TextStyle(fontSize: 20, color: Color(0xFF821515)),
-                ),
-              ],
+            Text(
+              tr(context, 'vendedor_inventario.titulo_pantalla'),
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: esModoOscuro
+                    ? Colors.white
+                    : const Color(0xFF2C1810),
+              ),
             ),
             const SizedBox(height: 4),
             Text(

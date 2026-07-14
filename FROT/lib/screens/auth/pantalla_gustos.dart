@@ -352,33 +352,17 @@ class _Encabezado extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                child: Text(
-                  tr(context, 'auth.cuentanos_intereses'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 36,
-                    fontWeight: FontWeight.w700,
-                    color: esModoOscuro
-                        ? Colors.white
-                        : const Color(0xFF2C1810),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '✦',
-                style: TextStyle(
-                  fontSize: 24,
-                  color: const Color(0xFF821515).withValues(alpha: 0.7),
-                ),
-              ),
-            ],
+          Text(
+            tr(context, 'auth.cuentanos_intereses'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
+              color: esModoOscuro
+                  ? Colors.white
+                  : const Color(0xFF2C1810),
+            ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -751,15 +735,29 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F6F0),
+        color: esModoOscuro ? const Color(0xFF262019) : const Color(0xFFF9F6F0),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: esModoOscuro ? const Color(0xFF3A2E26) : const Color(0xFFEDE1D6),
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF821515), size: 26),
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFF821515).withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFF821515), size: 22),
+          ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -768,17 +766,18 @@ class _StatCard extends StatelessWidget {
                 valor,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
                   color: Color(0xFF821515),
                 ),
               ),
               Text(
                 titulo,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
-                  color: Color(0xFF6B5A52),
+                  fontWeight: FontWeight.w500,
+                  color: esModoOscuro ? Colors.white54 : const Color(0xFF6B5A52),
                 ),
               ),
             ],
@@ -991,6 +990,7 @@ class _ChipCategoriaInlineState extends State<_ChipCategoriaInline> {
   @override
   Widget build(BuildContext context) {
     const colorPrimario = Color(0xFF821515);
+    final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
 
     return MouseRegion(
       onEnter: (_) => setState(() => hover = true),
@@ -1003,17 +1003,17 @@ class _ChipCategoriaInlineState extends State<_ChipCategoriaInline> {
           scale: hover ? 1.03 : 1,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: widget.seleccionado
                     ? colorPrimario
-                    : const Color(0xFFE0D8D0),
+                    : (esModoOscuro ? const Color(0xFF2E2E2E) : const Color(0xFFE0D8D0)),
                 width: widget.seleccionado ? 2 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: Colors.black.withValues(alpha: esModoOscuro ? 0.3 : 0.06),
                   blurRadius: 12,
                   offset: const Offset(0, 5),
                 ),
@@ -1056,7 +1056,7 @@ class _ChipCategoriaInlineState extends State<_ChipCategoriaInline> {
                                 : FontWeight.w500,
                             color: widget.seleccionado
                                 ? colorPrimario
-                                : Colors.black87,
+                                : (esModoOscuro ? Colors.white70 : Colors.black87),
                           ),
                         ),
                       ),
