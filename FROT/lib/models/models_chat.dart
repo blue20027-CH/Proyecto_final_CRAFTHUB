@@ -11,18 +11,18 @@ import 'package:flutter/material.dart';
 
 // Papel tapiz de fondo compartido por todas las pantallas de chat (panel de
 // conversación activa y los estados vacíos), para que se vea consistente.
-const String kFondoChatUrl =
+// Cada tema tiene su propia imagen, ya pensada para ese fondo, así que no
+// hace falta aclarar/oscurecer una imagen compartida por opacidad.
+const String kFondoChatUrlClaro =
+    'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jul%2014,%202026,%2009_38_20%20PM.png';
+const String kFondoChatUrlOscuro =
     'https://tcezyirkglpihohuzrqo.supabase.co/storage/v1/object/public/perfiles/ChatGPT%20Image%20Jul%2010,%202026,%2003_30_22%20PM.png';
 
-// Solo opacidad, sin colorFilter: un "lighten" forzaba el fondo oscuro del
-// PNG hacia el crema del tema y aplanaba el dibujo (las líneas quedaban casi
-// del mismo tono que el crema, perdiendo el detalle). Con opacidad simple el
-// patrón se ve con su contraste real, solo más tenue.
 DecorationImage construirFondoChat(bool isDark) {
   return DecorationImage(
-    image: const NetworkImage(kFondoChatUrl),
+    image: NetworkImage(isDark ? kFondoChatUrlOscuro : kFondoChatUrlClaro),
     fit: BoxFit.cover,
-    opacity: isDark ? 0.22 : 0.40,
+    opacity: 0.40,
   );
 }
 

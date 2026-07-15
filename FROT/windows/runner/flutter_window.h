@@ -23,6 +23,11 @@ class FlutterWindow : public Win32Window {
                          LPARAM const lparam) noexcept override;
 
  private:
+  // Applies the app's own light/dark theme selection to the title bar
+  // (caption background, text color and button glyphs), instead of the
+  // window chrome just following the OS-wide theme setting.
+  void ApplyTitleBarTheme(bool dark);
+
   // The project to run.
   flutter::DartProject project_;
 

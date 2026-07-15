@@ -10,6 +10,15 @@ set(BINARY_NAME "abi_frotend_nd")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# flutter_inappwebview_windows' CMakeLists.txt still passes DEPENDS to
+# add_custom_command(TARGET ...), which policy CMP0175 (added in newer CMake)
+# would reject under the NEW behavior. Explicitly opt that plugin's directory
+# scope into the OLD (permissive) behavior so CMake neither errors nor emits
+# the "policy not set" dev warning for code we don't own.
+if(POLICY CMP0175)
+  set(CMAKE_POLICY_DEFAULT_CMP0175 OLD)
+endif()
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
@@ -42,6 +51,12 @@ add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
 # plugin project (e.g. file_selector_windows) don't clash writing to the same
 # .pdb file (MSVC error C1041). Project-wide so it also reaches plugin builds.
 add_compile_options(/FS)
+
+# flutter_inappwebview_windows' vendored sources (web_resource_response.cpp)
+# and the WebView2 SDK headers it includes trigger C4244 (int64->int
+# conversion) and C4458 (parameter hides class member) under MSVC. That code
+# isn't ours to edit, so silence just those two warning codes project-wide.
+add_compile_options(/wd4244 /wd4458)
 
 # Compilation settings that should be applied to most targets.
 #

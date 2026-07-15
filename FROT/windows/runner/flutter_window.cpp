@@ -1,8 +1,32 @@
 #include "flutter_window.h"
 
+#include <dwmapi.h>
+
 #include <optional>
 
+#include <flutter/method_channel.h>
+#include <flutter/standard_method_codec.h>
+
 #include "flutter/generated_plugin_registrant.h"
+
+namespace {
+
+// Redefined in case the Windows SDK in use predates these DWM attributes
+// (added for Windows 11 22000+). See:
+// https://docs.microsoft.com/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+#ifndef DWMWA_CAPTION_COLOR
+#define DWMWA_CAPTION_COLOR 35
+#endif
+#ifndef DWMWA_TEXT_COLOR
+#define DWMWA_TEXT_COLOR 36
+#endif
+
+constexpr char kTitleBarChannel[] = "crafthub/titlebar";
+
+}  // namespace
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -27,6 +51,25 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
+  auto title_bar_channel =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(), kTitleBarChannel,
+          &flutter::StandardMethodCodec::GetInstance());
+  title_bar_channel->SetMethodCallHandler(
+      [this](const flutter::MethodCall<flutter::EncodableValue>& call,
+             std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+                 result) {
+        if (call.method_name() == "setDarkMode") {
+          const auto* dark = std::get_if<bool>(call.arguments());
+          if (dark) {
+            ApplyTitleBarTheme(*dark);
+            result->Success();
+            return;
+          }
+        }
+        result->NotImplemented();
+      });
+
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
     this->Show();
   });
@@ -37,6 +80,31 @@ bool FlutterWindow::OnCreate() {
   flutter_controller_->ForceRedraw();
 
   return true;
+}
+
+void FlutterWindow::ApplyTitleBarTheme(bool dark) {
+  HWND hwnd = GetHandle();
+  if (!hwnd) {
+    return;
+  }
+
+  BOOL enable_dark_mode = dark ? TRUE : FALSE;
+  DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &enable_dark_mode,
+                        sizeof(enable_dark_mode));
+
+  // Match CraftHubColors.fondoOscuro/fondoClaro and textoOscuro/textoClaro
+  // (see lib/core/theme/app_theme.dart). COLORREF is 0x00BBGGRR, not RGB.
+  COLORREF caption_color = dark ? RGB(0x12, 0x12, 0x12) : RGB(0xF9, 0xF6, 0xF0);
+  COLORREF text_color = dark ? RGB(0xF0, 0xEA, 0xE0) : RGB(0x1A, 0x1A, 0x1A);
+  DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &caption_color,
+                        sizeof(caption_color));
+  DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, &text_color,
+                        sizeof(text_color));
+
+  // Force the non-client area to repaint immediately with the new colors.
+  SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+              SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE |
+                  SWP_FRAMECHANGED);
 }
 
 void FlutterWindow::OnDestroy() {
