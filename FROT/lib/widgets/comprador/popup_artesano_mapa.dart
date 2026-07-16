@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class PopupArtesanoMapa extends StatelessWidget {
   final String nombre;
@@ -43,10 +44,11 @@ class PopupArtesanoMapa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 300,
       decoration: BoxDecoration(
-        color: CraftHubColors.panelClaro,
+        color: CraftHubColors.panel(oscuro),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -88,9 +90,9 @@ class PopupArtesanoMapa extends StatelessWidget {
                     child: fotoUrl.isNotEmpty
                         ? Image.network(fotoUrl, fit: BoxFit.cover)
                         : Container(
-                            color: CraftHubColors.bordeClaro,
-                            child: const Icon(Icons.person,
-                                color: CraftHubColors.textoSecClaro,
+                            color: CraftHubColors.borde(oscuro),
+                            child: Icon(Icons.person,
+                                color: CraftHubColors.textoSecundario(oscuro),
                                 size: 30),
                           ),
                   ),
@@ -104,19 +106,19 @@ class PopupArtesanoMapa extends StatelessWidget {
                     children: [
                       Text(
                         nombre,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: CraftHubColors.textoClaro,
+                          color: CraftHubColors.textoPrincipal(oscuro),
                         ),
                       ),
                       Text(
                         especialidad,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 12,
-                          color: CraftHubColors.textoSecClaro,
+                          color: CraftHubColors.textoSecundario(oscuro),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -127,7 +129,7 @@ class PopupArtesanoMapa extends StatelessWidget {
                               color: CraftHubColors.vinoTinto),
                           const SizedBox(width: 3),
                           Text(
-                            '${distanciaKm.toStringAsFixed(1)} km de distancia',
+                            '${distanciaKm.toStringAsFixed(1)} ${tr(context, 'comprador_secundario.km_de_distancia_sufijo')}',
                             style: const TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 11,
@@ -151,8 +153,8 @@ class PopupArtesanoMapa extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.06),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close_rounded,
-                        size: 15, color: CraftHubColors.textoSecClaro),
+                    child: Icon(Icons.close_rounded,
+                        size: 15, color: CraftHubColors.textoSecundario(oscuro)),
                   ),
                 ),
               ],
@@ -165,13 +167,13 @@ class PopupArtesanoMapa extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tiempo estimado para llegar',
+                Text(
+                  tr(context, 'comprador_secundario.tiempo_estimado_llegar'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: CraftHubColors.textoSecClaro,
+                    color: CraftHubColors.textoSecundario(oscuro),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -180,18 +182,21 @@ class PopupArtesanoMapa extends StatelessWidget {
                   children: [
                     _ChipTiempo(
                       icono: Icons.directions_car_outlined,
-                      medio: 'Auto',
+                      medio: tr(context, 'comprador_secundario.medio_auto'),
                       tiempo: _tiempoEstimado('auto'),
+                      oscuro: oscuro,
                     ),
                     _ChipTiempo(
                       icono: Icons.two_wheeler_outlined,
-                      medio: 'Moto',
+                      medio: tr(context, 'comprador_secundario.medio_moto'),
                       tiempo: _tiempoEstimado('moto'),
+                      oscuro: oscuro,
                     ),
                     _ChipTiempo(
                       icono: Icons.directions_walk_outlined,
-                      medio: 'Caminando',
+                      medio: tr(context, 'comprador_secundario.medio_caminando'),
                       tiempo: _tiempoEstimado('caminando'),
+                      oscuro: oscuro,
                     ),
                   ],
                 ),
@@ -208,7 +213,7 @@ class PopupArtesanoMapa extends StatelessWidget {
                 _BotonDireccion(alPresionar: alComoLlegar, cargando: calculandoRuta),
                 const SizedBox(height: 8),
                 // Ver perfil
-                _BotonVerPerfil(alPresionar: alVerPerfil),
+                _BotonVerPerfil(alPresionar: alVerPerfil, oscuro: oscuro),
               ],
             ),
           ),
@@ -222,11 +227,13 @@ class _ChipTiempo extends StatelessWidget {
   final IconData icono;
   final String medio;
   final String tiempo;
+  final bool oscuro;
 
   const _ChipTiempo({
     required this.icono,
     required this.medio,
     required this.tiempo,
+    required this.oscuro,
   });
 
   @override
@@ -237,28 +244,28 @@ class _ChipTiempo extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: CraftHubColors.fondoClaro,
+            color: CraftHubColors.fondo(oscuro),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: CraftHubColors.bordeClaro),
+            border: Border.all(color: CraftHubColors.borde(oscuro)),
           ),
           child: Icon(icono, size: 20, color: CraftHubColors.vinoTinto),
         ),
         const SizedBox(height: 4),
         Text(
           tiempo,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: CraftHubColors.textoClaro,
+            color: CraftHubColors.textoPrincipal(oscuro),
           ),
         ),
         Text(
           medio,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 10,
-            color: CraftHubColors.textoSecClaro,
+            color: CraftHubColors.textoSecundario(oscuro),
           ),
         ),
       ],
@@ -313,12 +320,12 @@ class _BotonDireccionState extends State<_BotonDireccion> {
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     ),
                   ]
-                : const [
-                    Icon(Icons.navigation_rounded, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
+                : [
+                    const Icon(Icons.navigation_rounded, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
                     Text(
-                      'Cómo llegar',
-                      style: TextStyle(
+                      tr(context, 'compartido.como_llegar'),
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -335,7 +342,8 @@ class _BotonDireccionState extends State<_BotonDireccion> {
 
 class _BotonVerPerfil extends StatefulWidget {
   final VoidCallback alPresionar;
-  const _BotonVerPerfil({required this.alPresionar});
+  final bool oscuro;
+  const _BotonVerPerfil({required this.alPresionar, required this.oscuro});
 
   @override
   State<_BotonVerPerfil> createState() => _BotonVerPerfilState();
@@ -362,21 +370,21 @@ class _BotonVerPerfilState extends State<_BotonVerPerfil> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: CraftHubColors.bordeClaro, width: 1.2),
+                color: CraftHubColors.borde(widget.oscuro), width: 1.2),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.storefront_outlined,
-                  color: CraftHubColors.textoClaro, size: 15),
-              SizedBox(width: 8),
+                  color: CraftHubColors.textoPrincipal(widget.oscuro), size: 15),
+              const SizedBox(width: 8),
               Text(
-                'Ver perfil del artesano',
+                tr(context, 'comprador_secundario.ver_perfil_del_artesano'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: CraftHubColors.textoClaro,
+                  color: CraftHubColors.textoPrincipal(widget.oscuro),
                 ),
               ),
             ],

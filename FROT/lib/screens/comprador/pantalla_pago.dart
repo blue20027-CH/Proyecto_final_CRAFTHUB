@@ -296,10 +296,23 @@ class _PantallaPagoState extends State<PantallaPago> {
               icono: Icons.person_outline_rounded,
               titulo: tr(context, 'comprador_secundario.ingresa_tus_datos'),
               child: Column(children: [
-                _CampoPago(controlador: _ctrlNombre, etiqueta: tr(context, 'comprador_secundario.nombre_completo'), oscuro: oscuro),
+                _CampoPago(
+                  controlador: _ctrlNombre,
+                  etiqueta: tr(context, 'comprador_secundario.nombre_completo'),
+                  oscuro: oscuro,
+                  onChanged: (_) => setState(() {}),
+                ),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: _CampoPago(controlador: _ctrlTelefono, etiqueta: tr(context, 'comprador_secundario.telefono'), oscuro: oscuro, tipoTeclado: TextInputType.phone)),
+                  Expanded(
+                    child: _CampoPago(
+                      controlador: _ctrlTelefono,
+                      etiqueta: tr(context, 'comprador_secundario.telefono'),
+                      oscuro: oscuro,
+                      tipoTeclado: TextInputType.phone,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _CampoPago(
@@ -307,6 +320,7 @@ class _PantallaPagoState extends State<PantallaPago> {
                       etiqueta: tr(context, 'comprador_secundario.provincia_ubicacion'),
                       oscuro: oscuro,
                       onEditingComplete: _cargarResumen,
+                      onChanged: (_) => setState(() {}),
                     ),
                   ),
                 ]),
@@ -418,7 +432,12 @@ class _PantallaPagoState extends State<PantallaPago> {
     switch (_metodoSeleccionado) {
       case 'Tarjeta':
         return Column(children: [
-          _CampoPago(controlador: _ctrlNombreTarjeta, etiqueta: tr(context, 'comprador_secundario.nombre_en_tarjeta'), oscuro: oscuro),
+          _CampoPago(
+            controlador: _ctrlNombreTarjeta,
+            etiqueta: tr(context, 'comprador_secundario.nombre_en_tarjeta'),
+            oscuro: oscuro,
+            onChanged: (_) => setState(() {}),
+          ),
           const SizedBox(height: 12),
           _CampoPago(
             controlador: _ctrlNumeroTarjeta,
@@ -426,10 +445,19 @@ class _PantallaPagoState extends State<PantallaPago> {
             oscuro: oscuro,
             tipoTeclado: TextInputType.number,
             hint: '0000 0000 0000 0000',
+            onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _CampoPago(controlador: _ctrlVenceTarjeta, etiqueta: tr(context, 'comprador_secundario.vence_mm_aa'), oscuro: oscuro, hint: tr(context, 'comprador_secundario.mm_aa_hint'))),
+            Expanded(
+              child: _CampoPago(
+                controlador: _ctrlVenceTarjeta,
+                etiqueta: tr(context, 'comprador_secundario.vence_mm_aa'),
+                oscuro: oscuro,
+                hint: tr(context, 'comprador_secundario.mm_aa_hint'),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: _CampoPago(
@@ -438,6 +466,7 @@ class _PantallaPagoState extends State<PantallaPago> {
                 oscuro: oscuro,
                 tipoTeclado: TextInputType.number,
                 oculto: true,
+                onChanged: (_) => setState(() {}),
               ),
             ),
           ]),
@@ -454,10 +483,23 @@ class _PantallaPagoState extends State<PantallaPago> {
             onCambiar: (v) => setState(() => _bancoSeleccionado = v),
           ),
           const SizedBox(height: 12),
-          _CampoPago(controlador: _ctrlTitular, etiqueta: tr(context, 'comprador_secundario.titular_de_cuenta'), oscuro: oscuro),
+          _CampoPago(
+            controlador: _ctrlTitular,
+            etiqueta: tr(context, 'comprador_secundario.titular_de_cuenta'),
+            oscuro: oscuro,
+            onChanged: (_) => setState(() {}),
+          ),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _CampoPago(controlador: _ctrlCuenta, etiqueta: tr(context, 'comprador_secundario.numero_de_cuenta'), oscuro: oscuro, tipoTeclado: TextInputType.number)),
+            Expanded(
+              child: _CampoPago(
+                controlador: _ctrlCuenta,
+                etiqueta: tr(context, 'comprador_secundario.numero_de_cuenta'),
+                oscuro: oscuro,
+                tipoTeclado: TextInputType.number,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(child: _CampoPago(controlador: _ctrlReferencia, etiqueta: tr(context, 'comprador_secundario.referencia_opcional'), oscuro: oscuro)),
           ]),
@@ -471,6 +513,7 @@ class _PantallaPagoState extends State<PantallaPago> {
               : '${tr(context, 'comprador_secundario.telefono_de')} $_metodoSeleccionado',
           oscuro: oscuro,
           tipoTeclado: _campoBilletera == 'correo' ? TextInputType.emailAddress : TextInputType.phone,
+          onChanged: (_) => setState(() {}),
         );
     }
   }
@@ -529,6 +572,7 @@ class _CampoPago extends StatelessWidget {
   final bool oculto;
   final String? hint;
   final VoidCallback? onEditingComplete;
+  final ValueChanged<String>? onChanged;
 
   const _CampoPago({
     required this.controlador,
@@ -538,6 +582,7 @@ class _CampoPago extends StatelessWidget {
     this.oculto = false,
     this.hint,
     this.onEditingComplete,
+    this.onChanged,
   });
 
   @override
@@ -553,6 +598,7 @@ class _CampoPago extends StatelessWidget {
           keyboardType: tipoTeclado,
           obscureText: oculto,
           onEditingComplete: onEditingComplete,
+          onChanged: onChanged,
           style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: CraftHubColors.textoPrincipal(oscuro)),
           decoration: InputDecoration(
             hintText: hint,

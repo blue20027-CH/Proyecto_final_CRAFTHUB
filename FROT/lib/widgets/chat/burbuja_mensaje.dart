@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
+import '../../screens/comprador/pantalla_detalle_producto.dart';
 
 class BurbujaMensaje extends StatelessWidget {
   final MensajeModelo mensaje;
-  const BurbujaMensaje({super.key, required this.mensaje});
+  final String usuarioId;
+  const BurbujaMensaje({super.key, required this.mensaje, required this.usuarioId});
 
   String _fmt(DateTime h) {
     final hh = h.hour.toString().padLeft(2, '0');
@@ -64,7 +67,7 @@ class BurbujaMensaje extends StatelessWidget {
       case TipoMensaje.imagen:
         return _Imagen(url: mensaje.contenido);
       case TipoMensaje.publicacion:
-        return _Publicacion(pub: mensaje.publicacion, isDark: isDark);
+        return _Publicacion(pub: mensaje.publicacion, isDark: isDark, usuarioId: usuarioId);
       default:
         return _Texto(mensaje: mensaje, isDark: isDark);
     }
@@ -172,7 +175,8 @@ class _Imagen extends StatelessWidget {
 class _Publicacion extends StatelessWidget {
   final PublicacionCompartidaModelo? pub;
   final bool isDark;
-  const _Publicacion({required this.pub, required this.isDark});
+  final String usuarioId;
+  const _Publicacion({required this.pub, required this.isDark, required this.usuarioId});
   @override
   Widget build(BuildContext context) {
     if (pub == null) return const SizedBox.shrink();
@@ -246,9 +250,11 @@ class _Publicacion extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () {
-                      /* TODO: navegar al producto */
-                    },
+                    onPressed: () => PantallaDetalleProducto.mostrar(
+                      context,
+                      productoId: pub!.id,
+                      userId: usuarioId,
+                    ),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: CraftHubColors.vinoTinto),
                       foregroundColor: CraftHubColors.vinoTinto,
@@ -257,9 +263,9 @@ class _Publicacion extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Ver producto',
-                      style: TextStyle(
+                    child: Text(
+                      tr(context, 'compartido.ver_producto_boton'),
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

@@ -4,6 +4,7 @@
 // predeterminada). 🔌 POST /api/auth/verificar-password
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../campo_texto.dart';
 
@@ -13,13 +14,15 @@ import '../campo_texto.dart';
 Future<String?> mostrarDialogoConfirmarPassword(
   BuildContext context, {
   required String email,
-  String titulo = 'Confirma tu identidad',
-  String mensaje = 'Ingresa tu contraseña para continuar.',
+  String? titulo,
+  String? mensaje,
 }) {
+  final tituloResuelto = titulo ?? tr(context, 'comprador_secundario.confirma_tu_identidad');
+  final mensajeResuelto = mensaje ?? tr(context, 'comprador_secundario.password_msg_continuar');
   return showDialog<String>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.45),
-    builder: (_) => _DialogoConfirmarPassword(email: email, titulo: titulo, mensaje: mensaje),
+    builder: (_) => _DialogoConfirmarPassword(email: email, titulo: tituloResuelto, mensaje: mensajeResuelto),
   );
 }
 
@@ -103,7 +106,7 @@ class _DialogoConfirmarPasswordState extends State<_DialogoConfirmarPassword> {
               const SizedBox(height: 18),
               CampoTexto(
                 controlador: _ctrlPassword,
-                hint: 'Contraseña',
+                hint: tr(context, 'comprador_secundario.contrasena_hint'),
                 icono: Icons.key_outlined,
                 esOscuro: oscuro,
                 esPassword: true,
@@ -126,7 +129,7 @@ class _DialogoConfirmarPasswordState extends State<_DialogoConfirmarPassword> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text('Cancelar', style: TextStyle(fontFamily: 'Poppins')),
+                      child: Text(tr(context, 'comprador_secundario.cancelar'), style: const TextStyle(fontFamily: 'Poppins')),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -142,7 +145,7 @@ class _DialogoConfirmarPasswordState extends State<_DialogoConfirmarPassword> {
                       ),
                       child: _verificando
                           ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Confirmar', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                          : Text(tr(context, 'comprador_secundario.confirmar_boton'), style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],

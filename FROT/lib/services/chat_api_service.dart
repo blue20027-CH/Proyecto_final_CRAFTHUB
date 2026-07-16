@@ -70,6 +70,7 @@ class ChatApiService {
     required String contenido,
     TipoMensaje tipo = TipoMensaje.texto,
     String? publicacionId,
+    PublicacionCompartidaModelo? publicacion,
   }) async {
     final response = await http
         .post(
@@ -82,6 +83,10 @@ class ChatApiService {
             'contenido': contenido,
             'tipo': tipoMensajeATexto(tipo),
             'publicacion_id': publicacionId,
+            if (publicacion != null) 'publicacion_titulo': publicacion.titulo,
+            if (publicacion != null) 'publicacion_imagen_url': publicacion.imagenUrl,
+            if (publicacion != null) 'publicacion_precio': publicacion.precio,
+            if (publicacion != null) 'publicacion_artesano': publicacion.artesano,
           }),
         )
         .timeout(const Duration(seconds: 10));

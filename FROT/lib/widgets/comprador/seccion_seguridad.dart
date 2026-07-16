@@ -6,6 +6,7 @@
 // dialogo_confirmar_password.dart y seccion_cambiar_password.dart.
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import 'seccion_cambiar_password.dart';
 import 'tarjeta_seccion.dart';
 
@@ -18,16 +19,13 @@ class SeccionSeguridad extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Actividad de la cuenta', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+        title: Text(tr(context, 'comprador_secundario.actividad_cuenta_titulo'), style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
         content: Text(
-          'Sesión iniciada como $email.\n\n'
-          'El seguimiento detallado de dispositivos y sesiones activas todavía '
-          'no está disponible en CraftHub. Mientras tanto, cualquier cambio de '
-          'contraseña o de tarjetas guardadas exige verificar tu contraseña actual.',
+          tr(context, 'comprador_secundario.actividad_cuenta_contenido').replaceAll('{email}', email),
           style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendido')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(tr(context, 'comprador_secundario.entendido'))),
         ],
       ),
     );
@@ -38,24 +36,24 @@ class SeccionSeguridad extends StatelessWidget {
     return TarjetaSeccion(
       esOscuro: esOscuro,
       icono: Icons.shield_outlined,
-      titulo: 'Seguridad y privacidad',
-      subtitulo: 'Administra la seguridad de tu cuenta.',
+      titulo: tr(context, 'comprador_secundario.seguridad_privacidad_titulo'),
+      subtitulo: tr(context, 'comprador_secundario.seguridad_privacidad_subtitulo'),
       colapsable: true,
       child: Column(
         children: [
           _FilaSeguridad(
             esOscuro: esOscuro,
             icono: Icons.lock_outline_rounded,
-            titulo: 'Cambiar contraseña',
-            subtitulo: 'Actualiza tu contraseña de forma segura',
+            titulo: tr(context, 'comprador_secundario.cambiar_password_titulo'),
+            subtitulo: tr(context, 'comprador_secundario.cambiar_password_subtitulo'),
             onTap: () => mostrarModalCambiarPassword(context, email: email, esOscuro: esOscuro),
           ),
           const SizedBox(height: 10),
           _FilaSeguridad(
             esOscuro: esOscuro,
             icono: Icons.verified_user_outlined,
-            titulo: 'Actividad de la cuenta',
-            subtitulo: 'Revisa tus dispositivos y actividad reciente',
+            titulo: tr(context, 'comprador_secundario.actividad_cuenta_titulo'),
+            subtitulo: tr(context, 'comprador_secundario.actividad_cuenta_fila_subtitulo'),
             onTap: () => _mostrarActividadCuenta(context),
           ),
         ],

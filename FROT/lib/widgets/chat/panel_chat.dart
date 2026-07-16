@@ -72,7 +72,13 @@ class _PanelChatState extends State<PanelChat> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _bajar());
   }
 
-  Future<void> _enviarYPersistir(MensajeModelo optimista, String contenido, TipoMensaje tipo, {String? publicacionId}) async {
+  Future<void> _enviarYPersistir(
+    MensajeModelo optimista,
+    String contenido,
+    TipoMensaje tipo, {
+    String? publicacionId,
+    PublicacionCompartidaModelo? publicacion,
+  }) async {
     _agregar(optimista);
     try {
       await ChatApiService.enviarMensaje(
@@ -82,6 +88,7 @@ class _PanelChatState extends State<PanelChat> {
         contenido: contenido,
         tipo: tipo,
         publicacionId: publicacionId,
+        publicacion: publicacion,
       );
     } catch (e) {
       if (!mounted) return;
@@ -143,6 +150,7 @@ class _PanelChatState extends State<PanelChat> {
             pub.imagenUrl,
             TipoMensaje.publicacion,
             publicacionId: pub.id,
+            publicacion: pub,
           );
         },
       ),
@@ -198,7 +206,10 @@ class _PanelChatState extends State<PanelChat> {
                       }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: BurbujaMensaje(mensaje: _mensajes[i - 1]),
+                        child: BurbujaMensaje(
+                          mensaje: _mensajes[i - 1],
+                          usuarioId: widget.usuarioId,
+                        ),
                       );
                     },
                   ),

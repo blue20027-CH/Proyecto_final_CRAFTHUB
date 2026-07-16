@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/carrito_provider.dart';
 import '../../models/carrito_model.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 // ============================================================
 // SELECTOR DE CARRITO (DROPDOWN MULTI-CARRITO)
@@ -89,7 +90,7 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
           children: [
             const Icon(Icons.shopping_bag_outlined, color: AppColors.vinoTinto, size: 22),
             const SizedBox(width: 10),
-            Text('Nuevo carrito',
+            Text(tr(ctx, 'comprador_secundario.nuevo_carrito_titulo'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 16,
@@ -105,7 +106,7 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
             autofocus: true,
             style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
             decoration: InputDecoration(
-              hintText: 'Ej: Regalos de cumpleaños 🎂',
+              hintText: tr(ctx, 'comprador_secundario.nuevo_carrito_hint'),
               hintStyle: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
@@ -132,7 +133,7 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: Text('Cancelar',
+            child: Text(tr(dialogCtx, 'comprador_secundario.cancelar'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   color: Colors.grey[500],
@@ -153,7 +154,7 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
-            child: const Text('Crear', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600)),
+            child: Text(tr(dialogCtx, 'comprador_secundario.crear_boton'), style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -224,7 +225,7 @@ class _SelectorCarritoState extends State<SelectorCarrito> {
                 ),
                 // Subtítulo con cantidad de productos
                 Text(
-                  '${carrito.totalItems} ${carrito.totalItems == 1 ? 'producto' : 'productos'} en tu carrito',
+                  '${carrito.totalItems} ${carrito.totalItems == 1 ? tr(context, 'comprador_secundario.producto_singular') : tr(context, 'comprador_secundario.producto_plural')} ${tr(context, 'comprador_secundario.en_tu_carrito_sufijo')}',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 12,
@@ -288,7 +289,7 @@ class _MenuCarritos extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'Mis carritos',
+                    tr(context, 'comprador_secundario.mis_carritos_titulo'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
@@ -473,9 +474,9 @@ class _BotonCrearCarritoState extends State<_BotonCrearCarrito> {
             children: [
               const Icon(Icons.add_circle_outline, size: 16, color: AppColors.vinoTinto),
               const SizedBox(width: 8),
-              const Text(
-                'Crear nuevo carrito',
-                style: TextStyle(
+              Text(
+                tr(context, 'comprador_secundario.crear_nuevo_carrito_boton'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

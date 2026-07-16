@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/evento_modelo.dart';
 import '../../services/eventos_api_service.dart';
 
@@ -164,13 +165,13 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Publicar evento',
+                          Text(tr(context, 'compartido.publicar_evento'),
                               style: TextStyle(
                                   color: colorTexto,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   fontFamily: 'Poppins')),
-                          Text('Invita a compradores a tu feria, taller o exposición',
+                          Text(tr(context, 'compartido.publicar_evento_subtitulo'),
                               style: TextStyle(color: colorSec, fontSize: 12, fontFamily: 'Poppins')),
                         ],
                       ),
@@ -183,24 +184,24 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                 ),
                 const SizedBox(height: 24),
 
-                Text('Título del evento *', style: etiqueta()),
+                Text('${tr(context, 'compartido.evento_titulo_label')} *', style: etiqueta()),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _tituloCtrl,
                   style: TextStyle(color: colorTexto, fontSize: 13, fontFamily: 'Poppins'),
-                  decoration: decoracion('Ej. Feria Artesanal de Chiriquí'),
+                  decoration: decoracion(tr(context, 'compartido.evento_titulo_hint')),
                   validator: (v) =>
-                      (v == null || v.trim().length < 4) ? 'Ingresa un título válido' : null,
+                      (v == null || v.trim().length < 4) ? tr(context, 'compartido.evento_titulo_error') : null,
                 ),
                 const SizedBox(height: 16),
 
-                Text('Descripción', style: etiqueta()),
+                Text(tr(context, 'compartido.descripcion_label'), style: etiqueta()),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _descripcionCtrl,
                   maxLines: 3,
                   style: TextStyle(color: colorTexto, fontSize: 13, fontFamily: 'Poppins'),
-                  decoration: decoracion('Cuéntale a la comunidad de qué trata tu evento…'),
+                  decoration: decoracion(tr(context, 'compartido.evento_descripcion_hint')),
                 ),
                 const SizedBox(height: 16),
 
@@ -209,11 +210,11 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Categoría *', style: etiqueta()),
+                        Text('${tr(context, 'compartido.categoria_label')} *', style: etiqueta()),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           initialValue: _categoria,
-                          decoration: decoracion('Categoría'),
+                          decoration: decoracion(tr(context, 'compartido.categoria_label')),
                           dropdownColor: CraftHubColors.panel(oscuro),
                           style: TextStyle(color: colorTexto, fontSize: 13, fontFamily: 'Poppins'),
                           items: categoriasEvento
@@ -230,11 +231,11 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Provincia / Comarca *', style: etiqueta()),
+                        Text('${tr(context, 'compartido.provincia_comarca_label')} *', style: etiqueta()),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           initialValue: _provincia,
-                          decoration: decoracion('Provincia'),
+                          decoration: decoracion(tr(context, 'compartido.provincia_comarca_label')),
                           dropdownColor: CraftHubColors.panel(oscuro),
                           isExpanded: true,
                           style: TextStyle(color: colorTexto, fontSize: 13, fontFamily: 'Poppins'),
@@ -249,14 +250,14 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                 ]),
                 const SizedBox(height: 16),
 
-                Text('Lugar / dirección *', style: etiqueta()),
+                Text('${tr(context, 'compartido.lugar_direccion_label')} *', style: etiqueta()),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _ubicacionCtrl,
                   style: TextStyle(color: colorTexto, fontSize: 13, fontFamily: 'Poppins'),
-                  decoration: decoracion('Ej. Plaza Central, David'),
+                  decoration: decoracion(tr(context, 'compartido.lugar_hint')),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Indica el lugar del evento' : null,
+                      (v == null || v.trim().isEmpty) ? tr(context, 'compartido.lugar_error') : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -265,7 +266,7 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Fecha de inicio *', style: etiqueta()),
+                        Text('${tr(context, 'compartido.fecha_inicio_label')} *', style: etiqueta()),
                         const SizedBox(height: 8),
                         _SelectorFecha(
                           fecha: _fechaInicio,
@@ -282,7 +283,7 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Fecha de fin *', style: etiqueta()),
+                        Text('${tr(context, 'compartido.fecha_fin_label')} *', style: etiqueta()),
                         const SizedBox(height: 8),
                         _SelectorFecha(
                           fecha: _fechaFin,
@@ -302,7 +303,7 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Cupos para vendedores', style: etiqueta()),
+                        Text(tr(context, 'compartido.cupos_vendedores_label'), style: etiqueta()),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _cuposCtrl,
@@ -318,14 +319,14 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Teléfono de contacto *', style: etiqueta()),
+                        Text('${tr(context, 'compartido.telefono_contacto_label')} *', style: etiqueta()),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _telefonoCtrl,
                           style: TextStyle(color: colorTexto, fontSize: 13, fontFamily: 'Poppins'),
                           decoration: decoracion('+507 6000-0000'),
                           validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? 'Ingresa un teléfono' : null,
+                              (v == null || v.trim().isEmpty) ? tr(context, 'compartido.telefono_error') : null,
                         ),
                       ],
                     ),
@@ -341,7 +342,7 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                       onChanged: (v) => setState(() => _esGratuito = v),
                     ),
                     const SizedBox(width: 8),
-                    Text('Entrada gratuita', style: etiqueta()),
+                    Text(tr(context, 'compartido.entrada_gratuita'), style: etiqueta()),
                   ],
                 ),
                 const SizedBox(height: 28),
@@ -357,7 +358,7 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: const Text('Cancelar', style: TextStyle(fontFamily: 'Poppins')),
+                        child: Text(tr(context, 'compartido.cancelar'), style: const TextStyle(fontFamily: 'Poppins')),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -377,8 +378,8 @@ class _DialogoCrearEventoState extends State<DialogoCrearEvento> {
                                 height: 20,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Text('Publicar evento',
-                                style: TextStyle(
+                            : Text(tr(context, 'compartido.publicar_evento'),
+                                style: const TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600)),

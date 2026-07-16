@@ -526,15 +526,15 @@ class _AreaImagenState extends State<_AreaImagen> {
           children: [
             widget.child,
             if (_hover || widget.subiendo)
-              ClipRRect(
-                borderRadius: widget.circular ? BorderRadius.circular(100) : BorderRadius.circular(18),
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black.withValues(alpha: widget.subiendo ? 0.4 : 0.18),
-                  child: widget.subiendo
-                      ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.4))
-                      : null,
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: widget.circular ? BorderRadius.circular(100) : BorderRadius.circular(18),
+                  child: Container(
+                    color: Colors.black.withValues(alpha: widget.subiendo ? 0.4 : 0.18),
+                    child: widget.subiendo
+                        ? const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.4))
+                        : null,
+                  ),
                 ),
               ),
           ],

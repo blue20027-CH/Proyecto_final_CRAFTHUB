@@ -139,7 +139,7 @@ class _PantallaRegistroVendedorState extends State<PantallaRegistroVendedor> {
               fit: StackFit.expand,
               children: [
                 Image.asset(
-                  'assets/images/fondo_inicio.png',
+                  'assets/images/fondo_in.png',
                   fit: BoxFit.cover,
                 ),
                 // Degradado desde la izquierda hacia la derecha

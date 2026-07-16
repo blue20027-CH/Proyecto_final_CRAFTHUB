@@ -15,6 +15,46 @@ import '../../services/vendedor_api_service.dart';
 // ─────────────────────────────────────────────────────────────
 // HELPERS DE ESTADO
 // ─────────────────────────────────────────────────────────────
+
+// EstadoPedido.etiqueta() devuelve texto fijo en español (también lo usa
+// pantalla_mapa_vendedor.dart), así que acá se traduce a partir del código
+// canónico en vez de tocar esa función compartida.
+String _etiquetaEstado(BuildContext context, String estadoCanonico) {
+  switch (estadoCanonico) {
+    case EstadoPedido.aceptada:
+      return tr(context, 'vendedor_operaciones.estado_aceptada');
+    case EstadoPedido.enviado:
+      return tr(context, 'vendedor_operaciones.estado_enviado');
+    case EstadoPedido.completada:
+      return tr(context, 'vendedor_operaciones.estado_completada');
+    case EstadoPedido.cancelada:
+      return tr(context, 'vendedor_operaciones.estado_cancelada');
+    case EstadoPedido.pendiente:
+    default:
+      return tr(context, 'vendedor_operaciones.estado_pendiente');
+  }
+}
+
+// Traduce los valores del dropdown de filtro (fijos en español para no
+// romper la comparación con estadoLabel/backend).
+String _etiquetaFiltroEstado(BuildContext context, String valor) {
+  switch (valor) {
+    case 'Pendiente':
+      return tr(context, 'vendedor_operaciones.estado_pendiente');
+    case 'Aceptada':
+      return tr(context, 'vendedor_operaciones.estado_aceptada');
+    case 'Enviado':
+      return tr(context, 'vendedor_operaciones.estado_enviado');
+    case 'Completada':
+      return tr(context, 'vendedor_operaciones.estado_completada');
+    case 'Cancelada':
+      return tr(context, 'vendedor_operaciones.estado_cancelada');
+    case 'Todos los estados':
+    default:
+      return tr(context, 'vendedor_operaciones.filtro_todos_estados');
+  }
+}
+
 Color colorEstadoPedido(String estado) {
   switch (estado) {
     case EstadoPedido.aceptada:
@@ -253,7 +293,7 @@ class _PantallaOrdenesVendedorState extends State<PantallaOrdenesVendedor> {
             estado: nuevoEstado,
             estadoLabel: label.isNotEmpty
                 ? label
-                : EstadoPedido.etiqueta(nuevoEstado),
+                : _etiquetaEstado(context, nuevoEstado),
           );
         }
       });
@@ -261,7 +301,7 @@ class _PantallaOrdenesVendedorState extends State<PantallaOrdenesVendedor> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${pedido.orden} → ${EstadoPedido.etiqueta(nuevoEstado)}',
+            '${pedido.orden} → ${_etiquetaEstado(context, nuevoEstado)}',
           ),
           backgroundColor: CraftHubColors.vinoTinto,
           behavior: SnackBarBehavior.floating,
@@ -823,7 +863,10 @@ class _BarraFiltros extends StatelessWidget {
               .map(
                 (c) => DropdownMenuItem(
                   value: c,
-                  child: Text(c, overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    c == 'Todos los clientes' ? tr(context, 'vendedor_operaciones.filtro_todos_clientes') : c,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               )
               .toList(),
@@ -845,7 +888,7 @@ class _BarraFiltros extends StatelessWidget {
             color: CraftHubColors.textoPrincipal(esOscuro),
           ),
           items: _estados
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .map((e) => DropdownMenuItem(value: e, child: Text(_etiquetaFiltroEstado(context, e))))
               .toList(),
           onChanged: alCambiarEstado,
         ),
@@ -1072,7 +1115,7 @@ class _ChipEstado extends StatelessWidget {
                 Icon(iconoEstadoPedido(e), size: 16, color: c),
                 const SizedBox(width: 10),
                 Text(
-                  EstadoPedido.etiqueta(e),
+                  _etiquetaEstado(context, e),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
@@ -1103,7 +1146,7 @@ class _ChipEstado extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                pedido.estadoLabel,
+                _etiquetaEstado(context, pedido.estado),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11.5,
@@ -1667,7 +1710,7 @@ class _AccionesFila extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          '${tr(context, 'vendedor_operaciones.marcar_como')} ${EstadoPedido.etiqueta(e)}',
+                          '${tr(context, 'vendedor_operaciones.marcar_como')} ${_etiquetaEstado(context, e)}',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,

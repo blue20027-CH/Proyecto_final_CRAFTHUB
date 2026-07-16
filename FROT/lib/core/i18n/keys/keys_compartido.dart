@@ -34,7 +34,8 @@ const Map<String, Map<String, String>> traducciones = {
   'compartido.dias_abrev': {'es': 'días', 'en': 'days'},
   'compartido.emojis_tooltip': {'es': 'Emojis', 'en': 'Emojis'},
   'compartido.enviar_foto': {'es': 'Enviar foto', 'en': 'Send photo'},
-  'compartido.compartir_publicacion': {'es': 'Compartir publicacion', 'en': 'Share post'},
+  'compartido.compartir_publicacion': {'es': 'Compartir publicación', 'en': 'Share post'},
+  'compartido.compartir_boton': {'es': 'Compartir', 'en': 'Share'},
   'compartido.escribe_mensaje_hint': {'es': 'Escribe un mensaje...', 'en': 'Type a message...'},
 
   // widgets/comprador/*
@@ -56,4 +57,88 @@ const Map<String, Map<String, String>> traducciones = {
   'compartido.envios_panama': {'es': 'Envíos a todo Panamá', 'en': 'Shipping all over Panama'},
   'compartido.proceder_pago': {'es': 'Proceder al pago', 'en': 'Proceed to payment'},
   'compartido.artesanos_label': {'es': 'artesanos', 'en': 'artisans'},
+
+  // widgets/chat/panel_conversaciones.dart
+  'compartido.mensajes_titulo': {'es': 'Mensajes', 'en': 'Messages'},
+  'compartido.nueva_conversacion_tooltip': {'es': 'Nueva conversación', 'en': 'New conversation'},
+  'compartido.buscar_conversaciones_hint': {'es': 'Buscar conversaciones...', 'en': 'Search conversations...'},
+  'compartido.sin_resultados': {'es': 'Sin resultados', 'en': 'No results'},
+  'compartido.iniciar_conversacion': {'es': 'Iniciar conversación', 'en': 'Start conversation'},
+  'compartido.error_abrir_conversacion_prefijo': {'es': 'No se pudo abrir la conversación: ', 'en': "Couldn't open the conversation: "},
+
+  // widgets/eventos/dialogo_crear_evento.dart
+  'compartido.publicar_evento': {'es': 'Publicar evento', 'en': 'Post event'},
+  'compartido.publicar_evento_subtitulo': {'es': 'Invita a compradores a tu feria, taller o exposición', 'en': 'Invite buyers to your fair, workshop, or exhibit'},
+  'compartido.evento_titulo_label': {'es': 'Título del evento', 'en': 'Event title'},
+  'compartido.evento_titulo_hint': {'es': 'Ej. Feria Artesanal de Chiriquí', 'en': 'E.g. Chiriquí Artisan Fair'},
+  'compartido.evento_titulo_error': {'es': 'Ingresa un título válido', 'en': 'Enter a valid title'},
+  'compartido.evento_descripcion_hint': {'es': 'Cuéntale a la comunidad de qué trata tu evento…', 'en': 'Tell the community what your event is about…'},
+  'compartido.categoria_label': {'es': 'Categoría', 'en': 'Category'},
+  'compartido.lugar_direccion_label': {'es': 'Lugar / dirección', 'en': 'Venue / address'},
+  'compartido.lugar_hint': {'es': 'Ej. Plaza Central, David', 'en': 'E.g. Plaza Central, David'},
+  'compartido.lugar_error': {'es': 'Indica el lugar del evento', 'en': 'Enter the event venue'},
+  'compartido.fecha_inicio_label': {'es': 'Fecha de inicio', 'en': 'Start date'},
+  'compartido.fecha_fin_label': {'es': 'Fecha de fin', 'en': 'End date'},
+  'compartido.cupos_vendedores_label': {'es': 'Cupos para vendedores', 'en': 'Seller slots'},
+  'compartido.telefono_contacto_label': {'es': 'Teléfono de contacto', 'en': 'Contact phone'},
+  'compartido.telefono_error': {'es': 'Ingresa un teléfono', 'en': 'Enter a phone number'},
+  'compartido.entrada_gratuita': {'es': 'Entrada gratuita', 'en': 'Free admission'},
+  'compartido.cancelar': {'es': 'Cancelar', 'en': 'Cancel'},
+
+  // widgets/eventos/modal_detalle_evento.dart
+  'compartido.solicitud_participar_vendedor_default': {
+    'es': 'Hola, me gustaría participar como vendedor en este evento. Cuento con productos artesanales listos para exhibir.',
+    'en': "Hi, I'd like to take part as a seller in this event. I have artisan products ready to showcase.",
+  },
+  'compartido.solicitud_enviada_default': {'es': 'Solicitud enviada.', 'en': 'Request sent.'},
+  'compartido.como_llegar': {'es': 'Cómo llegar', 'en': 'Get directions'},
+  'compartido.entrada_libre': {'es': 'Entrada libre', 'en': 'Free entry'},
+  'compartido.entrada_precio_prefijo': {'es': 'Entrada:', 'en': 'Entry:'},
+  'compartido.cupos_disponibles_sufijo': {'es': 'cupos de vendedor disponibles', 'en': 'seller slots available'},
+  'compartido.sin_cupos_vendedor': {'es': 'Sin cupos de vendedor disponibles por ahora', 'en': 'No seller slots available right now'},
+  'compartido.organiza_label': {'es': 'Organiza', 'en': 'Organized by'},
+  'compartido.reserva_confirmada': {'es': '¡Reserva confirmada! Te esperamos.', 'en': "Booking confirmed! We'll see you there."},
+  'compartido.espacio_reservado': {'es': 'Espacio reservado', 'en': 'Spot reserved'},
+  'compartido.reservar_mi_espacio': {'es': 'Reservar mi espacio', 'en': 'Reserve my spot'},
+  'compartido.solicitud_enviada_organizador': {'es': 'Solicitud enviada al organizador', 'en': 'Request sent to the organizer'},
+  'compartido.solicitar_espacio_venta': {'es': 'Solicitar espacio de venta', 'en': 'Request a selling spot'},
+  'compartido.mensaje_para_organizador': {'es': 'Mensaje para el organizador', 'en': 'Message for the organizer'},
+  'compartido.enviando_puntos': {'es': 'Enviando…', 'en': 'Sending…'},
+  'compartido.enviar_solicitud': {'es': 'Enviar solicitud', 'en': 'Send request'},
+  'compartido.valido_prefijo': {'es': 'válido', 'en': 'valid'},
+
+  // widgets/eventos/tarjeta_contacto_organizador.dart
+  'compartido.no_se_pudo_abrir_app': {'es': 'No se pudo abrir la aplicación solicitada.', 'en': "Couldn't open the requested app."},
+  'compartido.whatsapp_label': {'es': 'WhatsApp', 'en': 'WhatsApp'},
+  'compartido.correo_label': {'es': 'Correo', 'en': 'Email'},
+  'compartido.sitio_web_label': {'es': 'Sitio web', 'en': 'Website'},
+  'compartido.whatsapp_mensaje_default': {'es': 'Hola, quisiera más información sobre el evento.', 'en': 'Hi, I would like more information about the event.'},
+
+  // widgets/eventos/calendario_mensual.dart
+  'compartido.mes_enero': {'es': 'Enero', 'en': 'January'},
+  'compartido.mes_febrero': {'es': 'Febrero', 'en': 'February'},
+  'compartido.mes_marzo': {'es': 'Marzo', 'en': 'March'},
+  'compartido.mes_abril': {'es': 'Abril', 'en': 'April'},
+  'compartido.mes_mayo': {'es': 'Mayo', 'en': 'May'},
+  'compartido.mes_junio': {'es': 'Junio', 'en': 'June'},
+  'compartido.mes_julio': {'es': 'Julio', 'en': 'July'},
+  'compartido.mes_agosto': {'es': 'Agosto', 'en': 'August'},
+  'compartido.mes_septiembre': {'es': 'Septiembre', 'en': 'September'},
+  'compartido.mes_octubre': {'es': 'Octubre', 'en': 'October'},
+  'compartido.mes_noviembre': {'es': 'Noviembre', 'en': 'November'},
+  'compartido.mes_diciembre': {'es': 'Diciembre', 'en': 'December'},
+  'compartido.dia_dom': {'es': 'Dom', 'en': 'Sun'},
+  'compartido.dia_lun': {'es': 'Lun', 'en': 'Mon'},
+  'compartido.dia_mar': {'es': 'Mar', 'en': 'Tue'},
+  'compartido.dia_mie': {'es': 'Mié', 'en': 'Wed'},
+  'compartido.dia_jue': {'es': 'Jue', 'en': 'Thu'},
+  'compartido.dia_vie': {'es': 'Vie', 'en': 'Fri'},
+  'compartido.dia_sab': {'es': 'Sáb', 'en': 'Sat'},
+  'compartido.hoy_boton': {'es': 'Hoy', 'en': 'Today'},
+
+  // widgets/chat/burbuja_mensaje.dart
+  'compartido.ver_producto_boton': {'es': 'Ver producto', 'en': 'View product'},
+
+  // widgets/comprador/tarjeta_favorito.dart
+  'compartido.anadir_boton': {'es': 'Añadir', 'en': 'Add'},
 };

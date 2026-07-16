@@ -1,0 +1,6 @@
+# Secretos locales - nunca subir a git
+.env
+
+# Python
+__pycache__/
+*.pyc

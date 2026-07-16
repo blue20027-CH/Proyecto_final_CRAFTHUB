@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../../services/generador_factura_pdf.dart';
 import 'tarjeta_seccion.dart';
@@ -64,7 +65,7 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo generar la factura: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'comprador_secundario.error_generar_factura_prefijo')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     } finally {
       if (mounted) setState(() => _descargando = null);
@@ -91,8 +92,8 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
     return TarjetaSeccion(
       esOscuro: esOscuro,
       icono: Icons.receipt_long_outlined,
-      titulo: 'Historial de facturas',
-      subtitulo: 'Tus pedidos anteriores. Descarga el recibo de compra de cualquiera en PDF.',
+      titulo: tr(context, 'comprador_secundario.historial_facturas_titulo'),
+      subtitulo: tr(context, 'comprador_secundario.historial_facturas_subtitulo'),
       colapsable: true,
       child: _cargando
           ? const Padding(
@@ -102,7 +103,7 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
           : _error != null
               ? Text(_error!, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.error))
               : _pedidos.isEmpty
-                  ? Text('Aún no tienes pedidos.',
+                  ? Text(tr(context, 'comprador_secundario.sin_pedidos'),
                       style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(esOscuro)))
                   : Column(
                       children: List.generate(_pedidos.length, (i) {
@@ -110,7 +111,7 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
                         final expandido = _expandidos.contains(i);
                         final productos = (pedido['productos'] is List) ? (pedido['productos'] as List) : [];
                         final fecha = (pedido['created_at']?.toString() ?? '');
-                        final fechaCorta = fecha.length >= 10 ? fecha.substring(0, 10) : 'Sin fecha';
+                        final fechaCorta = fecha.length >= 10 ? fecha.substring(0, 10) : tr(context, 'comprador_secundario.sin_fecha');
                         final estado = (pedido['estado'] ?? 'pendiente').toString();
 
                         return Container(
@@ -138,7 +139,7 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('Pedido #${pedido['id']} · $fechaCorta',
+                                            Text('${tr(context, 'comprador_secundario.pedido_prefijo')} #${pedido['id']} · $fechaCorta',
                                                 style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600,
                                                     color: CraftHubColors.textoPrincipal(esOscuro))),
                                             const SizedBox(height: 3),
@@ -182,8 +183,8 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
                                           icon: _descargando == i
                                               ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                                               : const Icon(Icons.download_outlined, size: 17, color: CraftHubColors.vinoTinto),
-                                          label: const Text('Descargar factura',
-                                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
+                                          label: Text(tr(context, 'comprador_secundario.descargar_factura_boton'),
+                                              style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
                                         ),
                                       ),
                                     ],

@@ -42,7 +42,16 @@ class PublicacionCompartidaModelo {
     required this.precio,
     required this.artesano,
   });
-  // TODO: factory PublicacionCompartidaModelo.fromJson(Map<String, dynamic> json) { ... }
+
+  factory PublicacionCompartidaModelo.fromJson(Map<String, dynamic> json) {
+    return PublicacionCompartidaModelo(
+      id: (json['publicacion_id'] ?? json['id'] ?? '').toString(),
+      titulo: (json['titulo'] ?? json['publicacion_titulo'] ?? '').toString(),
+      imagenUrl: (json['imagen_url'] ?? json['publicacion_imagen_url'] ?? '').toString(),
+      precio: double.tryParse((json['precio'] ?? json['publicacion_precio'] ?? 0).toString()) ?? 0,
+      artesano: (json['artesano'] ?? json['publicacion_artesano'] ?? '').toString(),
+    );
+  }
 }
 
 TipoMensaje tipoMensajeDesdeTexto(String? valor) {
@@ -87,13 +96,17 @@ class MensajeModelo {
   });
 
   factory MensajeModelo.fromJson(Map<String, dynamic> json) {
+    final tipo = tipoMensajeDesdeTexto(json['tipo']?.toString());
     return MensajeModelo(
       id: (json['id'] ?? '').toString(),
       contenido: (json['contenido'] ?? '').toString(),
-      tipo: tipoMensajeDesdeTexto(json['tipo']?.toString()),
+      tipo: tipo,
       esMio: json['es_mio'] == true,
       hora: DateTime.tryParse((json['hora'] ?? '').toString())?.toLocal() ?? DateTime.now(),
       leido: json['leido'] == true,
+      publicacion: tipo == TipoMensaje.publicacion && json['publicacion_titulo'] != null
+          ? PublicacionCompartidaModelo.fromJson(json)
+          : null,
     );
   }
 }

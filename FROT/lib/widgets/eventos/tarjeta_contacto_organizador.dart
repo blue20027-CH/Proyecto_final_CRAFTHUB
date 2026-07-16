@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/evento_modelo.dart';
 
 class TarjetaContactoOrganizador extends StatelessWidget {
@@ -15,11 +16,12 @@ class TarjetaContactoOrganizador extends StatelessWidget {
   const TarjetaContactoOrganizador({super.key, required this.organizador});
 
   Future<void> _abrir(BuildContext context, Uri uri) async {
+    final mensaje = tr(context, 'compartido.no_se_pudo_abrir_app');
     final exito = await launchUrl(uri, mode: LaunchMode.externalApplication)
         .catchError((_) => false);
     if (!exito && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo abrir la aplicación solicitada.')),
+        SnackBar(content: Text(mensaje)),
       );
     }
   }
@@ -100,24 +102,24 @@ class TarjetaContactoOrganizador extends StatelessWidget {
               if (organizador.whatsapp.isNotEmpty)
                 _BotonContacto(
                   icono: Icons.chat_bubble_outline_rounded,
-                  texto: 'WhatsApp',
+                  texto: tr(context, 'compartido.whatsapp_label'),
                   onTap: () => _abrir(
                     context,
                     Uri.parse(
-                      'https://wa.me/${organizador.whatsapp}?text=${Uri.encodeComponent('Hola, quisiera más información sobre el evento.')}',
+                      'https://wa.me/${organizador.whatsapp}?text=${Uri.encodeComponent(tr(context, 'compartido.whatsapp_mensaje_default'))}',
                     ),
                   ),
                 ),
               if (organizador.email.isNotEmpty)
                 _BotonContacto(
                   icono: Icons.mail_outline_rounded,
-                  texto: 'Correo',
+                  texto: tr(context, 'compartido.correo_label'),
                   onTap: () => _abrir(context, Uri(scheme: 'mailto', path: organizador.email)),
                 ),
               if (organizador.sitioWeb.isNotEmpty)
                 _BotonContacto(
                   icono: Icons.language_rounded,
-                  texto: 'Sitio web',
+                  texto: tr(context, 'compartido.sitio_web_label'),
                   onTap: () => _abrir(context, Uri.parse(organizador.sitioWeb)),
                 ),
             ],

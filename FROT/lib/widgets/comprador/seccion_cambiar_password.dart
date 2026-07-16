@@ -8,6 +8,7 @@
 // 🔌 PATCH /api/auth/cambiar-password (BACK/CraftHub/auth_router.py)
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../campo_texto.dart';
 
@@ -57,19 +58,19 @@ class _HojaCambiarPasswordState extends State<_HojaCambiarPassword> {
     final confirmar = _ctrlConfirmar.text;
 
     if (actual.isEmpty || nueva.isEmpty || confirmar.isEmpty) {
-      setState(() => _error = 'Completa los tres campos.');
+      setState(() => _error = tr(context, 'comprador_secundario.cambiar_password_completa_campos'));
       return;
     }
     if (nueva.length < 6) {
-      setState(() => _error = 'La nueva contraseña debe tener al menos 6 caracteres.');
+      setState(() => _error = tr(context, 'comprador_secundario.cambiar_password_min_caracteres'));
       return;
     }
     if (nueva != confirmar) {
-      setState(() => _error = 'La nueva contraseña y su confirmación no coinciden.');
+      setState(() => _error = tr(context, 'comprador_secundario.cambiar_password_no_coincide'));
       return;
     }
     if (nueva == actual) {
-      setState(() => _error = 'La nueva contraseña debe ser diferente a la actual.');
+      setState(() => _error = tr(context, 'comprador_secundario.cambiar_password_debe_ser_diferente'));
       return;
     }
 
@@ -80,9 +81,10 @@ class _HojaCambiarPasswordState extends State<_HojaCambiarPassword> {
     try {
       await ApiService.cambiarPassword(widget.email, actual, nueva);
       if (!mounted) return;
+      final mensaje = tr(context, 'comprador_secundario.cambiar_password_actualizada');
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contraseña actualizada correctamente.')),
+        SnackBar(content: Text(mensaje)),
       );
     } catch (e) {
       setState(() => _error = e.toString().replaceAll('Exception: ', ''));
@@ -116,16 +118,16 @@ class _HojaCambiarPasswordState extends State<_HojaCambiarPassword> {
                 ),
               ),
               const SizedBox(height: 18),
-              Text('Cambiar contraseña',
+              Text(tr(context, 'comprador_secundario.cambiar_password_titulo'),
                   style: TextStyle(fontFamily: 'Poppins', fontSize: 17, fontWeight: FontWeight.w700, color: colorTexto)),
               const SizedBox(height: 4),
-              Text('Actualiza tu contraseña de forma segura.',
+              Text(tr(context, 'comprador_secundario.cambiar_password_subtitulo'),
                   style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: CraftHubColors.textoSecundario(esOscuro))),
               const SizedBox(height: 18),
 
               CampoTexto(
                 controlador: _ctrlActual,
-                hint: 'Contraseña actual',
+                hint: tr(context, 'comprador_secundario.contrasena_actual_hint'),
                 icono: Icons.key_outlined,
                 esOscuro: esOscuro,
                 esPassword: true,
@@ -135,7 +137,7 @@ class _HojaCambiarPasswordState extends State<_HojaCambiarPassword> {
               const SizedBox(height: 12),
               CampoTexto(
                 controlador: _ctrlNueva,
-                hint: 'Nueva contraseña',
+                hint: tr(context, 'comprador_secundario.nueva_contrasena_hint'),
                 icono: Icons.lock_outline_rounded,
                 esOscuro: esOscuro,
                 esPassword: true,
@@ -145,7 +147,7 @@ class _HojaCambiarPasswordState extends State<_HojaCambiarPassword> {
               const SizedBox(height: 12),
               CampoTexto(
                 controlador: _ctrlConfirmar,
-                hint: 'Confirmar nueva contraseña',
+                hint: tr(context, 'comprador_secundario.confirmar_nueva_contrasena_hint'),
                 icono: Icons.lock_outline_rounded,
                 esOscuro: esOscuro,
                 esPassword: true,
@@ -170,7 +172,7 @@ class _HojaCambiarPasswordState extends State<_HojaCambiarPassword> {
                   ),
                   child: _enviando
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Actualizar contraseña', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                      : Text(tr(context, 'comprador_secundario.actualizar_contrasena_boton'), style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
                 ),
               ),
             ],

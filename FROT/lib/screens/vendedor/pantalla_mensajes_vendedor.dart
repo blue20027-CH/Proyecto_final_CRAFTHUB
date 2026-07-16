@@ -183,7 +183,7 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
       if (existente == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Aún no puedes escribirle a $nombreContacto: debe enviarte un mensaje primero.')),
+          SnackBar(content: Text('${tr(context, 'vendedor_operaciones.mensajes_error_no_puede_escribir_prefijo')} $nombreContacto: ${tr(context, 'vendedor_operaciones.mensajes_error_no_puede_escribir_sufijo')}')),
         );
         return;
       }
@@ -302,7 +302,7 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
                                   misPublicaciones: _misPublicaciones,
                                   usuarioId: widget.userId,
                                   usuarioNombre: widget.nombreVendedor,
-                                  tituloVacioCompartir: 'Aún no tienes productos publicados para compartir.',
+                                  tituloVacioCompartir: tr(context, 'vendedor_operaciones.mensajes_sin_publicaciones_compartir'),
                                 ),
                 ),
               ],

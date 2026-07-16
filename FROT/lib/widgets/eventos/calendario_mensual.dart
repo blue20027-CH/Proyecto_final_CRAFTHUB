@@ -5,6 +5,7 @@
 
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class CalendarioMensual extends StatelessWidget {
   final DateTime mesMostrado;
@@ -28,11 +29,16 @@ class CalendarioMensual extends StatelessWidget {
     required this.alIrHoy,
   });
 
-  static const _nombresMes = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  static const _clavesMes = [
+    'compartido.mes_enero', 'compartido.mes_febrero', 'compartido.mes_marzo',
+    'compartido.mes_abril', 'compartido.mes_mayo', 'compartido.mes_junio',
+    'compartido.mes_julio', 'compartido.mes_agosto', 'compartido.mes_septiembre',
+    'compartido.mes_octubre', 'compartido.mes_noviembre', 'compartido.mes_diciembre',
   ];
-  static const _diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  static const _clavesDiaSemana = [
+    'compartido.dia_dom', 'compartido.dia_lun', 'compartido.dia_mar',
+    'compartido.dia_mie', 'compartido.dia_jue', 'compartido.dia_vie', 'compartido.dia_sab',
+  ];
 
   static DateTime _normalizar(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -69,7 +75,7 @@ class CalendarioMensual extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Text(
-                    '${_nombresMes[mesMostrado.month - 1]} ${mesMostrado.year}',
+                    '${tr(context, _clavesMes[mesMostrado.month - 1])} ${mesMostrado.year}',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 21,
@@ -88,11 +94,11 @@ class CalendarioMensual extends StatelessWidget {
 
           // ── Fila de días de la semana ──────────────────────────────────
           Row(
-            children: _diasSemana
+            children: _clavesDiaSemana
                 .map((d) => Expanded(
                       child: Center(
                         child: Text(
-                          d,
+                          tr(context, d),
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13.5,
@@ -221,7 +227,7 @@ class _BotonHoyState extends State<_BotonHoy> {
                   size: 14, color: _hover ? Colors.white : CraftHubColors.vinoTinto),
               const SizedBox(width: 6),
               Text(
-                'Hoy',
+                tr(context, 'compartido.hoy_boton'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,

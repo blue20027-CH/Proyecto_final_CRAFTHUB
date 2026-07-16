@@ -32,6 +32,14 @@ class EnviarMensajeRequest(BaseModel):
     contenido: str = Field(..., min_length=1)
     tipo: str = "texto"  # "texto" | "imagen" | "publicacion"
     publicacion_id: Optional[str] = None
+    # "Foto" del producto en el momento de compartirlo — se guarda tal cual
+    # la manda el cliente (que ya la tiene en memoria) en vez de resolverla
+    # con un JOIN, así el mensaje conserva el precio/título de ese momento
+    # aunque el producto cambie o se borre después.
+    publicacion_titulo: Optional[str] = None
+    publicacion_imagen_url: Optional[str] = None
+    publicacion_precio: Optional[float] = None
+    publicacion_artesano: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +99,10 @@ def _serializar_mensaje(m: dict, para_usuario_id: str) -> dict:
         "contenido": m.get("contenido") or "",
         "tipo": m.get("tipo") or "texto",
         "publicacion_id": m.get("publicacion_id"),
+        "publicacion_titulo": m.get("publicacion_titulo"),
+        "publicacion_imagen_url": m.get("publicacion_imagen_url"),
+        "publicacion_precio": m.get("publicacion_precio"),
+        "publicacion_artesano": m.get("publicacion_artesano"),
         "es_mio": m.get("autor_id") == para_usuario_id,
         "autor_nombre": m.get("autor_nombre"),
         "hora": m.get("created_at"),
@@ -227,6 +239,10 @@ def enviar_mensaje(req: EnviarMensajeRequest):
             "contenido": req.contenido,
             "tipo": req.tipo,
             "publicacion_id": req.publicacion_id,
+            "publicacion_titulo": req.publicacion_titulo,
+            "publicacion_imagen_url": req.publicacion_imagen_url,
+            "publicacion_precio": req.publicacion_precio,
+            "publicacion_artesano": req.publicacion_artesano,
             "leido": False,
         }
         resultado = supabase.table("mensajes").insert(nuevo).execute()

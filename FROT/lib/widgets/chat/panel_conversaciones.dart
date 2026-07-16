@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/artesano_modelo.dart';
 import '../../models/models_chat.dart';
 import '../../services/api_service.dart';
@@ -116,7 +117,7 @@ class _PanelConversacionesState extends State<PanelConversaciones> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo abrir la conversación: ${e.toString().replaceAll('Exception: ', '')}')),
+        SnackBar(content: Text('${tr(context, 'compartido.error_abrir_conversacion_prefijo')}${e.toString().replaceAll('Exception: ', '')}')),
       );
     } finally {
       if (mounted) setState(() => _abriendoContactoId = null);
@@ -140,7 +141,7 @@ class _PanelConversacionesState extends State<PanelConversaciones> {
             child: Row(
               children: [
                 Text(
-                  'Mensajes',
+                  tr(context, 'compartido.mensajes_titulo'),
                   style: TextStyle(
                     fontFamily: 'Poppins', fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -149,7 +150,7 @@ class _PanelConversacionesState extends State<PanelConversaciones> {
                 ),
                 const Spacer(),
                 Tooltip(
-                  message: 'Nueva conversación',
+                  message: tr(context, 'compartido.nueva_conversacion_tooltip'),
                   child: InkWell(
                     // TODO: abrir modal para buscar usuarios y crear conversación
                     // POST /api/conversaciones con {userId, contactoId}
@@ -182,7 +183,7 @@ class _PanelConversacionesState extends State<PanelConversaciones> {
                 color: CraftHubColors.textoPrincipal(isDark),
               ),
               decoration: InputDecoration(
-                hintText: 'Buscar conversaciones...',
+                hintText: tr(context, 'compartido.buscar_conversaciones_hint'),
                 hintStyle: TextStyle(
                   fontFamily: 'Poppins', fontSize: 13,
                   color: CraftHubColors.textoSecundario(isDark),
@@ -214,7 +215,7 @@ class _PanelConversacionesState extends State<PanelConversaciones> {
           Expanded(
             child: (_filtradas.isEmpty && _artesanosSugeridos.isEmpty)
                 ? Center(
-                    child: Text('Sin resultados',
+                    child: Text(tr(context, 'compartido.sin_resultados'),
                         style: TextStyle(fontFamily: 'Poppins', fontSize: 13,
                             color: CraftHubColors.textoSecundario(isDark))),
                   )
@@ -229,7 +230,7 @@ class _PanelConversacionesState extends State<PanelConversaciones> {
                       if (_artesanosSugeridos.isNotEmpty) ...[
                         Padding(
                           padding: const EdgeInsets.fromLTRB(10, 12, 10, 6),
-                          child: Text('Iniciar conversación',
+                          child: Text(tr(context, 'compartido.iniciar_conversacion'),
                               style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, fontWeight: FontWeight.w600,
                                   color: CraftHubColors.textoSecundario(isDark))),
                         ),

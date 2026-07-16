@@ -4,6 +4,7 @@ Traducción de screens/pago.py + screens/notificaciones.py (Flet) → FastAPI
 """
 
 import math
+import unicodedata
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -17,20 +18,39 @@ router = APIRouter(prefix="/api/pagos", tags=["Pagos"])
 # ---------------------------------------------------------------------------
 # CONSTANTES DE ENVÍO
 # ---------------------------------------------------------------------------
+# Ciudades principales + las 13 provincias/comarcas reales (mismas que usa
+# _coordenadasProvincia en pantalla_mapa.dart), para que una dirección como
+# "Colón" o solo la provincia elegida al registrarse siempre calce con algo.
 COORDENADAS = {
-    "Panama":        (8.9936, -79.5197),
-    "Colon":         (9.3564, -79.9006),
-    "David":         (8.4003, -82.4322),
-    "Santiago":      (8.0997, -80.9833),
-    "Chitre":        (7.9667, -80.4333),
-    "Penonome":      (8.5167, -80.3500),
-    "La Palma":      (8.4000, -78.1333),
-    "Bocas del Toro":(9.3333, -82.2500),
-    "Changuinola":   (9.4333, -82.5167),
+    "Panama":            (8.9936, -79.5197),
+    "Colon":             (9.3564, -79.9006),
+    "David":             (8.4003, -82.4322),
+    "Santiago":          (8.0997, -80.9833),
+    "Chitre":            (7.9667, -80.4333),
+    "Penonome":          (8.5167, -80.3500),
+    "La Palma":          (8.4000, -78.1333),
+    "Bocas del Toro":    (9.3400, -82.2500),
+    "Changuinola":       (9.4333, -82.5167),
+    "Chiriqui":          (8.4300, -82.4300),
+    "Cocle":             (8.4167, -80.4167),
+    "Darien":            (8.0000, -77.7000),
+    "Herrera":           (7.9333, -80.4167),
+    "Los Santos":        (7.7608, -80.2792),
+    "Panama Oeste":      (8.9000, -79.7500),
+    "Veraguas":          (8.1167, -80.9833),
+    "Guna Yala":         (9.5535, -78.9631),
+    "Embera-Wounaan":    (8.0000, -77.5000),
+    "Ngabe-Bugle":       (8.4167, -81.7833),
 }
 PRECIO_POR_KM   = 0.05
 COSTO_MINIMO    = 1.50
 COSTO_MAXIMO    = 15.00
+
+def _sin_acentos(texto: str) -> str:
+    """Quita acentos/diacríticos para que 'Colón' calce con la clave 'Colon'
+    y no se caiga siempre al valor por defecto (Panamá)."""
+    normalizado = unicodedata.normalize("NFD", texto or "")
+    return "".join(c for c in normalizado if unicodedata.category(c) != "Mn")
 
 # ---------------------------------------------------------------------------
 # MODELOS
@@ -89,9 +109,14 @@ def _haversine(lat1, lon1, lat2, lon2) -> float:
     return R * 2 * math.asin(math.sqrt(a))
 
 def _get_coords(ubicacion: str):
-    for key, coords in COORDENADAS.items():
-        if key.lower() in (ubicacion or "").lower():
-            return coords
+    texto = _sin_acentos((ubicacion or "")).lower()
+    # Se revisan las claves más largas primero (p. ej. "Panama Oeste" antes
+    # que "Panama") para que una provincia compuesta no calce por error con
+    # el nombre corto de otra.
+    claves = sorted(COORDENADAS.keys(), key=len, reverse=True)
+    for key in claves:
+        if _sin_acentos(key).lower() in texto:
+            return COORDENADAS[key]
     return COORDENADAS["Panama"]
 
 def _ubicacion_vendedor(nombre: str) -> Optional[str]:

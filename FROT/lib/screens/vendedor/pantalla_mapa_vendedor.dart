@@ -17,6 +17,61 @@ import '../../services/vendedor_api_service.dart';
 import 'pantalla_ordenes_vendedor.dart'
     show colorEstadoPedido, iconoEstadoPedido;
 
+// EstadoPedido.etiqueta()/etiquetaMapa() devuelven texto fijo en español (lo
+// comparte con pantalla_ordenes_vendedor.dart), así que acá se traduce a
+// partir del código canónico en vez de tocar esas funciones compartidas.
+String _etiquetaEstado(BuildContext context, String estadoCanonico) {
+  switch (estadoCanonico) {
+    case EstadoPedido.aceptada:
+      return tr(context, 'vendedor_operaciones.estado_aceptada');
+    case EstadoPedido.enviado:
+      return tr(context, 'vendedor_operaciones.estado_enviado');
+    case EstadoPedido.completada:
+      return tr(context, 'vendedor_operaciones.estado_completada');
+    case EstadoPedido.cancelada:
+      return tr(context, 'vendedor_operaciones.estado_cancelada');
+    case EstadoPedido.pendiente:
+    default:
+      return tr(context, 'vendedor_operaciones.estado_pendiente');
+  }
+}
+
+String _etiquetaEstadoMapa(BuildContext context, String estadoCanonico) {
+  switch (estadoCanonico) {
+    case EstadoPedido.aceptada:
+      return tr(context, 'vendedor_operaciones.estado_aceptada');
+    case EstadoPedido.enviado:
+      return tr(context, 'vendedor_operaciones.mapa_estado_en_camino');
+    case EstadoPedido.completada:
+      return tr(context, 'vendedor_operaciones.mapa_estado_entregado');
+    case EstadoPedido.cancelada:
+      return tr(context, 'vendedor_operaciones.mapa_estado_cancelado');
+    case EstadoPedido.pendiente:
+    default:
+      return tr(context, 'vendedor_operaciones.estado_pendiente');
+  }
+}
+
+// Traduce los valores del dropdown de filtro (que están fijos como texto en
+// español para no romper la comparación con _estadoParam/backend).
+String _etiquetaFiltroEstado(BuildContext context, String valor) {
+  switch (valor) {
+    case 'Pendiente':
+      return tr(context, 'vendedor_operaciones.estado_pendiente');
+    case 'Aceptada':
+      return tr(context, 'vendedor_operaciones.estado_aceptada');
+    case 'Enviado':
+      return tr(context, 'vendedor_operaciones.estado_enviado');
+    case 'Completada':
+      return tr(context, 'vendedor_operaciones.estado_completada');
+    case 'Cancelada':
+      return tr(context, 'vendedor_operaciones.estado_cancelada');
+    case 'Todos los estados':
+    default:
+      return tr(context, 'vendedor_operaciones.filtro_todos_estados');
+  }
+}
+
 class PantallaMapaVendedor extends StatefulWidget {
   final bool esOscuro;
   final String nombreVendedor;
@@ -165,7 +220,7 @@ class _PantallaMapaVendedorState extends State<PantallaMapaVendedor> {
         estado: nuevoEstado,
         estadoLabel: label.isNotEmpty
             ? label
-            : EstadoPedido.etiquetaMapa(nuevoEstado),
+            : _etiquetaEstadoMapa(context, nuevoEstado),
         total: punto.total,
         telefono: punto.telefono,
         fecha: punto.fecha,
@@ -178,7 +233,7 @@ class _PantallaMapaVendedorState extends State<PantallaMapaVendedor> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${punto.orden} → ${EstadoPedido.etiqueta(nuevoEstado)}',
+            '${punto.orden} → ${_etiquetaEstado(context, nuevoEstado)}',
           ),
           backgroundColor: CraftHubColors.vinoTinto,
           behavior: SnackBarBehavior.floating,
@@ -531,7 +586,7 @@ class _SelectorEstadoMapa extends StatelessWidget {
             color: CraftHubColors.textoPrincipal(esOscuro),
           ),
           items: opciones
-              .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+              .map((o) => DropdownMenuItem(value: o, child: Text(_etiquetaFiltroEstado(context, o))))
               .toList(),
           onChanged: alCambiar,
         ),
@@ -772,7 +827,7 @@ class _TarjetaPedidoMapaState extends State<_TarjetaPedidoMapa> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      p.estadoLabel,
+                      _etiquetaEstadoMapa(context, p.estado),
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 10.5,
@@ -824,7 +879,7 @@ class _LeyendaEstados extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              EstadoPedido.etiquetaMapa(e),
+              _etiquetaEstadoMapa(context, e),
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 10.5,
@@ -867,7 +922,7 @@ class _PinPedido extends StatelessWidget {
             ],
           ),
           child: Text(
-            punto.estadoLabel,
+            _etiquetaEstadoMapa(context, punto.estado),
             maxLines: 1,
             softWrap: false,
             overflow: TextOverflow.visible,
@@ -1120,7 +1175,7 @@ class _PopupPedidoMapa extends StatelessWidget {
                           border: Border.all(color: c.withValues(alpha: 0.5)),
                         ),
                         child: Text(
-                          EstadoPedido.etiqueta(e),
+                          _etiquetaEstado(context, e),
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 10.5,

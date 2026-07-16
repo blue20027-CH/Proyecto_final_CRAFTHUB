@@ -2,6 +2,7 @@
 // Widgets reutilizables para PantallaInventario
 
 import 'package:flutter/material.dart';
+import '../core/i18n/i18n.dart';
 import '../../models/modelo_producto_inventario.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,15 +109,15 @@ class BadgeEstado extends StatelessWidget {
     switch (estado) {
       case EstadoProducto.activo:
         color = const Color(0xFF2E7D32);
-        texto = 'Activo';
+        texto = tr(context, 'vendedor_inventario.estado_activo');
         break;
       case EstadoProducto.agotado:
         color = const Color(0xFFC62828);
-        texto = 'Agotado';
+        texto = tr(context, 'vendedor_inventario.estado_agotado');
         break;
       case EstadoProducto.borrador:
         color = const Color(0xFFE65100);
-        texto = 'Borrador';
+        texto = tr(context, 'vendedor_inventario.estado_borrador');
         break;
     }
 
@@ -388,13 +389,13 @@ class _FilaProductoState extends State<FilaProducto> {
                 children: [
                   _BotonAccion(
                     icono: Icons.edit_outlined,
-                    tooltip: 'Editar producto',
+                    tooltip: tr(context, 'vendedor_inventario.editar_producto_tooltip'),
                     alPresionar: widget.alEditar,
                   ),
                   const SizedBox(width: 4),
                   _BotonAccion(
                     icono: Icons.more_horiz,
-                    tooltip: 'Más opciones',
+                    tooltip: tr(context, 'vendedor_inventario.mas_opciones_tooltip'),
                     alPresionar: widget.alVerOpciones,
                   ),
                 ],
@@ -489,7 +490,9 @@ class PaginadorTabla extends StatelessWidget {
       children: [
         // Info de registros
         Text(
-          'Mostrando 1 a $registrosPorPagina de $totalRegistros productos',
+          tr(context, 'vendedor_inventario.mostrando_registros')
+              .replaceAll('{n}', '$registrosPorPagina')
+              .replaceAll('{total}', '$totalRegistros'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 12,
@@ -522,7 +525,7 @@ class PaginadorTabla extends StatelessWidget {
 
         // Registros por página
         Text(
-          'Productos por página:',
+          tr(context, 'vendedor_inventario.productos_por_pagina'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 12,

@@ -7,6 +7,7 @@
 // 🔌 GET/POST/DELETE/PATCH /api/tarjetas (BACK/CraftHub/tarjetas_router.py)
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../campo_texto.dart';
 import 'dialogo_confirmar_password.dart';
@@ -55,14 +56,14 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('¿Eliminar esta tarjeta?', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
-        content: Text('Se eliminará la tarjeta terminada en ${tarjeta['ultimos_4']}.',
+        title: Text(tr(context, 'comprador_secundario.eliminar_tarjeta_confirmar_titulo'), style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+        content: Text(tr(context, 'comprador_secundario.eliminar_tarjeta_confirmar_mensaje').replaceAll('{ultimos4}', '${tarjeta['ultimos_4']}'),
             style: const TextStyle(fontFamily: 'Poppins')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr(context, 'comprador_secundario.cancelar'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Eliminar', style: TextStyle(color: CraftHubColors.error)),
+            child: Text(tr(context, 'comprador_secundario.eliminar'), style: const TextStyle(color: CraftHubColors.error)),
           ),
         ],
       ),
@@ -72,15 +73,16 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
     final password = await mostrarDialogoConfirmarPassword(
       context,
       email: widget.email,
-      titulo: 'Confirma tu contraseña',
-      mensaje: 'Ingresa tu contraseña para eliminar esta tarjeta.',
+      titulo: tr(context, 'comprador_secundario.confirma_tu_contrasena'),
+      mensaje: tr(context, 'comprador_secundario.password_msg_eliminar_tarjeta'),
     );
     if (password == null || !mounted) return;
 
     try {
+      final mensaje = tr(context, 'comprador_secundario.tarjeta_eliminada');
       await ApiService.eliminarTarjeta(tarjeta['id'].toString(), email: widget.email, password: password);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tarjeta eliminada.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
       _cargarTarjetas();
     } catch (e) {
       if (!mounted) return;
@@ -94,8 +96,8 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
     final password = await mostrarDialogoConfirmarPassword(
       context,
       email: widget.email,
-      titulo: 'Confirma tu contraseña',
-      mensaje: 'Ingresa tu contraseña para marcar esta tarjeta como predeterminada.',
+      titulo: tr(context, 'comprador_secundario.confirma_tu_contrasena'),
+      mensaje: tr(context, 'comprador_secundario.password_msg_marcar_predeterminada'),
     );
     if (password == null || !mounted) return;
 
@@ -123,12 +125,13 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
     final password = await mostrarDialogoConfirmarPassword(
       context,
       email: widget.email,
-      titulo: 'Confirma tu contraseña',
-      mensaje: 'Ingresa tu contraseña para guardar esta tarjeta.',
+      titulo: tr(context, 'comprador_secundario.confirma_tu_contrasena'),
+      mensaje: tr(context, 'comprador_secundario.password_msg_guardar_tarjeta'),
     );
     if (password == null || !mounted) return;
 
     try {
+      final mensaje = tr(context, 'comprador_secundario.tarjeta_guardada');
       await ApiService.agregarTarjeta({
         'user_id': widget.userId,
         'email': widget.email,
@@ -136,7 +139,7 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
         ...datos,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tarjeta guardada.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
       _cargarTarjetas();
     } catch (e) {
       if (!mounted) return;
@@ -152,12 +155,12 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
     return TarjetaSeccion(
       esOscuro: esOscuro,
       icono: Icons.credit_card_rounded,
-      titulo: 'Métodos de pago',
-      subtitulo: 'Administra tus métodos de pago de forma segura.',
+      titulo: tr(context, 'comprador_secundario.metodos_pago_titulo'),
+      subtitulo: tr(context, 'comprador_secundario.metodos_pago_subtitulo'),
       accion: ElevatedButton.icon(
         onPressed: _agregarTarjeta,
         icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-        label: const Text('Agregar método', style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w600)),
+        label: Text(tr(context, 'comprador_secundario.agregar_metodo'), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w600)),
         style: ElevatedButton.styleFrom(
           backgroundColor: CraftHubColors.vinoTinto,
           foregroundColor: Colors.white,
@@ -177,7 +180,7 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (_tarjetas.isEmpty)
-                      Text('Aún no tienes tarjetas guardadas.',
+                      Text(tr(context, 'comprador_secundario.sin_tarjetas_guardadas'),
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(esOscuro)))
                     else
                       ...List.generate(_tarjetas.length, (i) {
@@ -197,7 +200,7 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
                         Icon(Icons.lock_outline_rounded, size: 13, color: CraftHubColors.textoSecundario(esOscuro)),
                         const SizedBox(width: 6),
                         Expanded(
-                          child: Text('Tu información de pago está encriptada y protegida.',
+                          child: Text(tr(context, 'comprador_secundario.info_pago_encriptada'),
                               style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(esOscuro))),
                         ),
                       ],
@@ -219,7 +222,7 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
             if (tarjeta['predeterminada'] != true)
               ListTile(
                 leading: const Icon(Icons.star_outline_rounded, color: CraftHubColors.vinoTinto),
-                title: const Text('Marcar como predeterminada', style: TextStyle(fontFamily: 'Poppins')),
+                title: Text(tr(context, 'comprador_secundario.marcar_predeterminada'), style: const TextStyle(fontFamily: 'Poppins')),
                 onTap: () {
                   Navigator.pop(context);
                   _marcarPredeterminada(tarjeta);
@@ -227,7 +230,7 @@ class _SeccionMetodosPagoState extends State<SeccionMetodosPago> {
               ),
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded, color: CraftHubColors.error),
-              title: const Text('Eliminar tarjeta', style: TextStyle(fontFamily: 'Poppins', color: CraftHubColors.error)),
+              title: Text(tr(context, 'comprador_secundario.eliminar_tarjeta_accion'), style: const TextStyle(fontFamily: 'Poppins', color: CraftHubColors.error)),
               onTap: () {
                 Navigator.pop(context);
                 _eliminar(tarjeta);
@@ -304,14 +307,14 @@ class _FilaTarjeta extends StatelessWidget {
                           color: CraftHubColors.vinoTintoSuave,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text('Principal',
-                            style: TextStyle(fontFamily: 'Poppins', fontSize: 10, fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto)),
+                        child: Text(tr(context, 'comprador_secundario.principal_badge'),
+                            style: const TextStyle(fontFamily: 'Poppins', fontSize: 10, fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto)),
                       ),
                     ],
                   ],
                 ),
                 const SizedBox(height: 2),
-                Text('Vence ${mes.toString().padLeft(2, '0')}/${anio.toString().substring(anio.toString().length >= 2 ? anio.toString().length - 2 : 0)}',
+                Text('${tr(context, 'comprador_secundario.vence_prefijo')} ${mes.toString().padLeft(2, '0')}/${anio.toString().substring(anio.toString().length >= 2 ? anio.toString().length - 2 : 0)}',
                     style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: colorSec)),
               ],
             ),
@@ -356,11 +359,11 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
   void _guardar() {
     final ultimos4 = _ctrlUltimos4.text.trim();
     if (_ctrlTitular.text.trim().isEmpty) {
-      setState(() => _error = 'Ingresa el nombre del titular.');
+      setState(() => _error = tr(context, 'comprador_secundario.error_nombre_titular'));
       return;
     }
     if (ultimos4.length != 4 || int.tryParse(ultimos4) == null) {
-      setState(() => _error = 'Los últimos 4 dígitos deben ser 4 números.');
+      setState(() => _error = tr(context, 'comprador_secundario.error_ultimos4'));
       return;
     }
     Navigator.pop(context, {
@@ -400,30 +403,30 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
                 ),
               ),
               const SizedBox(height: 18),
-              Text('Agregar tarjeta',
+              Text(tr(context, 'comprador_secundario.agregar_tarjeta_titulo'),
                   style: TextStyle(fontFamily: 'Poppins', fontSize: 17, fontWeight: FontWeight.w700, color: colorTexto)),
               const SizedBox(height: 4),
-              Text('Solo guardamos datos enmascarados: nunca el número completo ni el CVV.',
+              Text(tr(context, 'comprador_secundario.agregar_tarjeta_aviso'),
                   style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: CraftHubColors.textoSecundario(esOscuro))),
               const SizedBox(height: 18),
 
               DropdownButtonFormField<String>(
                 initialValue: _marca,
-                decoration: const InputDecoration(labelText: 'Marca', border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: tr(context, 'comprador_secundario.marca_label'), border: const OutlineInputBorder()),
                 items: _marcasTarjeta.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                 onChanged: (v) => setState(() => _marca = v ?? _marca),
               ),
               const SizedBox(height: 14),
               CampoTexto(
                 controlador: _ctrlTitular,
-                hint: 'Nombre del titular',
+                hint: tr(context, 'comprador_secundario.nombre_titular_hint'),
                 icono: Icons.person_outline_rounded,
                 esOscuro: esOscuro,
               ),
               const SizedBox(height: 14),
               CampoTexto(
                 controlador: _ctrlUltimos4,
-                hint: 'Últimos 4 dígitos',
+                hint: tr(context, 'comprador_secundario.ultimos4_hint'),
                 icono: Icons.pin_outlined,
                 esOscuro: esOscuro,
               ),
@@ -433,7 +436,7 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
                   Expanded(
                     child: DropdownButtonFormField<int>(
                       initialValue: _mes,
-                      decoration: const InputDecoration(labelText: 'Mes', border: OutlineInputBorder()),
+                      decoration: InputDecoration(labelText: tr(context, 'comprador_secundario.mes_label'), border: const OutlineInputBorder()),
                       items: List.generate(12, (i) => i + 1)
                           .map((m) => DropdownMenuItem(value: m, child: Text(m.toString().padLeft(2, '0'))))
                           .toList(),
@@ -444,7 +447,7 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
                   Expanded(
                     child: DropdownButtonFormField<int>(
                       initialValue: _anio,
-                      decoration: const InputDecoration(labelText: 'Año', border: OutlineInputBorder()),
+                      decoration: InputDecoration(labelText: tr(context, 'comprador_secundario.anio_label'), border: const OutlineInputBorder()),
                       items: List.generate(15, (i) => anioActual + i)
                           .map((a) => DropdownMenuItem(value: a, child: Text(a.toString())))
                           .toList(),
@@ -456,7 +459,7 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
               const SizedBox(height: 14),
               CampoTexto(
                 controlador: _ctrlAlias,
-                hint: 'Alias (opcional, ej. "Tarjeta personal")',
+                hint: tr(context, 'comprador_secundario.alias_hint'),
                 icono: Icons.label_outline_rounded,
                 esOscuro: esOscuro,
               ),
@@ -466,7 +469,7 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
                 onChanged: (v) => setState(() => _predeterminada = v ?? false),
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text('Usar como predeterminada', style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: colorTexto)),
+                title: Text(tr(context, 'comprador_secundario.usar_predeterminada_checkbox'), style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: colorTexto)),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 4),
@@ -483,7 +486,7 @@ class _HojaAgregarTarjetaState extends State<_HojaAgregarTarjeta> {
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Continuar', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                  child: Text(tr(context, 'comprador_secundario.continuar'), style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
                 ),
               ),
             ],

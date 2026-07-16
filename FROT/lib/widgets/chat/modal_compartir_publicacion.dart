@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/models_chat.dart';
 
 /// Modal para compartir una publicación en el chat: del lado vendedor son
@@ -34,7 +35,7 @@ class ModalCompartirPublicacion extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'Compartir publicacion',
+                    tr(context, 'compartido.compartir_publicacion'),
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,
@@ -173,9 +174,9 @@ class _Tarjeta extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                'Compartir',
-                style: TextStyle(
+              child: Text(
+                tr(context, 'compartido.compartir_boton'),
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

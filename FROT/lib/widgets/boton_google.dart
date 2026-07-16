@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
+import '../core/i18n/i18n.dart';
 
 class BotonGoogle extends StatefulWidget {
   final bool esOscuro;
@@ -57,7 +58,7 @@ class _BotonGoogleState extends State<BotonGoogle> {
                 _LogoGoogle(),
                 const SizedBox(width: 10),
                 Text(
-                  'Continuar con Google',
+                  tr(context, 'auth.continuar_con_google'),
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,

@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/artesano_modelo.dart';
 
 /// Panel lateral derecho con el perfil del artesano seleccionado
@@ -109,7 +110,7 @@ class PanelPerfilArtesano extends StatelessWidget {
                       const Icon(Icons.shield_outlined, size: 10,
                           color: CraftHubColors.vinoTinto),
                       const SizedBox(width: 3),
-                      Text('Artesana verificada',
+                      Text(tr(context, 'comprador_secundario.artesana_verificada_badge'),
                         style: GoogleFonts.poppins(fontSize: 9,
                             fontWeight: FontWeight.w600,
                             color: CraftHubColors.vinoTinto)),
@@ -136,7 +137,7 @@ class PanelPerfilArtesano extends StatelessWidget {
               style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
                   color: CraftHubColors.textoPrincipal(oscuro))),
             const SizedBox(width: 2),
-            Text('(${artesano.totalResenas} reseñas)',
+            Text('(${artesano.totalResenas} ${tr(context, 'comprador_secundario.resenas_label')})',
               style: GoogleFonts.poppins(fontSize: 10,
                   color: CraftHubColors.textoSecundario(oscuro))),
           ]),
@@ -149,7 +150,7 @@ class PanelPerfilArtesano extends StatelessWidget {
           const SizedBox(height: 14),
 
           // ── Especialidades ──
-          Text('Especialidades',
+          Text(tr(context, 'comprador_secundario.especialidades_panel_titulo'),
             style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600,
                 color: CraftHubColors.textoPrincipal(oscuro))),
           const SizedBox(height: 7),
@@ -174,19 +175,19 @@ class PanelPerfilArtesano extends StatelessWidget {
             _StatItem(
               icono: Icons.star_outline_rounded,
               valor: '${artesano.totalResenas}',
-              etiqueta: 'Reseñas',
+              etiqueta: tr(context, 'comprador_secundario.resenas_stat'),
             ),
             const SizedBox(width: 8),
             _StatItem(
               icono: Icons.shopping_bag_outlined,
               valor: '${artesano.totalVentas}',
-              etiqueta: 'Ventas',
+              etiqueta: tr(context, 'comprador_secundario.ventas_stat'),
             ),
             const SizedBox(width: 8),
             _StatItem(
               icono: Icons.emoji_events_outlined,
               valor: '${artesano.anosExperiencia}+',
-              etiqueta: 'Años de exp.',
+              etiqueta: tr(context, 'comprador_secundario.anos_exp_stat'),
             ),
           ]),
           const SizedBox(height: 16),
@@ -199,7 +200,7 @@ class PanelPerfilArtesano extends StatelessWidget {
               // 🔌 navegar a CatálogoArtesano(artesanoId: artesano.id)
               icon: const SizedBox.shrink(),
               label: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('Ver productos',
+                Text(tr(context, 'comprador_secundario.ver_productos_boton'),
                   style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600,
                       color: Colors.white)),
                 const SizedBox(width: 8),
@@ -223,7 +224,7 @@ class PanelPerfilArtesano extends StatelessWidget {
               // 🔌 navegar a ChatPrivado(artesanoId: artesano.id)
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14,
                   color: CraftHubColors.vinoTinto),
-              label: Text('Enviar mensaje',
+              label: Text(tr(context, 'comprador_secundario.enviar_mensaje'),
                 style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600,
                     color: CraftHubColors.vinoTinto)),
               style: OutlinedButton.styleFrom(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/i18n/i18n.dart';
 
 /// Modelo de datos de un producto favorito.
 /// 🔗 API: GET /api/v1/favoritos/{usuarioId} → lista de [ModeloFavorito]
@@ -171,9 +172,9 @@ class _TarjetaFavoritoState extends State<TarjetaFavorito>
                                 color: colorVino,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Text(
-                                'Añadir',
-                                style: TextStyle(
+                              child: Text(
+                                tr(context, 'compartido.anadir_boton'),
+                                style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 11,
                                   color: Colors.white,

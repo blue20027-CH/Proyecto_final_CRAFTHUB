@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/i18n/i18n.dart';
 import 'panel_lateral_favoritos.dart';
 
 /// Modal que muestra TODOS los artesanos que el usuario sigue.
@@ -92,10 +93,10 @@ class _ModalArtesanosSeguidosState extends State<_ModalArtesanosSeguidos> {
                   const Icon(Icons.people_outline_rounded,
                       color: Color(0xFF821515), size: 22),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Artesanos que sigues',
-                      style: TextStyle(
+                      tr(context, 'comprador_secundario.artesanos_que_sigues_titulo'),
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
@@ -104,7 +105,7 @@ class _ModalArtesanosSeguidosState extends State<_ModalArtesanosSeguidos> {
                     ),
                   ),
                   Text(
-                    '${widget.artesanos.length} artesanos',
+                    '${widget.artesanos.length} ${tr(context, 'comprador_secundario.artesanos_sufijo')}',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
@@ -133,7 +134,7 @@ class _ModalArtesanosSeguidosState extends State<_ModalArtesanosSeguidos> {
                 onChanged: _filtrar,
                 style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
                 decoration: InputDecoration(
-                  hintText: 'Buscar por nombre, provincia o categoría...',
+                  hintText: tr(context, 'comprador_secundario.buscar_artesanos_seguidos_hint'),
                   hintStyle: const TextStyle(
                       fontFamily: 'Poppins', fontSize: 13),
                   prefixIcon: const Icon(Icons.search_rounded, size: 20),
@@ -166,7 +167,7 @@ class _ModalArtesanosSeguidosState extends State<_ModalArtesanosSeguidos> {
                                   : Colors.black26),
                           const SizedBox(height: 12),
                           Text(
-                            'No se encontraron artesanos',
+                            tr(context, 'comprador_secundario.no_se_encontraron_artesanos'),
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               color: esTemaOscuro

@@ -4,6 +4,7 @@
 // pago. El diseño (gradiente + logo) cambia según la marca de la tarjeta.
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class TarjetaPagoVisual extends StatelessWidget {
   final String marca;
@@ -140,8 +141,8 @@ class TarjetaPagoVisual extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Predeterminada',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 9.5, fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text(tr(context, 'comprador_secundario.predeterminada_badge'),
+                        style: const TextStyle(fontFamily: 'Poppins', fontSize: 9.5, fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
               ],
             ),
@@ -170,7 +171,7 @@ class TarjetaPagoVisual extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
                       const SizedBox(height: 2),
-                      Text('Vence $_vence',
+                      Text('${tr(context, 'comprador_secundario.vence_prefijo')} $_vence',
                           style: TextStyle(fontFamily: 'Poppins', fontSize: 10.5, color: Colors.white.withValues(alpha: 0.75))),
                     ],
                   ),

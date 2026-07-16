@@ -17,42 +17,68 @@ class PantallaInicio extends StatelessWidget {
     final esOscuro = gestor.esModoOscuro;
 
     return Scaffold(
+      backgroundColor: CraftHubColors.fondo(esOscuro),
       body: Stack(
         children: [
-          // ── 1. IMAGEN DE FONDO (insertar manualmente) ──────────────────
+          // ── FONDO: un solo color continuo cubriendo toda la pantalla ────
+          // (evita la costura visible que deja un Row con dos paneles
+          // adyacentes al redondear los píxeles de cada Expanded).
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/fondo_inicio.png',
-              fit: BoxFit.cover,
+            child: Container(
+              color: esOscuro
+                  ? CraftHubColors.fondoOscuro
+                  : CraftHubColors.fondoClaro,
             ),
           ),
 
-          // ── 2. VELO DIFUMINADO SOBRE LA IMAGEN ─────────────────────────
+          // ── IMAGEN flotando sobre el fondo, ocupando el lado derecho ────
           Positioned.fill(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 400),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: esOscuro
-                      ? [
-                          const Color(0xFF0D0D0D).withValues(alpha: 0.92),
-                          const Color(0xFF1A1A1A).withValues(alpha: 0.70),
-                          Colors.transparent,
-                        ]
-                      : [
-                          const Color(0xFFF5EDE3).withValues(alpha: 0.95),
-                          const Color(0xFFF0E6D8).withValues(alpha: 0.82),
-                          Colors.transparent,
-                        ],
-                  stops: const [0.0, 0.55, 1.0],
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FractionallySizedBox(
+                widthFactor: 0.58,
+                heightFactor: 1,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      'assets/images/fondo_in.png',
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned.fill(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 400),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: esOscuro
+                                ? [
+                                    CraftHubColors.fondoOscuro,
+                                    CraftHubColors.fondoOscuro.withValues(
+                                      alpha: 0.55,
+                                    ),
+                                    Colors.transparent,
+                                  ]
+                                : [
+                                    CraftHubColors.fondoClaro,
+                                    CraftHubColors.fondoClaro.withValues(
+                                      alpha: 0.55,
+                                    ),
+                                    Colors.transparent,
+                                  ],
+                            stops: const [0.0, 0.35, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
 
-          // ── 3. BARRA SUPERIOR ───────────────────────────────────────────
+          // ── BARRA SUPERIOR (sobre ambos lados) ───────────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -60,10 +86,8 @@ class PantallaInicio extends StatelessWidget {
             child: _BarraSuperior(esOscuro: esOscuro, gestor: gestor),
           ),
 
-          // ── 4. CONTENIDO CENTRAL ────────────────────────────────────────
-          Center(
-            child: _ContenidoCentral(esOscuro: esOscuro),
-          ),
+          // ── CONTENIDO CENTRAL (centrado en toda la pantalla) ────────────
+          Center(child: _ContenidoCentral(esOscuro: esOscuro)),
         ],
       ),
     );
@@ -81,8 +105,9 @@ class _BarraSuperior extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorTexto =
-        esOscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro;
+    final colorTexto = esOscuro
+        ? CraftHubColors.textoOscuro
+        : CraftHubColors.textoClaro;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
@@ -125,8 +150,9 @@ class _SelectorIdioma extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorTexto =
-        esOscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro;
+    final colorTexto = esOscuro
+        ? CraftHubColors.textoOscuro
+        : CraftHubColors.textoClaro;
 
     return Tooltip(
       message: tr(context, 'topbar.cambiar_idioma'),
@@ -159,8 +185,11 @@ class _SelectorIdioma extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 18, color: colorTexto.withValues(alpha: 0.7)),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 18,
+                color: colorTexto.withValues(alpha: 0.7),
+              ),
             ],
           ),
         ),
@@ -197,9 +226,7 @@ class _ToggleTema extends StatelessWidget {
             ),
           ),
           child: Icon(
-            esOscuro
-                ? Icons.light_mode_rounded
-                : Icons.dark_mode_rounded,
+            esOscuro ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
             size: 18,
             color: esOscuro
                 ? CraftHubColors.textoOscuro
@@ -221,10 +248,12 @@ class _ContenidoCentral extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorTexto =
-        esOscuro ? CraftHubColors.textoOscuro : CraftHubColors.textoClaro;
-    final colorTextoSec =
-        esOscuro ? CraftHubColors.textoSecOscuro : CraftHubColors.textoSecClaro;
+    final colorTexto = esOscuro
+        ? CraftHubColors.textoOscuro
+        : CraftHubColors.textoClaro;
+    final colorTextoSec = esOscuro
+        ? CraftHubColors.textoSecOscuro
+        : CraftHubColors.textoSecClaro;
 
     return SizedBox(
       width: 420,
@@ -239,23 +268,23 @@ class _ContenidoCentral extends StatelessWidget {
 
           // ── BOTÓN INICIAR SESIÓN ──────────────────────────────────────
           BotonPrimario(
-  texto: tr(context, 'auth.iniciar_sesion'),
-  alPresionar: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const PantallaLogin(),
-      ), // Cierra el MaterialPageRoute
-    ); // <-- Aquí faltaba el ")" para cerrar el Navigator.push
-  },
-  ancho: 340,
-),
+            texto: tr(context, 'auth.iniciar_sesion'),
+            alPresionar: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PantallaLogin(),
+                ), // Cierra el MaterialPageRoute
+              ); // <-- Aquí faltaba el ")" para cerrar el Navigator.push
+            },
+            ancho: 340,
+          ),
 
-const SizedBox(height: 22), // Añadida la coma por si estás dentro de un children: [],
-
+          const SizedBox(
+            height: 22,
+          ), // Añadida la coma por si estás dentro de un children: [],
           // ── SEPARADOR "o continúa con" ────────────────────────────────
-          _SeparadorOContinua(
-              colorTextoSec: colorTextoSec, esOscuro: esOscuro),
+          _SeparadorOContinua(colorTextoSec: colorTextoSec, esOscuro: esOscuro),
 
           const SizedBox(height: 22),
 
@@ -338,8 +367,10 @@ class _SeparadorOContinua extends StatelessWidget {
   final Color colorTextoSec;
   final bool esOscuro;
 
-  const _SeparadorOContinua(
-      {required this.colorTextoSec, required this.esOscuro});
+  const _SeparadorOContinua({
+    required this.colorTextoSec,
+    required this.esOscuro,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -396,12 +427,8 @@ class _BotonGoogleState extends State<_BotonGoogle> {
         height: 54,
         decoration: BoxDecoration(
           color: widget.esOscuro
-              ? (_sobreEl
-                  ? const Color(0xFF2A2A2A)
-                  : const Color(0xFF1E1E1E))
-              : (_sobreEl
-                  ? const Color(0xFFF5F0E8)
-                  : Colors.white),
+              ? (_sobreEl ? const Color(0xFF2A2A2A) : const Color(0xFF1E1E1E))
+              : (_sobreEl ? const Color(0xFFF5F0E8) : Colors.white),
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
             color: widget.esOscuro
@@ -415,7 +442,7 @@ class _BotonGoogleState extends State<_BotonGoogle> {
                     color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ]
               : [],
         ),
@@ -456,10 +483,7 @@ class _BotonGoogleState extends State<_BotonGoogle> {
 class _IconoGoogle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(22, 22),
-      painter: _GoogleIconPainter(),
-    );
+    return CustomPaint(size: const Size(22, 22), painter: _GoogleIconPainter());
   }
 }
 
@@ -470,7 +494,9 @@ class _GoogleIconPainter extends CustomPainter {
     final radio = size.width / 2;
 
     // Círculo de clip
-    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: centro, radius: radio)));
+    canvas.clipPath(
+      Path()..addOval(Rect.fromCircle(center: centro, radius: radio)),
+    );
 
     // Fondo blanco
     canvas.drawCircle(centro, radio, Paint()..color = Colors.white);
@@ -487,21 +513,22 @@ class _GoogleIconPainter extends CustomPainter {
 
     // Cuadrantes simplificados del logo G
     canvas.drawArc(rect, -1.57, 1.57, true, pinturas[0]); // azul arriba-der
-    canvas.drawArc(rect, 0.0, 1.57, true, pinturas[1]);   // verde abajo-der
-    canvas.drawArc(rect, 1.57, 1.57, true, pinturas[2]);  // amarillo abajo-izq
-    canvas.drawArc(rect, 3.14, 1.57, true, pinturas[3]);  // rojo arriba-izq
+    canvas.drawArc(rect, 0.0, 1.57, true, pinturas[1]); // verde abajo-der
+    canvas.drawArc(rect, 1.57, 1.57, true, pinturas[2]); // amarillo abajo-izq
+    canvas.drawArc(rect, 3.14, 1.57, true, pinturas[3]); // rojo arriba-izq
 
     // Centro blanco para forma de "G"
-    canvas.drawCircle(
-      centro,
-      radio * 0.58,
-      Paint()..color = Colors.white,
-    );
+    canvas.drawCircle(centro, radio * 0.58, Paint()..color = Colors.white);
 
     // Barra derecha del "G"
     final pintaAzul = Paint()..color = const Color(0xFF4285F4);
     canvas.drawRect(
-      Rect.fromLTWH(centro.dx, centro.dy - radio * 0.15, radio * 0.95, radio * 0.30),
+      Rect.fromLTWH(
+        centro.dx,
+        centro.dy - radio * 0.15,
+        radio * 0.95,
+        radio * 0.30,
+      ),
       pintaAzul,
     );
   }
@@ -531,15 +558,13 @@ class _LinkCrearCuenta extends StatelessWidget {
             color: colorTextoSec,
           ),
         ),
-       MouseRegion(
-           cursor: SystemMouseCursors.click,
-           child: GestureDetector(
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
             onTap: () {
-            Navigator.push(
-              context,
-                MaterialPageRoute(
-                   builder: (_) => const PantallaSeleccionRol(),
-                  ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PantallaSeleccionRol()),
               );
             },
             child: Text(

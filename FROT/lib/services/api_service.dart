@@ -544,6 +544,27 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  /// 🔗 POST /api/ia/generar-producto — sugiere nombres y descripción con IA
+  /// a partir de lo que el vendedor ya escribió.
+  static Future<Map<String, dynamic>> generarProductoConIA({
+    required String borrador,
+    String categoria = '',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/ia/generar-producto'),
+      headers: {'Content-Type': 'application/json; charset=utf-8'},
+      body: utf8.encode(jsonEncode({
+        'borrador': borrador,
+        'categoria': categoria,
+      })),
+    ).timeout(const Duration(seconds: 20));
+    final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['detail'] ?? 'No se pudo generar con IA.');
+    }
+    return data;
+  }
+
   // Sube una foto de producto y devuelve su URL pública en Supabase Storage.
   static Future<String> subirFotoProducto(List<int> bytes, String nombreArchivo) async {
     final uri = Uri.parse('$baseUrl/productos/subir-foto');

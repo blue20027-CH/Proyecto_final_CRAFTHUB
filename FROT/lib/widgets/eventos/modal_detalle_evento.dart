@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/favoritos_provider.dart';
+import '../../core/i18n/i18n.dart';
 import '../../models/evento_modelo.dart';
 import '../../services/eventos_api_service.dart';
 import 'tarjeta_contacto_organizador.dart';
@@ -55,10 +56,8 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
   bool _reservado = false;
   bool _mostrarFormularioSolicitud = false;
   bool _enviandoSolicitud = false;
-  final _mensajeCtrl = TextEditingController(
-    text: 'Hola, me gustaría participar como vendedor en este evento. '
-        'Cuento con productos artesanales listos para exhibir.',
-  );
+  final _mensajeCtrl = TextEditingController();
+  bool _mensajeInicializado = false;
 
   @override
   void dispose() {
@@ -75,6 +74,7 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
 
   Future<void> _enviarSolicitud() async {
     setState(() => _enviandoSolicitud = true);
+    final mensajeDefault = tr(context, 'compartido.solicitud_enviada_default');
     final respuesta = await EventosApiService.solicitarEspacioVendedor(
       eventoId: widget.evento.id,
       vendedorId: widget.usuarioId,
@@ -87,7 +87,7 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
       _mostrarFormularioSolicitud = false;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(respuesta['mensaje']?.toString() ?? 'Solicitud enviada.')),
+      SnackBar(content: Text(respuesta['mensaje']?.toString() ?? mensajeDefault)),
     );
   }
 
@@ -210,8 +210,8 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           foregroundColor: CraftHubColors.vinoTinto,
                         ),
-                        child: const Text('Cómo llegar',
-                            style: TextStyle(
+                        child: Text(tr(context, 'compartido.como_llegar'),
+                            style: const TextStyle(
                                 fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600)),
                       ),
                     ),
@@ -224,8 +224,8 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                             ? Icons.confirmation_number_outlined
                             : Icons.sell_outlined,
                         texto: evento.esGratuito
-                            ? 'Entrada libre'
-                            : 'Entrada: \$${evento.precioEntrada.toStringAsFixed(2)}',
+                            ? tr(context, 'compartido.entrada_libre')
+                            : '${tr(context, 'compartido.entrada_precio_prefijo')} \$${evento.precioEntrada.toStringAsFixed(2)}',
                         oscuro: oscuro,
                       ),
                     if (widget.esVendedor) ...[
@@ -233,8 +233,8 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                       _FilaDato(
                         icono: Icons.storefront_outlined,
                         texto: evento.cuposVendedorDisponibles > 0
-                            ? '${evento.cuposVendedorDisponibles} de ${evento.cuposVendedorTotal} cupos de vendedor disponibles'
-                            : 'Sin cupos de vendedor disponibles por ahora',
+                            ? '${evento.cuposVendedorDisponibles} de ${evento.cuposVendedorTotal} ${tr(context, 'compartido.cupos_disponibles_sufijo')}'
+                            : tr(context, 'compartido.sin_cupos_vendedor'),
                         oscuro: oscuro,
                       ),
                     ],
@@ -250,7 +250,7 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Organiza',
+                      tr(context, 'compartido.organiza_label'),
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
@@ -270,14 +270,14 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                           onPressed: _reservado
                               ? null
                               : () {
+                                  final mensaje = tr(context, 'compartido.reserva_confirmada');
                                   setState(() => _reservado = true);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('¡Reserva confirmada! Te esperamos.')),
+                                    SnackBar(content: Text(mensaje)),
                                   );
                                 },
                           icon: Icon(_reservado ? Icons.check_circle_rounded : Icons.event_available_outlined),
-                          label: Text(_reservado ? 'Espacio reservado' : 'Reservar mi espacio'),
+                          label: Text(_reservado ? tr(context, 'compartido.espacio_reservado') : tr(context, 'compartido.reservar_mi_espacio')),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _reservado ? CraftHubColors.exito : CraftHubColors.vinoTinto,
                             foregroundColor: Colors.white,
@@ -296,13 +296,13 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                             borderRadius: BorderRadius.circular(50),
                             border: Border.all(color: CraftHubColors.exito),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.check_circle_rounded, color: CraftHubColors.exito, size: 18),
-                              SizedBox(width: 8),
-                              Text('Solicitud enviada al organizador',
-                                  style: TextStyle(
+                              const Icon(Icons.check_circle_rounded, color: CraftHubColors.exito, size: 18),
+                              const SizedBox(width: 8),
+                              Text(tr(context, 'compartido.solicitud_enviada_organizador'),
+                                  style: const TextStyle(
                                       fontFamily: 'Poppins',
                                       fontWeight: FontWeight.w600,
                                       color: CraftHubColors.exito)),
@@ -315,7 +315,7 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                           child: ElevatedButton.icon(
                             onPressed: () => setState(() => _mostrarFormularioSolicitud = true),
                             icon: const Icon(Icons.storefront_outlined),
-                            label: const Text('Solicitar espacio de venta'),
+                            label: Text(tr(context, 'compartido.solicitar_espacio_venta')),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: CraftHubColors.vinoTinto,
                               foregroundColor: Colors.white,
@@ -325,11 +325,16 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                           ),
                         )
                       else
-                        Column(
+                        Builder(builder: (context) {
+                          if (!_mensajeInicializado) {
+                            _mensajeInicializado = true;
+                            _mensajeCtrl.text = tr(context, 'compartido.solicitud_participar_vendedor_default');
+                          }
+                          return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Mensaje para el organizador',
+                              tr(context, 'compartido.mensaje_para_organizador'),
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 12,
@@ -367,7 +372,7 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                                         child: CircularProgressIndicator(
                                             strokeWidth: 2, color: Colors.white))
                                     : const Icon(Icons.send_rounded, size: 16),
-                                label: Text(_enviandoSolicitud ? 'Enviando…' : 'Enviar solicitud'),
+                                label: Text(_enviandoSolicitud ? tr(context, 'compartido.enviando_puntos') : tr(context, 'compartido.enviar_solicitud')),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: CraftHubColors.vinoTinto,
                                   foregroundColor: Colors.white,
@@ -377,7 +382,8 @@ class _ModalDetalleEventoState extends State<ModalDetalleEvento> {
                               ),
                             ),
                           ],
-                        ),
+                          );
+                        }),
                     ],
                   ],
                 ),
@@ -445,7 +451,7 @@ class _FilaPrecioDescuento extends StatelessWidget {
                 ),
               ),
               Text(
-                'válido ${evento.rangoDescuentoTexto}',
+                '${tr(context, 'compartido.valido_prefijo')} ${evento.rangoDescuentoTexto}',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11.5,

@@ -157,7 +157,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 fit: StackFit.expand,
                 children: [
                   Image.asset(
-                    'assets/images/fondo_inicio.png',
+                    'assets/images/fondo_in.png',
                     fit: BoxFit.cover,
                     alignment: Alignment.centerRight,
                   ),

@@ -113,6 +113,13 @@ const Map<String, Map<String, String>> traducciones = {
   'vendedor_inventario.guardar_cambios': {'es': 'Guardar cambios', 'en': 'Save changes'},
   'vendedor_inventario.creando': {'es': 'Creando...', 'en': 'Creating...'},
   'vendedor_inventario.crear_producto': {'es': 'Crear producto', 'en': 'Create product'},
+  'vendedor_inventario.generar_con_ia': {'es': 'Generar con IA', 'en': 'Generate with AI'},
+  'vendedor_inventario.generando_ia': {'es': 'Generando...', 'en': 'Generating...'},
+  'vendedor_inventario.nombres_sugeridos': {'es': 'Nombres sugeridos (toca uno para usarlo):', 'en': 'Suggested names (tap one to use it):'},
+  'vendedor_inventario.error_ia_falta_borrador': {
+    'es': 'Escribe algo sobre el producto primero (aunque sea el nombre).',
+    'en': 'Write something about the product first (even just the name).',
+  },
 
   // ── Selector de imagen del producto ─────────────────────────────────────
   'vendedor_inventario.label_url_imagen': {'es': 'URL de imagen', 'en': 'Image URL'},
@@ -192,4 +199,8 @@ const Map<String, Map<String, String>> traducciones = {
 
   // ── tarjeta_mi_video.dart ────────────────────────────────────────────────
   'vendedor_inventario.opciones_tooltip': {'es': 'Opciones', 'en': 'Options'},
+
+  // ── widgets/inventario.dart (tabla de productos, sin usar actualmente) ──
+  'vendedor_inventario.editar_producto_tooltip': {'es': 'Editar producto', 'en': 'Edit product'},
+  'vendedor_inventario.mostrando_registros': {'es': 'Mostrando 1 a {n} de {total} productos', 'en': 'Showing 1 to {n} of {total} products'},
 };

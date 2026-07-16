@@ -1265,6 +1265,8 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
   String _categoria = _categorias.first;
   bool _guardando = false;
   bool _subiendoImagen = false;
+  bool _generandoIA = false;
+  List<String> _nombresSugeridos = [];
   String? _error;
 
   @override
@@ -1307,6 +1309,37 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
       setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _subiendoImagen = false);
+    }
+  }
+
+  Future<void> _generarConIA() async {
+    final borrador = _ctrlNombre.text.trim().isNotEmpty
+        ? _ctrlNombre.text.trim()
+        : _ctrlDescripcion.text.trim();
+    if (borrador.isEmpty) {
+      setState(() => _error = 'vendedor_inventario.error_ia_falta_borrador');
+      return;
+    }
+    setState(() {
+      _generandoIA = true;
+      _error = null;
+    });
+    try {
+      final datos = await ApiService.generarProductoConIA(
+        borrador: borrador,
+        categoria: _categoria,
+      );
+      if (!mounted) return;
+      setState(() {
+        _nombresSugeridos = (datos['nombres'] as List? ?? []).cast<String>();
+        final descripcion = (datos['descripcion'] ?? '').toString();
+        if (descripcion.isNotEmpty) _ctrlDescripcion.text = descripcion;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _generandoIA = false);
     }
   }
 
@@ -1472,6 +1505,45 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_descripcion'),
                       ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _generandoIA ? null : _generarConIA,
+                        icon: _generandoIA
+                            ? const SizedBox(
+                                width: 14, height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF821515)),
+                        label: Text(_generandoIA
+                            ? tr(context, 'vendedor_inventario.generando_ia')
+                            : tr(context, 'vendedor_inventario.generar_con_ia')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF821515),
+                          side: const BorderSide(color: Color(0xFF821515)),
+                        ),
+                      ),
+                      if (_nombresSugeridos.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          tr(context, 'vendedor_inventario.nombres_sugeridos'),
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
+                              color: esModoOscuro ? Colors.white54 : const Color(0xFF9E8E85)),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _nombresSugeridos
+                              .map((n) => ActionChip(
+                                    label: Text(n, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5)),
+                                    onPressed: () => setState(() {
+                                      _ctrlNombre.text = n;
+                                      _nombresSugeridos = [];
+                                    }),
+                                  ))
+                              .toList(),
+                        ),
+                      ],
                       if (_error != null) ...[
                         const SizedBox(height: 14),
                         Text(tr(context, _error!), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),

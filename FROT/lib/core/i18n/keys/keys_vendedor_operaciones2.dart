@@ -66,4 +66,19 @@ const Map<String, Map<String, String>> traducciones = {
   'vendedor_operaciones.mensajes_error_cargar_mensajes_prefijo': {'es': 'No se pudieron cargar los mensajes: ', 'en': 'Couldn\'t load the messages: '},
   'vendedor_operaciones.mensajes_vacio_titulo': {'es': 'Mensajes de clientes', 'en': 'Customer messages'},
   'vendedor_operaciones.mensajes_vacio_subtitulo': {'es': 'Selecciona una conversacion para responder\na tus compradores y compartir tus productos.', 'en': 'Select a conversation to reply to\nyour buyers and share your products.'},
+  'vendedor_operaciones.mensajes_sin_publicaciones_compartir': {'es': 'Aún no tienes productos publicados para compartir.', 'en': "You don't have any published products to share yet."},
+  'vendedor_operaciones.mensajes_error_no_puede_escribir_prefijo': {'es': 'Aún no puedes escribirle a', 'en': "You can't message"},
+  'vendedor_operaciones.mensajes_error_no_puede_escribir_sufijo': {'es': 'debe enviarte un mensaje primero.', 'en': 'yet: they need to message you first.'},
+
+  // ── Estados de pedido (pedido_vendedor_model.dart, pantalla_mapa_vendedor.dart, pantalla_ordenes_vendedor.dart) ──
+  'vendedor_operaciones.estado_pendiente': {'es': 'Pendiente', 'en': 'Pending'},
+  'vendedor_operaciones.estado_aceptada': {'es': 'Aceptada', 'en': 'Accepted'},
+  'vendedor_operaciones.estado_enviado': {'es': 'Enviado', 'en': 'Shipped'},
+  'vendedor_operaciones.estado_completada': {'es': 'Completada', 'en': 'Completed'},
+  'vendedor_operaciones.estado_cancelada': {'es': 'Cancelada', 'en': 'Cancelled'},
+  'vendedor_operaciones.mapa_estado_en_camino': {'es': 'En camino', 'en': 'On the way'},
+  'vendedor_operaciones.mapa_estado_entregado': {'es': 'Entregado', 'en': 'Delivered'},
+  'vendedor_operaciones.mapa_estado_cancelado': {'es': 'Cancelado', 'en': 'Cancelled'},
+  'vendedor_operaciones.filtro_todos_estados': {'es': 'Todos los estados', 'en': 'All statuses'},
+  'vendedor_operaciones.filtro_todos_clientes': {'es': 'Todos los clientes', 'en': 'All customers'},
 };
