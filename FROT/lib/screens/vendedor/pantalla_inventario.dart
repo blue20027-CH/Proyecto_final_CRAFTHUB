@@ -697,7 +697,7 @@ class _PantallaInventarioState extends State<PantallaInventario> {
   Future<void> _editarProducto(ProductoInventario producto) async {
     final resultado = await showDialog<ProductoInventario>(
       context: context,
-      builder: (_) => DialogoEditarProducto(producto: producto),
+      builder: (_) => DialogoEditarProducto(producto: producto, nombreVendedor: widget.nombreVendedor),
     );
     if (resultado == null) return;
     setState(() {
@@ -765,7 +765,8 @@ class _DropdownFiltro extends StatelessWidget {
 // ── DIÁLOGO: EDITAR PRODUCTO (humilde: solo lo que de verdad se guarda) ──────
 class DialogoEditarProducto extends StatefulWidget {
   final ProductoInventario producto;
-  const DialogoEditarProducto({super.key, required this.producto});
+  final String nombreVendedor;
+  const DialogoEditarProducto({super.key, required this.producto, this.nombreVendedor = ''});
 
   @override
   State<DialogoEditarProducto> createState() => _DialogoEditarProductoState();
@@ -784,6 +785,11 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
   late String _categoria;
   bool _guardando = false;
   bool _subiendoImagen = false;
+  bool _generandoIA = false;
+  bool _analizandoImagen = false;
+  List<String> _nombresSugeridos = [];
+  String _personalidadIA = '';
+  Map<String, dynamic>? _analisisImagen;
   String? _error;
 
   @override
@@ -839,6 +845,76 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
       setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _subiendoImagen = false);
+    }
+  }
+
+  Future<void> _generarConIA() async {
+    final borrador = _ctrlNombre.text.trim().isNotEmpty
+        ? _ctrlNombre.text.trim()
+        : _ctrlDescripcion.text.trim();
+    if (borrador.isEmpty) {
+      setState(() => _error = 'vendedor_inventario.error_ia_falta_borrador');
+      return;
+    }
+    setState(() {
+      _generandoIA = true;
+      _error = null;
+    });
+    try {
+      final datos = await ApiService.generarProductoConIA(
+        borrador: borrador,
+        categoria: _categoria,
+        vendedorNombre: widget.nombreVendedor,
+      );
+      if (!mounted) return;
+      setState(() {
+        _nombresSugeridos = (datos['nombres'] as List? ?? []).cast<String>();
+        _personalidadIA = (datos['personalidad'] ?? '').toString();
+        final descripcion = (datos['descripcion'] ?? '').toString();
+        if (descripcion.isNotEmpty) _ctrlDescripcion.text = descripcion;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _generandoIA = false);
+    }
+  }
+
+  void _aceptarNombreSugerido(String nombre) {
+    ApiService.feedbackNombresIA(
+      vendedorNombre: widget.nombreVendedor,
+      categoria: _categoria,
+      personalidad: _personalidadIA,
+      aceptado: nombre,
+      rechazados: _nombresSugeridos.where((n) => n != nombre).toList(),
+    );
+    setState(() {
+      _ctrlNombre.text = nombre;
+      _nombresSugeridos = [];
+    });
+  }
+
+  Future<void> _analizarImagenIA() async {
+    final url = _ctrlImagen.text.trim();
+    if (!url.startsWith('http')) {
+      setState(() => _error = 'vendedor_inventario.error_ia_falta_imagen');
+      return;
+    }
+    setState(() {
+      _analizandoImagen = true;
+      _analisisImagen = null;
+      _error = null;
+    });
+    try {
+      final datos = await ApiService.analizarImagenConIA(url);
+      if (!mounted) return;
+      setState(() => _analisisImagen = datos);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _analizandoImagen = false);
     }
   }
 
@@ -1008,6 +1084,30 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_imagen'),
                       ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _analizandoImagen ? null : _analizarImagenIA,
+                        icon: _analizandoImagen
+                            ? const SizedBox(
+                                width: 14, height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.image_search_rounded, size: 16, color: Color(0xFF821515)),
+                        label: Text(_analizandoImagen
+                            ? tr(context, 'vendedor_inventario.analizando_imagen')
+                            : tr(context, 'vendedor_inventario.analizar_imagen_ia')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF821515),
+                          side: const BorderSide(color: Color(0xFF821515)),
+                        ),
+                      ),
+                      if (_analisisImagen != null) ...[
+                        const SizedBox(height: 10),
+                        _ResultadoAnalisisImagen(
+                          analisis: _analisisImagen!,
+                          esModoOscuro: esModoOscuro,
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.description_outlined,
@@ -1022,6 +1122,42 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_descripcion'),
                       ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _generandoIA ? null : _generarConIA,
+                        icon: _generandoIA
+                            ? const SizedBox(
+                                width: 14, height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF821515)),
+                        label: Text(_generandoIA
+                            ? tr(context, 'vendedor_inventario.generando_ia')
+                            : tr(context, 'vendedor_inventario.generar_con_ia')),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF821515),
+                          side: const BorderSide(color: Color(0xFF821515)),
+                        ),
+                      ),
+                      if (_nombresSugeridos.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          tr(context, 'vendedor_inventario.nombres_sugeridos'),
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
+                              color: esModoOscuro ? Colors.white54 : const Color(0xFF9E8E85)),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _nombresSugeridos
+                              .map((n) => ActionChip(
+                                    label: Text(n, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5)),
+                                    onPressed: () => _aceptarNombreSugerido(n),
+                                  ))
+                              .toList(),
+                        ),
+                      ],
                       if (_error != null) ...[
                         const SizedBox(height: 14),
                         Text(tr(context, _error!), style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFFC62828))),
@@ -1266,7 +1402,10 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
   bool _guardando = false;
   bool _subiendoImagen = false;
   bool _generandoIA = false;
+  bool _analizandoImagen = false;
   List<String> _nombresSugeridos = [];
+  String _personalidadIA = '';
+  Map<String, dynamic>? _analisisImagen;
   String? _error;
 
   @override
@@ -1312,6 +1451,29 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
     }
   }
 
+  Future<void> _analizarImagenIA() async {
+    final url = _ctrlImagen.text.trim();
+    if (!url.startsWith('http')) {
+      setState(() => _error = 'vendedor_inventario.error_ia_falta_imagen');
+      return;
+    }
+    setState(() {
+      _analizandoImagen = true;
+      _analisisImagen = null;
+      _error = null;
+    });
+    try {
+      final datos = await ApiService.analizarImagenConIA(url);
+      if (!mounted) return;
+      setState(() => _analisisImagen = datos);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _analizandoImagen = false);
+    }
+  }
+
   Future<void> _generarConIA() async {
     final borrador = _ctrlNombre.text.trim().isNotEmpty
         ? _ctrlNombre.text.trim()
@@ -1328,10 +1490,12 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
       final datos = await ApiService.generarProductoConIA(
         borrador: borrador,
         categoria: _categoria,
+        vendedorNombre: widget.nombreVendedor,
       );
       if (!mounted) return;
       setState(() {
         _nombresSugeridos = (datos['nombres'] as List? ?? []).cast<String>();
+        _personalidadIA = (datos['personalidad'] ?? '').toString();
         final descripcion = (datos['descripcion'] ?? '').toString();
         if (descripcion.isNotEmpty) _ctrlDescripcion.text = descripcion;
       });
@@ -1483,11 +1647,40 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                       _SeccionFormulario(
                         icono: Icons.image_outlined,
                         titulo: tr(context, 'vendedor_inventario.seccion_imagen_producto'),
-                        child: _SelectorImagenProducto(
-                          ctrlImagen: _ctrlImagen,
-                          subiendo: _subiendoImagen,
-                          alSubirDesdePC: _subirDesdePC,
-                          alTomarFoto: _tomarFoto,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _SelectorImagenProducto(
+                              ctrlImagen: _ctrlImagen,
+                              subiendo: _subiendoImagen,
+                              alSubirDesdePC: _subirDesdePC,
+                              alTomarFoto: _tomarFoto,
+                            ),
+                            const SizedBox(height: 10),
+                            OutlinedButton.icon(
+                              onPressed: _analizandoImagen ? null : _analizarImagenIA,
+                              icon: _analizandoImagen
+                                  ? const SizedBox(
+                                      width: 14, height: 14,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.image_search_rounded, size: 16, color: Color(0xFF821515)),
+                              label: Text(_analizandoImagen
+                                  ? tr(context, 'vendedor_inventario.analizando_imagen')
+                                  : tr(context, 'vendedor_inventario.analizar_imagen_ia')),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF821515),
+                                side: const BorderSide(color: Color(0xFF821515)),
+                              ),
+                            ),
+                            if (_analisisImagen != null) ...[
+                              const SizedBox(height: 10),
+                              _ResultadoAnalisisImagen(
+                                analisis: _analisisImagen!,
+                                esModoOscuro: esModoOscuro,
+                              ),
+                            ],
+                          ],
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_imagen'),
                       ),
@@ -1536,10 +1729,20 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                           children: _nombresSugeridos
                               .map((n) => ActionChip(
                                     label: Text(n, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5)),
-                                    onPressed: () => setState(() {
-                                      _ctrlNombre.text = n;
-                                      _nombresSugeridos = [];
-                                    }),
+                                    onPressed: () {
+                                      // Feedback para el ML: qué nombre gustó y cuáles no.
+                                      ApiService.feedbackNombresIA(
+                                        vendedorNombre: widget.nombreVendedor,
+                                        categoria: _categoria,
+                                        personalidad: _personalidadIA,
+                                        aceptado: n,
+                                        rechazados: _nombresSugeridos.where((x) => x != n).toList(),
+                                      );
+                                      setState(() {
+                                        _ctrlNombre.text = n;
+                                        _nombresSugeridos = [];
+                                      });
+                                    },
                                   ))
                               .toList(),
                         ),
@@ -1594,3 +1797,80 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
   }
 }
 
+
+// Resultado del análisis de imagen con IA: puntuación en estrellas,
+// veredicto general y recomendaciones concretas para mejorar la foto.
+class _ResultadoAnalisisImagen extends StatelessWidget {
+  final Map<String, dynamic> analisis;
+  final bool esModoOscuro;
+  const _ResultadoAnalisisImagen({required this.analisis, required this.esModoOscuro});
+
+  @override
+  Widget build(BuildContext context) {
+    final puntuacion = double.tryParse((analisis['puntuacion'] ?? 0).toString()) ?? 0;
+    final resumen = (analisis['resumen'] ?? '').toString();
+    final recomendaciones = ((analisis['recomendaciones'] as List?) ?? []).cast<String>();
+    final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
+    final colorSec = esModoOscuro ? Colors.white54 : const Color(0xFF9E8E85);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: esModoOscuro ? const Color(0xFF262019) : const Color(0xFFFAF7F3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF821515).withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(tr(context, 'vendedor_inventario.calidad_de_imagen'),
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
+                      fontWeight: FontWeight.w600, color: colorTexto)),
+              const Spacer(),
+              ...List.generate(5, (i) {
+                final valor = puntuacion - i;
+                return Icon(
+                  valor >= 1
+                      ? Icons.star_rounded
+                      : (valor >= 0.5 ? Icons.star_half_rounded : Icons.star_border_rounded),
+                  size: 17,
+                  color: const Color(0xFFD4A843),
+                );
+              }),
+              const SizedBox(width: 6),
+              Text('${puntuacion.toStringAsFixed(1)}/5',
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
+                      fontWeight: FontWeight.w700, color: colorTexto)),
+            ],
+          ),
+          if (resumen.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(resumen,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: colorSec, height: 1.4)),
+          ],
+          ...recomendaciones.map((r) => Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(Icons.lightbulb_outline_rounded, size: 14, color: Color(0xFF821515)),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(r,
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5,
+                              color: colorTexto, height: 1.4)),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+}

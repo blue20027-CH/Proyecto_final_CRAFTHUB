@@ -13,6 +13,13 @@ const List<String> _categoriasArtesano = [
   'Vestir', 'Artesanía', 'Muebles', 'Joyería', 'Alimentos', 'Accesorios', 'Calzado',
 ];
 
+// Personalidades de marca disponibles: definen el tono con el que la IA
+// redacta los nombres y descripciones de producto del vendedor.
+const List<String> _personalidadesMarca = [
+  'Elegante', 'Amigable', 'Profesional', 'Cálido', 'Moderno', 'Minimalista',
+  'Juvenil', 'Tradicional', 'Artesanal', 'Exclusivo', 'Premium',
+];
+
 class PantallaEditarPerfil extends StatefulWidget {
   final String userId;
   const PantallaEditarPerfil({super.key, required this.userId});
@@ -27,6 +34,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
   final _ctrlTelefono = TextEditingController();
   String? _provincia;
   String? _categoria;
+  String? _personalidadMarca;
 
   String _nombre = '';
   String _email = '';
@@ -38,6 +46,8 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
   bool _guardando = false;
   bool _subiendoFoto = false;
   bool _subiendoBanner = false;
+  bool _analizandoIA = false;
+  Map<String, dynamic>? _analisisIA;
   String? _error;
   String? _errorPrefijoKey;
   bool _huboExito = false;
@@ -77,7 +87,10 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
         _provincia = kProvinciasPanama.contains(provinciaActual) ? provinciaActual : null;
         final categoriaActual = (perfil['categoria'] ?? '').toString();
         _categoria = _categoriasArtesano.contains(categoriaActual) ? categoriaActual : null;
+        final personalidadActual = (perfil['marca_personalidad'] ?? '').toString();
+        _personalidadMarca = _personalidadesMarca.contains(personalidadActual) ? personalidadActual : null;
       });
+      if (_modo == 'vendedor') _analizarPerfilIA();
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -148,6 +161,19 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
     }
   }
 
+  Future<void> _analizarPerfilIA() async {
+    setState(() => _analizandoIA = true);
+    try {
+      final datos = await ApiService.analizarPerfilConIA(widget.userId);
+      if (!mounted) return;
+      setState(() => _analisisIA = datos);
+    } catch (_) {
+      // Silencioso: si la IA no responde, la tarjeta simplemente no aparece.
+    } finally {
+      if (mounted) setState(() => _analizandoIA = false);
+    }
+  }
+
   Future<void> _guardar() async {
     setState(() {
       _guardando = true;
@@ -159,6 +185,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
         'ubicacion': _ctrlUbicacion.text.trim(),
         if (_provincia != null) 'provincia': _provincia,
         if (_categoria != null) 'categoria': _categoria,
+        if (_modo == 'vendedor' && _personalidadMarca != null) 'marca_personalidad': _personalidadMarca,
         'telefono': _ctrlTelefono.text.trim(),
       });
       if (!mounted) return;
@@ -358,6 +385,85 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                             ],
                             const SizedBox(height: 22),
 
+                            // ── Tarjeta "Tu perfil según la IA" (vendedor) ──
+                            if (_modo == 'vendedor' && (_analisisIA != null || _analizandoIA)) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(18),
+                                decoration: BoxDecoration(
+                                  color: colorPanel,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: CraftHubColors.vinoTinto.withValues(alpha: 0.35)),
+                                ),
+                                child: _analizandoIA && _analisisIA == null
+                                    ? Row(children: [
+                                        const SizedBox(
+                                          width: 16, height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: CraftHubColors.vinoTinto),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(tr(context, 'compartido.ia_analizando_perfil'),
+                                            style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
+                                                color: CraftHubColors.textoSecundario(esOscuro))),
+                                      ])
+                                    : Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(children: [
+                                            const Icon(Icons.auto_awesome_rounded, size: 17, color: CraftHubColors.vinoTinto),
+                                            const SizedBox(width: 8),
+                                            Text(tr(context, 'compartido.ia_titulo_perfil'),
+                                                style: TextStyle(fontFamily: 'Poppins', fontSize: 14,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: CraftHubColors.textoPrincipal(esOscuro))),
+                                            const Spacer(),
+                                            Text('${_analisisIA?['puntuacion'] ?? 0}%',
+                                                style: const TextStyle(fontFamily: 'Poppins', fontSize: 17,
+                                                    fontWeight: FontWeight.w800, color: CraftHubColors.vinoTinto)),
+                                            IconButton(
+                                              onPressed: _analizandoIA ? null : _analizarPerfilIA,
+                                              icon: const Icon(Icons.refresh_rounded, size: 17),
+                                              splashRadius: 16,
+                                              tooltip: tr(context, 'compartido.ia_reanalizar'),
+                                            ),
+                                          ]),
+                                          const SizedBox(height: 8),
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(6),
+                                            child: LinearProgressIndicator(
+                                              value: ((_analisisIA?['puntuacion'] ?? 0) as num) / 100,
+                                              minHeight: 7,
+                                              backgroundColor: CraftHubColors.borde(esOscuro),
+                                              color: CraftHubColors.vinoTinto,
+                                            ),
+                                          ),
+                                          ...(((_analisisIA?['recomendaciones'] as List?) ?? []).cast<String>()).map(
+                                            (r) => Padding(
+                                              padding: const EdgeInsets.only(top: 8),
+                                              child: Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Padding(
+                                                    padding: EdgeInsets.only(top: 2),
+                                                    child: Icon(Icons.lightbulb_outline_rounded, size: 14, color: CraftHubColors.vinoTinto),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(r,
+                                                        style: TextStyle(fontFamily: 'Poppins', fontSize: 12,
+                                                            height: 1.4,
+                                                            color: CraftHubColors.textoPrincipal(esOscuro))),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                              const SizedBox(height: 22),
+                            ],
+
                             // ── Tarjeta con los campos editables ─────────
                             Container(
                               width: double.infinity,
@@ -398,6 +504,46 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                           .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                           .toList(),
                                       onChanged: (v) => setState(() => _categoria = v),
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    _EtiquetaCampo(icono: Icons.auto_awesome_outlined, texto: tr(context, 'compartido.personalidad_marca_label'), esOscuro: esOscuro),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      tr(context, 'compartido.personalidad_marca_ayuda'),
+                                      style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5,
+                                          color: CraftHubColors.textoSecundario(esOscuro)),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _personalidadesMarca.map((p) {
+                                        final activa = _personalidadMarca == p;
+                                        return ChoiceChip(
+                                          label: Text(p,
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontSize: 12.5,
+                                                fontWeight: activa ? FontWeight.w600 : FontWeight.w500,
+                                                color: activa
+                                                    ? Colors.white
+                                                    : CraftHubColors.textoPrincipal(esOscuro),
+                                              )),
+                                          selected: activa,
+                                          selectedColor: CraftHubColors.vinoTinto,
+                                          checkmarkColor: Colors.white,
+                                          backgroundColor: esOscuro ? const Color(0xFF262019) : const Color(0xFFFAF7F3),
+                                          side: BorderSide(
+                                            color: activa
+                                                ? CraftHubColors.vinoTinto
+                                                : (esOscuro ? const Color(0xFF3A3A3A) : const Color(0xFFE8DED4)),
+                                          ),
+                                          onSelected: (_) => setState(() {
+                                            _personalidadMarca = activa ? null : p;
+                                          }),
+                                        );
+                                      }).toList(),
                                     ),
                                     const SizedBox(height: 20),
                                   ],

@@ -32,47 +32,43 @@ class PantallaInicio extends StatelessWidget {
           ),
 
           // ── IMAGEN flotando sobre el fondo, ocupando el lado derecho ────
+          // El desvanecido se aplica al alfa de la PROPIA imagen (ShaderMask
+          // dstIn): su borde izquierdo queda 100% transparente, así no existe
+          // ninguna frontera entre paneles que pueda verse como línea, ni en
+          // claro ni en oscuro.
           Positioned.fill(
             child: Align(
               alignment: Alignment.centerRight,
               child: FractionallySizedBox(
                 widthFactor: 0.58,
                 heightFactor: 1,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.asset(
-                      'assets/images/fondo_in.png',
-                      fit: BoxFit.cover,
-                    ),
-                    Positioned.fill(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 400),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: esOscuro
-                                ? [
-                                    CraftHubColors.fondoOscuro,
-                                    CraftHubColors.fondoOscuro.withValues(
-                                      alpha: 0.55,
-                                    ),
-                                    Colors.transparent,
-                                  ]
-                                : [
-                                    CraftHubColors.fondoClaro,
-                                    CraftHubColors.fondoClaro.withValues(
-                                      alpha: 0.55,
-                                    ),
-                                    Colors.transparent,
-                                  ],
-                            stops: const [0.0, 0.35, 1.0],
-                          ),
-                        ),
+                child: ShaderMask(
+                  shaderCallback: (rect) => const LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      Color(0x00000000),
+                      Color(0x73000000),
+                      Color(0xFF000000),
+                    ],
+                    stops: [0.0, 0.35, 1.0],
+                  ).createShader(rect),
+                  blendMode: BlendMode.dstIn,
+                  // El velo oscuro va DENTRO de la máscara para que se
+                  // desvanezca junto con la imagen (sin bordes visibles):
+                  // en modo oscuro atenúa el brillo de la foto para que no
+                  // choque con el tema ni tape los controles de la barra.
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/fondo_in.png',
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                  ],
+                      if (esOscuro)
+                        Container(color: Colors.black.withValues(alpha: 0.55)),
+                    ],
+                  ),
                 ),
               ),
             ),

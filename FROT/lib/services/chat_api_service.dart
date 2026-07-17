@@ -112,6 +112,55 @@ class ChatApiService {
     return (data['url'] ?? '').toString();
   }
 
+  /// Nombre con el que el asistente IA aparece como contacto en el chat.
+  static const String nombreBotIA = 'CraftHub IA';
+
+  /// 🔗 POST /api/ia/chatbot/abrir — garantiza que exista la conversación
+  /// del usuario con CraftHub IA (con mensaje de bienvenida si es nueva).
+  static Future<void> abrirChatbot(String usuarioId, String usuarioNombre) async {
+    try {
+      await http
+          .post(
+            Uri.parse('$baseUrl/api/ia/chatbot/abrir'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'usuario_id': usuarioId,
+              'usuario_nombre': usuarioNombre,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // Silencioso: si falla, el chat de la IA simplemente no aparece aún.
+    }
+  }
+
+  /// 🔗 POST /api/ia/chatbot/mensaje — envía un mensaje a CraftHub IA y
+  /// devuelve su respuesta (ambos quedan guardados en la conversación).
+  static Future<String> enviarMensajeChatbot({
+    required String conversacionId,
+    required String usuarioId,
+    required String usuarioNombre,
+    required String mensaje,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/api/ia/chatbot/mensaje'),
+          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          body: utf8.encode(jsonEncode({
+            'conversacion_id': conversacionId,
+            'usuario_id': usuarioId,
+            'usuario_nombre': usuarioNombre,
+            'mensaje': mensaje,
+          })),
+        )
+        .timeout(const Duration(seconds: 30));
+    final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['detail'] ?? 'La IA no pudo responder.');
+    }
+    return (data['respuesta'] ?? '').toString();
+  }
+
   /// 🔗 PATCH /api/chat/mensajes/{conversacionId}/leidos?usuario_id=...
   static Future<void> marcarMensajesLeidos(String conversacionId, String usuarioId) async {
     try {

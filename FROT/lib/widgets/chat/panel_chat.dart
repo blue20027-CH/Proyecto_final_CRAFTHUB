@@ -34,6 +34,10 @@ class PanelChat extends StatefulWidget {
 class _PanelChatState extends State<PanelChat> {
   final ScrollController _scroll = ScrollController();
   late List<MensajeModelo> _mensajes;
+  bool _botRespondiendo = false;
+
+  bool get _esChatBot =>
+      widget.conversacion.nombreContacto == ChatApiService.nombreBotIA;
 
   @override
   void initState() {
@@ -99,6 +103,10 @@ class _PanelChatState extends State<PanelChat> {
   }
 
   void _onTexto(String texto) {
+    if (_esChatBot) {
+      _enviarAlBot(texto);
+      return;
+    }
     _enviarYPersistir(
       MensajeModelo(
         id: 'local_${DateTime.now().millisecondsSinceEpoch}',
@@ -111,6 +119,45 @@ class _PanelChatState extends State<PanelChat> {
       texto,
       TipoMensaje.texto,
     );
+  }
+
+  // Conversación con CraftHub IA: el backend guarda el mensaje del usuario,
+  // genera la respuesta con el historial y también la persiste — aquí solo
+  // se pinta de forma optimista y se agrega la respuesta cuando llega.
+  Future<void> _enviarAlBot(String texto) async {
+    _agregar(MensajeModelo(
+      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      contenido: texto,
+      tipo: TipoMensaje.texto,
+      esMio: true,
+      hora: DateTime.now(),
+      leido: true,
+    ));
+    setState(() => _botRespondiendo = true);
+    try {
+      final respuesta = await ChatApiService.enviarMensajeChatbot(
+        conversacionId: widget.conversacion.id,
+        usuarioId: widget.usuarioId,
+        usuarioNombre: widget.usuarioNombre,
+        mensaje: texto,
+      );
+      if (!mounted) return;
+      _agregar(MensajeModelo(
+        id: 'bot_${DateTime.now().millisecondsSinceEpoch}',
+        contenido: respuesta,
+        tipo: TipoMensaje.texto,
+        esMio: false,
+        hora: DateTime.now(),
+        leido: true,
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _botRespondiendo = false);
+    }
   }
 
   // `url` ya es la URL pública en Supabase Storage (BarraInputChat sube la
@@ -199,10 +246,13 @@ class _PanelChatState extends State<PanelChat> {
                       horizontal: 24,
                       vertical: 16,
                     ),
-                    itemCount: _mensajes.length + 1,
+                    itemCount: _mensajes.length + 1 + (_botRespondiendo ? 1 : 0),
                     itemBuilder: (_, i) {
                       if (i == 0) {
                         return _SeparadorFecha(isDark: isDark, fecha: _mensajes.first.hora);
+                      }
+                      if (i == _mensajes.length + 1) {
+                        return _BurbujaEscribiendo(isDark: isDark);
                       }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
@@ -221,6 +271,55 @@ class _PanelChatState extends State<PanelChat> {
           alCompartirPublicacion: _onCompartir,
         ),
       ],
+    );
+  }
+}
+
+// Burbuja "escribiendo..." que aparece mientras CraftHub IA genera su respuesta.
+class _BurbujaEscribiendo extends StatelessWidget {
+  final bool isDark;
+  const _BurbujaEscribiendo({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? CraftHubColors.panelOscuro2 : const Color(0xFFF1EBE4),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomLeft: Radius.circular(4),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: CraftHubColors.vinoTinto.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              tr(context, 'compartido.ia_escribiendo'),
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12.5,
+                fontStyle: FontStyle.italic,
+                color: CraftHubColors.textoSecundario(isDark),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -120,6 +120,13 @@ const Map<String, Map<String, String>> traducciones = {
     'es': 'Escribe algo sobre el producto primero (aunque sea el nombre).',
     'en': 'Write something about the product first (even just the name).',
   },
+  'vendedor_inventario.analizar_imagen_ia': {'es': 'Analizar foto con IA', 'en': 'Analyze photo with AI'},
+  'vendedor_inventario.analizando_imagen': {'es': 'Analizando...', 'en': 'Analyzing...'},
+  'vendedor_inventario.calidad_de_imagen': {'es': 'Calidad de imagen', 'en': 'Image quality'},
+  'vendedor_inventario.error_ia_falta_imagen': {
+    'es': 'Sube primero una imagen del producto.',
+    'en': 'Upload a product image first.',
+  },
 
   // ── Selector de imagen del producto ─────────────────────────────────────
   'vendedor_inventario.label_url_imagen': {'es': 'URL de imagen', 'en': 'Image URL'},

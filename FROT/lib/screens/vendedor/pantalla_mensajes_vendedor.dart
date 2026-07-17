@@ -137,6 +137,8 @@ class _PantallaMensajesVendedorState extends State<PantallaMensajesVendedor> {
       _error = null;
     });
     try {
+      // El asistente CraftHub IA aparece automáticamente en el chat de todos.
+      await ChatApiService.abrirChatbot(widget.userId, widget.nombreVendedor);
       final lista = await ChatApiService.cargarConversaciones(widget.userId);
       if (!mounted) return;
       setState(() {

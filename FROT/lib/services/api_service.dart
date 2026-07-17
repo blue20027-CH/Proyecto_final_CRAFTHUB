@@ -549,6 +549,7 @@ class ApiService {
   static Future<Map<String, dynamic>> generarProductoConIA({
     required String borrador,
     String categoria = '',
+    String vendedorNombre = '',
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/ia/generar-producto'),
@@ -556,6 +557,7 @@ class ApiService {
       body: utf8.encode(jsonEncode({
         'borrador': borrador,
         'categoria': categoria,
+        'vendedor_nombre': vendedorNombre,
       })),
     ).timeout(const Duration(seconds: 20));
     final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
@@ -563,6 +565,60 @@ class ApiService {
       throw Exception(data['detail'] ?? 'No se pudo generar con IA.');
     }
     return data;
+  }
+
+  /// 🔗 POST /api/ia/analizar-imagen — Pixtral puntúa la foto del producto
+  /// y devuelve recomendaciones para mejorarla.
+  static Future<Map<String, dynamic>> analizarImagenConIA(String imagenUrl) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/ia/analizar-imagen'),
+      headers: {'Content-Type': 'application/json; charset=utf-8'},
+      body: utf8.encode(jsonEncode({'imagen_url': imagenUrl})),
+    ).timeout(const Duration(seconds: 40));
+    final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['detail'] ?? 'No se pudo analizar la imagen.');
+    }
+    return data;
+  }
+
+  /// 🔗 GET /api/ia/analizar-perfil/{userId} — puntuación de completitud del
+  /// perfil del vendedor + recomendaciones generadas con IA.
+  static Future<Map<String, dynamic>> analizarPerfilConIA(String userId) async {
+    final response = await http
+        .get(Uri.parse('$baseUrl/api/ia/analizar-perfil/$userId'))
+        .timeout(const Duration(seconds: 30));
+    final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['detail'] ?? 'No se pudo analizar el perfil.');
+    }
+    return data;
+  }
+
+  /// 🔗 POST /api/ia/feedback-nombres — registra qué nombre sugerido aceptó
+  /// el vendedor (alimenta el componente de ML). Silencioso si falla.
+  static Future<void> feedbackNombresIA({
+    required String vendedorNombre,
+    required String categoria,
+    required String personalidad,
+    required String aceptado,
+    required List<String> rechazados,
+  }) async {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/api/ia/feedback-nombres'),
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: utf8.encode(jsonEncode({
+          'vendedor_nombre': vendedorNombre,
+          'categoria': categoria,
+          'personalidad': personalidad,
+          'aceptado': aceptado,
+          'rechazados': rechazados,
+        })),
+      ).timeout(const Duration(seconds: 8));
+    } catch (_) {
+      // El feedback es telemetría de ML: nunca debe romper el flujo principal.
+    }
   }
 
   // Sube una foto de producto y devuelve su URL pública en Supabase Storage.

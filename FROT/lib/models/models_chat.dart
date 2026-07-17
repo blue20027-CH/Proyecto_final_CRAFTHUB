@@ -135,12 +135,18 @@ class ConversacionModelo {
   });
 
   factory ConversacionModelo.fromJson(Map<String, dynamic> json) {
+    final nombre = (json['nombre_contacto'] ?? 'Usuario CraftHub').toString();
+    var avatar = (json['foto_contacto'] ?? '').toString();
+    // El asistente CraftHub IA usa el isotipo CH oficial como foto de perfil.
+    if (avatar.isEmpty && nombre == 'CraftHub IA') {
+      avatar = 'assets/images/logo_crafthub.png';
+    }
     return ConversacionModelo(
       id: (json['id'] ?? '').toString(),
-      nombreContacto: (json['nombre_contacto'] ?? 'Usuario CraftHub').toString(),
+      nombreContacto: nombre,
       idContacto: json['id_contacto']?.toString(),
       rolContacto: (json['rol_contacto'] ?? 'Cliente').toString(),
-      avatarUrl: (json['foto_contacto'] ?? '').toString(),
+      avatarUrl: avatar,
       ultimoMensaje: (json['ultimo_mensaje'] ?? '').toString(),
       horaUltimo: DateTime.tryParse((json['ultimo_mensaje_hora'] ?? '').toString())?.toLocal() ?? DateTime.now(),
       mensajesNoLeidos: int.tryParse((json['mensajes_no_leidos'] ?? 0).toString()) ?? 0,
