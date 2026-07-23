@@ -113,6 +113,8 @@ def _producto_para_inventario(producto: dict, ventas: int = 0) -> dict:
         "ventas": ventas,
         "estado": estado,
         "imagen_url": producto.get("imagen_url") or producto.get("imagen") or producto.get("img") or "",
+        "descripcion": producto.get("descripcion") or "",
+        "tallas": producto.get("tallas") or "",
     }
 
 
@@ -159,6 +161,70 @@ def _productos_y_ventas(nombre_vendedor: str):
     return productos, ventas_por_producto, ingresos_por_producto, len(pedidos_vendedor), pendientes, ingresos_total
 
 
+_MESES_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun",
+             "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
+
+def _ingresos_mensuales(nombre_vendedor: str, meses: int = 6):
+    """
+    Ingresos reales del vendedor mes por mes, para los últimos `meses` meses
+    (terminando en el mes actual), usando la fecha de cada pedido. Devuelve
+    (valores, etiquetas, variacion_pct) donde la variación compara el último
+    mes contra el anterior.
+    """
+    productos = (
+        supabase.table("productos")
+        .select("nombre")
+        .eq("creador", nombre_vendedor)
+        .execute()
+        .data
+        or []
+    )
+    nombres = {p.get("nombre") for p in productos if p.get("nombre")}
+
+    ahora = datetime.now(timezone.utc)
+    # Construye las cubetas (año, mes) de los últimos `meses` meses en orden.
+    cubetas = []
+    y, m = ahora.year, ahora.month
+    for _ in range(meses):
+        cubetas.append((y, m))
+        m -= 1
+        if m == 0:
+            m = 12
+            y -= 1
+    cubetas.reverse()
+    indice = {ym: i for i, ym in enumerate(cubetas)}
+    valores = [0.0] * meses
+
+    pedidos = supabase.table("pedidos").select("productos, total, created_at").execute().data or []
+    for pedido in pedidos:
+        creado = pedido.get("created_at")
+        if not creado:
+            continue
+        try:
+            fecha = datetime.fromisoformat(str(creado).replace("Z", "+00:00"))
+        except Exception:
+            continue
+        pos = indice.get((fecha.year, fecha.month))
+        if pos is None:
+            continue
+        for item in pedido.get("productos") or []:
+            if item.get("nombre") not in nombres:
+                continue
+            valores[pos] += _precio_float(item.get("precio")) * _cantidad_int(item.get("cantidad") or 1)
+
+    valores = [round(v, 2) for v in valores]
+    etiquetas = [_MESES_ES[ym[1] - 1] for ym in cubetas]
+
+    variacion = 0
+    if meses >= 2 and valores[-2] > 0:
+        variacion = round((valores[-1] - valores[-2]) / valores[-2] * 100)
+    elif valores[-1] > 0 and (meses < 2 or valores[-2] == 0):
+        variacion = 100
+
+    return valores, etiquetas, variacion
+
+
 @router.get("/{nombre_vendedor}/productos")
 def productos_vendedor(nombre_vendedor: str, q: Optional[str] = None):
     try:
@@ -190,6 +256,8 @@ def productos_vendedor(nombre_vendedor: str, q: Optional[str] = None):
 def dashboard_vendedor(nombre_vendedor: str, periodo: Optional[str] = None):
     try:
         productos, ventas, ingresos, pedidos_totales, pendientes, ingresos_total = _productos_y_ventas(nombre_vendedor)
+
+        ingresos_mensuales, etiquetas_meses, variacion_ingresos = _ingresos_mensuales(nombre_vendedor)
 
         ranking = sorted(
             productos,
@@ -250,9 +318,9 @@ def dashboard_vendedor(nombre_vendedor: str, periodo: Optional[str] = None):
         return {
             "nombre_vendedor": nombre_vendedor,
             "ingresos_total": round(ingresos_total, 2),
-            "variacion_ingresos": 0,
-            "ingresos_mensuales": [0, 0, 0, 0, 0, round(ingresos_total, 2)],
-            "etiquetas_meses": ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+            "variacion_ingresos": variacion_ingresos,
+            "ingresos_mensuales": ingresos_mensuales,
+            "etiquetas_meses": etiquetas_meses,
             "top_productos": top_productos,
             "promedio_evaluacion": promedio_evaluacion,
             "total_evaluaciones": total_evaluaciones,

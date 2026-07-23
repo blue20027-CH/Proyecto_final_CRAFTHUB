@@ -15,6 +15,7 @@ class ProductoInventario {
   final EstadoProducto estado;
   final String rutaImagen; // Image.asset o URL para Image.network
   final String descripcion;
+  final String tallas; // "S,M,L,XL" — solo Vestir/Calzado
 
   const ProductoInventario({
     required this.id,
@@ -28,6 +29,7 @@ class ProductoInventario {
     required this.estado,
     required this.rutaImagen,
     this.descripcion = '',
+    this.tallas = '',
   });
 
   // 🔌 API: GET /api/vendedor/{vendedorId}/productos
@@ -45,6 +47,7 @@ class ProductoInventario {
       estado: _estadoDesdeString((json['estado'] ?? 'activo').toString()),
       rutaImagen: (json['imagen_url'] ?? json['imagen'] ?? json['img'] ?? '').toString(),
       descripcion: (json['descripcion'] ?? '').toString(),
+      tallas: (json['tallas'] ?? '').toString(),
     );
   }
 

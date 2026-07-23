@@ -9,6 +9,7 @@ import '../../services/api_service.dart';
 import '../../widgets/vendedor/tarjeta_tutorial.dart';
 import '../../widgets/comprador/reproductor_youtube/reproductor_youtube.dart';
 import '../../widgets/comprador/reproductor_youtube/reproductor_youtube_nativo.dart';
+import '../../widgets/comprador/reproductor_youtube/reproductor_video_nativo.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // PANTALLA DETALLE DE VIDEO
@@ -79,18 +80,29 @@ class _PantallaDetalleVideoState extends State<PantallaDetalleVideo> {
   // WebView nativo en Android/iOS/macOS/Windows, y solo como último recurso
   // (plataformas sin soporte de WebView, o sin id de YouTube) la miniatura.
   Widget _construirReproductor(String videoId) {
-    if (videoId.isEmpty) {
-      return _ReproductorRespaldo(tutorial: _tutorial, videoId: videoId);
-    }
-    if (kIsWeb) {
-      return ReproductorYoutubeEmbed(videoId: videoId);
-    }
     const plataformasConWebViewNativo = [
       TargetPlatform.android,
       TargetPlatform.iOS,
       TargetPlatform.macOS,
       TargetPlatform.windows,
     ];
+    final url = _tutorial.youtubeUrl;
+
+    // Video subido directamente (no YouTube): se reproduce con un <video>
+    // HTML5 dentro del WebView nativo.
+    if (videoId.isEmpty && url.startsWith('http')) {
+      if (!kIsWeb && plataformasConWebViewNativo.contains(defaultTargetPlatform)) {
+        return ReproductorVideoNativo(url: url);
+      }
+      return _ReproductorRespaldo(tutorial: _tutorial, videoId: videoId);
+    }
+
+    if (videoId.isEmpty) {
+      return _ReproductorRespaldo(tutorial: _tutorial, videoId: videoId);
+    }
+    if (kIsWeb) {
+      return ReproductorYoutubeEmbed(videoId: videoId);
+    }
     if (plataformasConWebViewNativo.contains(defaultTargetPlatform)) {
       return ReproductorYoutubeNativo(videoId: videoId);
     }

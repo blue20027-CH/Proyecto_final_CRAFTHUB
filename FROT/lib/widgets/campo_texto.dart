@@ -11,6 +11,9 @@ class CampoTexto extends StatelessWidget {
   final VoidCallback? alAlternarVisibilidad;
   final bool readOnly;
   final VoidCallback? onTap;
+  final ValueChanged<String>? onSubmitted;
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
 
   const CampoTexto({
     super.key,
@@ -23,6 +26,9 @@ class CampoTexto extends StatelessWidget {
     this.alAlternarVisibilidad,
     this.readOnly = false,
     this.onTap,
+    this.onSubmitted,
+    this.textInputAction,
+    this.focusNode,
   });
 
   @override
@@ -42,8 +48,11 @@ class CampoTexto extends StatelessWidget {
 
     return TextField(
   controller: controlador,
+  focusNode: focusNode,
   readOnly: readOnly,
   onTap: onTap,
+  onSubmitted: onSubmitted,
+  textInputAction: textInputAction,
   obscureText: esPassword && !verPassword,
       style: TextStyle(
         fontFamily: 'Poppins',

@@ -1,3 +1,4 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:system"
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "cmake.sourceDirectory": "C:/src/proyecto_final/Proyecto_final_CRAFTHUB/FROT/linux"
 }

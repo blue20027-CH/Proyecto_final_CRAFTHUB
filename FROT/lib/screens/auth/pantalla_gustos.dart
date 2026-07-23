@@ -4,6 +4,7 @@
 // No contiene Scaffold, Sidebar ni TopBar propios.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../services/api_service.dart';
 import '../../core/i18n/i18n.dart';
@@ -277,7 +278,18 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
     // el switch de HomeComprador), ya que un Scaffold anidado es válido.
     return Scaffold(
       backgroundColor: colorFondoPantalla,
-      body: DefaultTextStyle.merge(
+      body: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.enter &&
+              !_guardando) {
+            _guardarIntereses();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: DefaultTextStyle.merge(
         style: const TextStyle(decoration: TextDecoration.none),
         child: Column(
           children: [
@@ -339,6 +351,7 @@ class _PantallaInteresesState extends State<PantallaIntereses> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

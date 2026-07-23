@@ -113,7 +113,12 @@ class ChatApiService {
   }
 
   /// Nombre con el que el asistente IA aparece como contacto en el chat.
-  static const String nombreBotIA = 'CraftHub IA';
+  static const String nombreBotIA = 'Crafty';
+  // Nombre legado del asistente (antes de rebautizarlo "Crafty"). Se sigue
+  // detectando por compatibilidad con conversaciones creadas antes del cambio.
+  static const String nombreBotIALegado = 'CraftHub IA';
+  static bool esBotIA(String nombre) =>
+      nombre == nombreBotIA || nombre == nombreBotIALegado;
 
   /// 🔗 POST /api/ia/chatbot/abrir — garantiza que exista la conversación
   /// del usuario con CraftHub IA (con mensaje de bienvenida si es nueva).

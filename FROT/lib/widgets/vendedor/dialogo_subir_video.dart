@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/api_service.dart';
 import '../../core/i18n/i18n.dart';
 
-/// Diálogo modal para publicar un nuevo tutorial (enlace de YouTube).
+/// Diálogo modal para publicar un nuevo tutorial: enlace de YouTube O un
+/// archivo de video subido desde el dispositivo.
 /// 🔌 POST /api/tutoriales — ver ApiService.subirTutorial
 class DialogoSubirVideo extends StatefulWidget {
   final String userId;
@@ -21,6 +23,11 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
 
   String? _categoriaSeleccionada;
   bool _subiendo = false;
+
+  // Video subido desde el dispositivo (alternativa al enlace de YouTube).
+  String? _videoSubidoUrl;
+  String? _nombreArchivoVideo;
+  bool _subiendoVideo = false;
 
   static const List<String> _categorias = [
     'Joyería',
@@ -42,12 +49,59 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
   }
 
   String? _validarYoutube(String? v) {
+    // Si el vendedor subió un archivo de video, el enlace de YouTube es opcional.
+    if (_videoSubidoUrl != null) return null;
     final url = (v ?? '').trim();
     if (url.isEmpty) return tr(context, 'vendedor_inventario.youtube_requerido');
     if (!url.contains('youtube.com/watch') && !url.contains('youtu.be/')) {
       return tr(context, 'vendedor_inventario.youtube_invalido');
     }
     return null;
+  }
+
+  Future<void> _seleccionarVideo() async {
+    FilePickerResult? res;
+    try {
+      res = await FilePicker.platform.pickFiles(
+        type: FileType.video,
+        withData: true,
+        allowMultiple: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${tr(context, 'vendedor_inventario.error_seleccionar_video')}${e.toString().replaceAll('Exception: ', '')}')),
+      );
+      return;
+    }
+    if (res == null || res.files.isEmpty) return;
+    final archivo = res.files.first;
+    final bytes = archivo.bytes;
+    if (bytes == null) return;
+
+    setState(() => _subiendoVideo = true);
+    try {
+      final url = await ApiService.subirVideoTutorial(bytes, archivo.name);
+      if (!mounted) return;
+      setState(() {
+        _videoSubidoUrl = url;
+        _nombreArchivoVideo = archivo.name;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _subiendoVideo = false);
+    }
+  }
+
+  void _quitarVideo() {
+    setState(() {
+      _videoSubidoUrl = null;
+      _nombreArchivoVideo = null;
+    });
   }
 
   Future<void> _enviarFormulario() async {
@@ -59,11 +113,14 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
       return;
     }
 
+    // La URL final es la del archivo subido, o el enlace de YouTube.
+    final urlVideo = _videoSubidoUrl ?? _controladorYoutube.text.trim();
+
     setState(() => _subiendo = true);
     try {
       await ApiService.subirTutorial(
         titulo: _controladorTitulo.text.trim(),
-        youtubeUrl: _controladorYoutube.text.trim(),
+        youtubeUrl: urlVideo,
         creadorId: widget.userId,
         descripcion: _controladorDescripcion.text.trim(),
         categoria: _categoriaSeleccionada!,
@@ -165,6 +222,74 @@ class _DialogoSubirVideoState extends State<DialogoSubirVideo> {
                   tr(context, 'vendedor_inventario.hint_enlace_ayuda'),
                   style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins'),
                 ),
+                const SizedBox(height: 16),
+
+                // ── O sube el archivo desde el dispositivo ──────────────────
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: colorBorde)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        tr(context, 'vendedor_inventario.o_sube_archivo'),
+                        style: TextStyle(color: colorSec, fontSize: 11, fontFamily: 'Poppins'),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: colorBorde)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (_videoSubidoUrl != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: CraftHubColors.vinoTintoSuave,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: CraftHubColors.vinoTinto.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, size: 18, color: CraftHubColors.vinoTinto),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _nombreArchivoVideo ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5,
+                                fontWeight: FontWeight.w600, color: CraftHubColors.vinoTintoOscuro),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _subiendo ? null : _quitarVideo,
+                          icon: const Icon(Icons.close_rounded, size: 18, color: CraftHubColors.vinoTinto),
+                          splashRadius: 16,
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _subiendoVideo ? null : _seleccionarVideo,
+                      icon: _subiendoVideo
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.video_library_outlined, size: 18),
+                      label: Text(
+                        _subiendoVideo
+                            ? tr(context, 'vendedor_inventario.subiendo_video')
+                            : tr(context, 'vendedor_inventario.subir_video_dispositivo'),
+                        style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: CraftHubColors.vinoTinto,
+                        side: const BorderSide(color: CraftHubColors.vinoTinto),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 20),
 
                 // ── Título ───────────────────────────────────────────────────

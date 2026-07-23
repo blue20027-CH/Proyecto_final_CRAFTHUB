@@ -105,6 +105,7 @@ class ProductoDetalleModelo {
   final String materiales;
   final String tecnica;
   final String dimensiones;
+  final List<String> tallas;
   bool esFavorito;
 
   ProductoDetalleModelo({
@@ -123,8 +124,15 @@ class ProductoDetalleModelo {
     required this.materiales,
     required this.tecnica,
     required this.dimensiones,
+    this.tallas = const [],
     this.esFavorito = false,
   });
+
+  // Convierte "S,M,L,XL" en ["S","M","L","XL"], ignorando vacíos.
+  static List<String> _parsearTallas(dynamic valor) {
+    if (valor == null) return const [];
+    return valor.toString().split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
+  }
 
   factory ProductoDetalleModelo.fromJson(Map<String, dynamic> json) {
     return ProductoDetalleModelo(
@@ -143,6 +151,7 @@ class ProductoDetalleModelo {
       materiales:         (json['materiales'] ?? 'No especificado').toString(),
       tecnica:            (json['tecnica'] ?? 'Hecho a mano').toString(),
       dimensiones:        (json['dimensiones'] ?? 'No especificado').toString(),
+      tallas:             _parsearTallas(json['tallas']),
       esFavorito:         json['es_favorito'] ?? false,
     );
   }

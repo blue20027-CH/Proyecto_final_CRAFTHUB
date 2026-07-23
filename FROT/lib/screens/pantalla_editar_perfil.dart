@@ -47,6 +47,7 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
   bool _subiendoFoto = false;
   bool _subiendoBanner = false;
   bool _analizandoIA = false;
+  bool _mejorandoDescripcion = false;
   Map<String, dynamic>? _analisisIA;
   String? _error;
   String? _errorPrefijoKey;
@@ -171,6 +172,28 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
       // Silencioso: si la IA no responde, la tarjeta simplemente no aparece.
     } finally {
       if (mounted) setState(() => _analizandoIA = false);
+    }
+  }
+
+  Future<void> _mejorarDescripcionConIA() async {
+    setState(() => _mejorandoDescripcion = true);
+    try {
+      final nueva = await ApiService.mejorarDescripcionPerfilConIA(
+        userId: widget.userId,
+        descripcionActual: _ctrlDescripcion.text,
+      );
+      if (!mounted) return;
+      if (nueva.trim().isNotEmpty) {
+        setState(() => _ctrlDescripcion.text = nueva.trim());
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _mejorandoDescripcion = false);
     }
   }
 
@@ -492,6 +515,39 @@ class _PantallaEditarPerfilState extends State<PantallaEditarPerfil> {
                                         icono: Icons.description_outlined,
                                         hint: tr(context, 'compartido.descripcion_hint')),
                                   ),
+                                  if (_modo == 'vendedor') ...[
+                                    const SizedBox(height: 10),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: OutlinedButton.icon(
+                                        onPressed: _mejorandoDescripcion ? null : _mejorarDescripcionConIA,
+                                        icon: _mejorandoDescripcion
+                                            ? SizedBox(
+                                                width: 14, height: 14,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: esOscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto,
+                                                ),
+                                              )
+                                            : Icon(Icons.auto_awesome_rounded, size: 16,
+                                                color: esOscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto),
+                                        label: Text(
+                                          _ctrlDescripcion.text.trim().isEmpty
+                                              ? tr(context, 'compartido.ia_generar_descripcion')
+                                              : tr(context, 'compartido.ia_mejorar_descripcion'),
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w600,
+                                            color: esOscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto,
+                                          ),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          side: BorderSide(color: esOscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto),
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 20),
 
                                   if (_modo == 'vendedor') ...[

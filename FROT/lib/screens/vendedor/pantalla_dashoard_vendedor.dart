@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/carrito_provider.dart';
 import '../../core/favoritos_provider.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
+import '../../widgets/chat/boton_flotante_ia.dart';
 import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
@@ -242,28 +243,32 @@ class _HomeVendedorState extends State<HomeVendedor> {
 
     return Scaffold(
       backgroundColor: colorFondo,
-      body: Row(
-        children: [
-          SidebarVendedor(
-            nombre: widget.nombreVendedor,
-            fotoUrl: _fotoPerfilActual,
-            indiceActivo: _navIndice,
-            alSeleccionar: (i) => i == 3 ? _abrirMensajes() : setState(() => _navIndice = i),
-            alCerrarSesion: () => _cerrarSesion(context),
-            alTocarAvatar: _verMiPerfil,
-            tieneNotificacionMensajes: _tieneAnuncioSinLeer,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                _buildTopBar(esModoOscuro),
-                Expanded(
-                  child: _obtenerPantallaActual(_navIndice, esModoOscuro),
-                ),
-              ],
+      body: BotonFlotanteIA(
+        userId: widget.userId,
+        nombreUsuario: widget.nombreVendedor,
+        child: Row(
+          children: [
+            SidebarVendedor(
+              nombre: widget.nombreVendedor,
+              fotoUrl: _fotoPerfilActual,
+              indiceActivo: _navIndice,
+              alSeleccionar: (i) => i == 3 ? _abrirMensajes() : setState(() => _navIndice = i),
+              alCerrarSesion: () => _cerrarSesion(context),
+              alTocarAvatar: _verMiPerfil,
+              tieneNotificacionMensajes: _tieneAnuncioSinLeer,
             ),
-          ),
-        ],
+            Expanded(
+              child: Column(
+                children: [
+                  _buildTopBar(esModoOscuro),
+                  Expanded(
+                    child: _obtenerPantallaActual(_navIndice, esModoOscuro),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

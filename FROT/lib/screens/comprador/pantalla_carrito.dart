@@ -16,16 +16,18 @@ import '../../core/i18n/i18n.dart';
 // ============================================================
 
 class PantallaCarrito extends StatelessWidget {
-  const PantallaCarrito({super.key});
+  final VoidCallback? alExplorarCatalogo;
+  const PantallaCarrito({super.key, this.alExplorarCatalogo});
 
   @override
   Widget build(BuildContext context) {
-    return const _ContenidoCarrito();
+    return _ContenidoCarrito(alExplorarCatalogo: alExplorarCatalogo);
   }
 }
 
 class _ContenidoCarrito extends StatelessWidget {
-  const _ContenidoCarrito();
+  final VoidCallback? alExplorarCatalogo;
+  const _ContenidoCarrito({this.alExplorarCatalogo});
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +70,7 @@ class _ContenidoCarrito extends StatelessWidget {
 
                         // Estado vacío o lista de items
                         if (carrito == null || carrito.items.isEmpty)
-                          _EstadoCarritoVacio(esModoOscuro: esModoOscuro)
+                          _EstadoCarritoVacio(esModoOscuro: esModoOscuro, alExplorar: alExplorarCatalogo)
                         else
                           ...carrito.items.map(
                             (item) => TarjetaItemCarrito(key: ValueKey(item.id), item: item),
@@ -167,7 +169,8 @@ class _ContenidoCarrito extends StatelessWidget {
 // ============================================================
 class _EstadoCarritoVacio extends StatelessWidget {
   final bool esModoOscuro;
-  const _EstadoCarritoVacio({required this.esModoOscuro});
+  final VoidCallback? alExplorar;
+  const _EstadoCarritoVacio({required this.esModoOscuro, this.alExplorar});
 
   @override
   Widget build(BuildContext context) {
@@ -219,9 +222,7 @@ class _EstadoCarritoVacio extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Navegar al catálogo (índice 0 del sidebar)
-            },
+            onPressed: alExplorar,
             icon: const Icon(Icons.explore_outlined, size: 18),
             label: Text(
               tr(context, 'comprador_secundario.explorar_catalogo'),

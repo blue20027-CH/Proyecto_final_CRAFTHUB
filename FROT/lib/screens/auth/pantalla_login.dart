@@ -381,6 +381,8 @@ class _PanelLogin extends StatelessWidget {
           hint: tr(context, 'auth.correo_usuario_hint'),
           icono: Icons.person_outline_rounded,
           esOscuro: esOscuro,
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => FocusScope.of(context).nextFocus(),
         ),
 
         const SizedBox(height: 10),
@@ -393,6 +395,8 @@ class _PanelLogin extends StatelessWidget {
           esPassword: true,
           verPassword: verPassword,
           alAlternarVisibilidad: alAlternarPassword,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => alIniciarSesion(),
         ),
 
         const SizedBox(height: 6),

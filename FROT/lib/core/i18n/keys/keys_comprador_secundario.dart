@@ -68,6 +68,7 @@ const Map<String, Map<String, String>> traducciones = {
   'comprador_secundario.creado_por': {'es': 'Creado por', 'en': 'Created by'},
   'comprador_secundario.valoraciones_palabra': {'es': 'valoraciones', 'en': 'ratings'},
   'comprador_secundario.categoria': {'es': 'Categoría', 'en': 'Category'},
+  'comprador_secundario.tallas_disponibles': {'es': 'Tallas disponibles', 'en': 'Available sizes'},
   'comprador_secundario.materiales': {'es': 'Materiales', 'en': 'Materials'},
   'comprador_secundario.tecnica': {'es': 'Técnica', 'en': 'Technique'},
   'comprador_secundario.dimensiones': {'es': 'Dimensiones', 'en': 'Dimensions'},

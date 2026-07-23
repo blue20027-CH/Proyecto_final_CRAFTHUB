@@ -137,9 +137,10 @@ class ConversacionModelo {
   factory ConversacionModelo.fromJson(Map<String, dynamic> json) {
     final nombre = (json['nombre_contacto'] ?? 'Usuario CraftHub').toString();
     var avatar = (json['foto_contacto'] ?? '').toString();
-    // El asistente CraftHub IA usa el isotipo CH oficial como foto de perfil.
-    if (avatar.isEmpty && nombre == 'CraftHub IA') {
-      avatar = 'assets/images/logo_crafthub.png';
+    // El asistente IA usa su mascota (la rana Crafty) como foto de perfil.
+    // Se cubren tanto el nombre actual "Crafty" como el legado "CraftHub IA".
+    if (avatar.isEmpty && (nombre == 'Crafty' || nombre == 'CraftHub IA')) {
+      avatar = 'assets/images/crafty_ia.png';
     }
     return ConversacionModelo(
       id: (json['id'] ?? '').toString(),

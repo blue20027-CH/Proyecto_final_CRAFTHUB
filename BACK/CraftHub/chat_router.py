@@ -4,14 +4,52 @@ Chat 1:1 entre comprador/vendedor/proveedor: conversaciones persistentes
 con mensajes de texto, imagen y publicaciones compartidas.
 """
 
+import asyncio
 from typing import Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from supabase_client import supabase
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
+
+
+# ---------------------------------------------------------------------------
+# TIEMPO REAL (WebSockets): cada conversación tiene su lista de clientes
+# conectados; al enviarse un mensaje se les reenvía al instante.
+# ---------------------------------------------------------------------------
+class GestorConexiones:
+    def __init__(self):
+        self.activas: dict[str, list[WebSocket]] = {}
+
+    async def conectar(self, conv_id: str, ws: WebSocket):
+        await ws.accept()
+        self.activas.setdefault(conv_id, []).append(ws)
+
+    def desconectar(self, conv_id: str, ws: WebSocket):
+        if conv_id in self.activas and ws in self.activas[conv_id]:
+            self.activas[conv_id].remove(ws)
+            if not self.activas[conv_id]:
+                self.activas.pop(conv_id, None)
+
+    async def difundir(self, conv_id: str, data: dict):
+        for ws in list(self.activas.get(conv_id, [])):
+            try:
+                await ws.send_json(data)
+            except Exception:
+                self.desconectar(conv_id, ws)
+
+
+_gestor = GestorConexiones()
+_loop: Optional[asyncio.AbstractEventLoop] = None
+
+
+def _difundir_mensaje(conv_id: str, data: dict):
+    """Programa la difusión desde un endpoint síncrono (el POST corre en un
+    hilo aparte, así que se agenda la corrutina en el loop principal)."""
+    if _loop is not None:
+        asyncio.run_coroutine_threadsafe(_gestor.difundir(conv_id, data), _loop)
 
 # ---------------------------------------------------------------------------
 # MODELOS
@@ -257,11 +295,39 @@ def enviar_mensaje(req: EnviarMensajeRequest):
             "ultimo_mensaje_hora": resultado.data[0]["created_at"],
         }).eq("id", req.conversacion_id).execute()
 
-        return {"mensaje": _serializar_mensaje(resultado.data[0], req.autor_id)}
+        # Difusión en tiempo real: se manda el mensaje "crudo" (con autor_id)
+        # a los clientes conectados; cada uno calcula si es suyo o no.
+        fila = resultado.data[0]
+        payload = _serializar_mensaje(fila, "")
+        payload["autor_id"] = fila.get("autor_id")
+        _difundir_mensaje(req.conversacion_id, payload)
+
+        return {"mensaje": _serializar_mensaje(fila, req.autor_id)}
     except HTTPException:
         raise
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Error enviando el mensaje: {ex}")
+
+
+@router.websocket("/ws/{conversacion_id}")
+async def ws_chat(websocket: WebSocket, conversacion_id: str):
+    """
+    Canal en tiempo real de una conversación: la app se suscribe y recibe
+    cada mensaje nuevo al instante.
+    🔗 FLUTTER: ws://<host>/api/chat/ws/{conversacionId}
+    """
+    global _loop
+    _loop = asyncio.get_running_loop()
+    await _gestor.conectar(conversacion_id, websocket)
+    try:
+        while True:
+            # No se espera nada del cliente (solo mantener viva la conexión);
+            # enviar mensajes sigue siendo por POST /api/chat/mensajes.
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        _gestor.desconectar(conversacion_id, websocket)
+    except Exception:
+        _gestor.desconectar(conversacion_id, websocket)
 
 
 @router.delete("/conversaciones/{conversacion_id}")

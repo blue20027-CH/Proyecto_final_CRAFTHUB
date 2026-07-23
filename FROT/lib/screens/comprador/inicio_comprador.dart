@@ -22,6 +22,7 @@ import '../../widgets/comprador/sidebar_comprador.dart';
 import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/comprador/carrusel_hero.dart';
 import '../../widgets/topbar_flotante.dart';
+import '../../widgets/chat/boton_flotante_ia.dart';
 import '../../services/api_service.dart';
 import '../../models/artesano_modelo.dart';
 import '../../core/i18n/i18n.dart';
@@ -352,30 +353,34 @@ class _HomeCompradorState extends State<HomeComprador> {
 
     return Scaffold(
       backgroundColor: colorFondo,
-      body: Row(
-        children: [
-          // ✅ ACTUALIZADO: ahora pasa nombre y fotoUrl reales
-          SidebarComprador(
-            nombre: _nombreUsuario,
-            fotoUrl: _fotoUsuario,
-            indiceActivo: _navIndice,
-            alSeleccionar: (i) => i == 5 ? _abrirMensajes() : setState(() => _navIndice = i),
-            alCerrarSesion: () => _cerrarSesion(context),
-            tieneNotificacionMensajes: _tieneAnuncioSinLeer,
-            alTocarAvatar: _verMiPerfil,
-          ),
-
-          Expanded(
-            child: Column(
-              children: [
-                _buildTopBar(esModoOscuro),
-                Expanded(
-                  child: _obtenerPantallaActual(_navIndice, esModoOscuro),
-                ),
-              ],
+      body: BotonFlotanteIA(
+        userId: widget.userId,
+        nombreUsuario: _nombreUsuario,
+        child: Row(
+          children: [
+            // ✅ ACTUALIZADO: ahora pasa nombre y fotoUrl reales
+            SidebarComprador(
+              nombre: _nombreUsuario,
+              fotoUrl: _fotoUsuario,
+              indiceActivo: _navIndice,
+              alSeleccionar: (i) => i == 5 ? _abrirMensajes() : setState(() => _navIndice = i),
+              alCerrarSesion: () => _cerrarSesion(context),
+              tieneNotificacionMensajes: _tieneAnuncioSinLeer,
+              alTocarAvatar: _verMiPerfil,
             ),
-          ),
-        ],
+
+            Expanded(
+              child: Column(
+                children: [
+                  _buildTopBar(esModoOscuro),
+                  Expanded(
+                    child: _obtenerPantallaActual(_navIndice, esModoOscuro),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -385,7 +390,7 @@ class _HomeCompradorState extends State<HomeComprador> {
       case 0:
         return _buildContenido(oscuro);
       case 1:
-        return const PantallaCarrito();
+        return PantallaCarrito(alExplorarCatalogo: () => setState(() => _navIndice = 0));
       case 2:
         return ArtesanosScreen(onEnviarMensaje: _abrirChatConArtesano, userId: widget.userId);
       case 3:

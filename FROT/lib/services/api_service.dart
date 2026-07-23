@@ -470,6 +470,27 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  /// 🔗 POST /api/tutoriales/subir-video — sube un archivo de video del
+  /// dispositivo y devuelve su URL pública en Supabase Storage.
+  static Future<String> subirVideoTutorial(List<int> bytes, String nombreArchivo) async {
+    final uri = Uri.parse('$baseUrl/api/tutoriales/subir-video');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombreArchivo));
+    final response = await request.send();
+    final body = await response.stream.bytesToString();
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      // El backend devuelve un detalle claro (p. ej. video demasiado grande).
+      try {
+        final data = jsonDecode(utf8.decode(body.codeUnits));
+        throw Exception(data['detail'] ?? 'No se pudo subir el video: ${response.statusCode}');
+      } catch (_) {
+        throw Exception('No se pudo subir el video: ${response.statusCode}');
+      }
+    }
+    final data = jsonDecode(utf8.decode(body.codeUnits));
+    return (data['url'] ?? '').toString();
+  }
+
   // ── FAVORITOS ──────────────────────────────────────────────
 
   static Future<List<Map<String, dynamic>>> getFavoritos(String userId) async {
@@ -524,6 +545,7 @@ class ApiService {
     required String creador,
     String? imagenUrl,
     String? descripcion,
+    String? tallas,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/productos/'),
@@ -536,6 +558,7 @@ class ApiService {
         'creador': creador,
         if (imagenUrl != null && imagenUrl.isNotEmpty) 'img': imagenUrl,
         if (descripcion != null && descripcion.isNotEmpty) 'descripcion': descripcion,
+        if (tallas != null && tallas.isNotEmpty) 'tallas': tallas,
       }),
     ).timeout(const Duration(seconds: 8));
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -565,6 +588,27 @@ class ApiService {
       throw Exception(data['detail'] ?? 'No se pudo generar con IA.');
     }
     return data;
+  }
+
+  /// 🔗 POST /api/ia/mejorar-descripcion-perfil — la IA reescribe la biografía
+  /// del vendedor en el tono de la personalidad de marca configurada.
+  static Future<String> mejorarDescripcionPerfilConIA({
+    required String userId,
+    String descripcionActual = '',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/ia/mejorar-descripcion-perfil'),
+      headers: {'Content-Type': 'application/json; charset=utf-8'},
+      body: utf8.encode(jsonEncode({
+        'user_id': userId,
+        'descripcion_actual': descripcionActual,
+      })),
+    ).timeout(const Duration(seconds: 25));
+    final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['detail'] ?? 'No se pudo mejorar la descripción.');
+    }
+    return (data['descripcion'] ?? '').toString();
   }
 
   /// 🔗 POST /api/ia/analizar-imagen — Pixtral puntúa la foto del producto
@@ -653,6 +697,7 @@ class ApiService {
     required String categoria,
     String? imagenUrl,
     String? descripcion,
+    String? tallas,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/productos/$productoId'),
@@ -664,6 +709,7 @@ class ApiService {
         'categoria': categoria,
         if (imagenUrl != null && imagenUrl.isNotEmpty) 'img': imagenUrl,
         if (descripcion != null && descripcion.isNotEmpty) 'descripcion': descripcion,
+        if (tallas != null) 'tallas': tallas,
       }),
     ).timeout(const Duration(seconds: 8));
     if (response.statusCode != 200) {

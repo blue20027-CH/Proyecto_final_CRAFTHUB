@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/i18n/i18n.dart';
@@ -8,7 +10,6 @@ import 'cabecera_chat.dart';
 import 'barra_input_chat.dart';
 import 'modal_compartir_publicacion.dart';
 
-// TODO en tiempo real: WS /ws/chat/{conversacionId}
 class PanelChat extends StatefulWidget {
   final ConversacionModelo conversacion;
   final List<MensajeModelo> mensajes;
@@ -35,14 +36,19 @@ class _PanelChatState extends State<PanelChat> {
   final ScrollController _scroll = ScrollController();
   late List<MensajeModelo> _mensajes;
   bool _botRespondiendo = false;
+  WebSocket? _ws;
 
   bool get _esChatBot =>
-      widget.conversacion.nombreContacto == ChatApiService.nombreBotIA;
+      ChatApiService.esBotIA(widget.conversacion.nombreContacto);
+
+  bool _mismoDia(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   @override
   void initState() {
     super.initState();
     _mensajes = List.of(widget.mensajes);
+    _conectarTiempoReal();
     WidgetsBinding.instance.addPostFrameCallback((_) => _bajar());
   }
 
@@ -51,14 +57,49 @@ class _PanelChatState extends State<PanelChat> {
     super.didUpdateWidget(old);
     if (old.conversacion.id != widget.conversacion.id) {
       setState(() => _mensajes = List.of(widget.mensajes));
+      _conectarTiempoReal();
       WidgetsBinding.instance.addPostFrameCallback((_) => _bajar());
     }
   }
 
   @override
   void dispose() {
+    _ws?.close();
     _scroll.dispose();
     super.dispose();
+  }
+
+  // Se suscribe al canal en tiempo real de la conversación: cada mensaje que
+  // envíe la OTRA persona llega al instante (los propios ya se pintan de forma
+  // optimista, así que su "eco" por WS se ignora). El chatbot no usa WS.
+  Future<void> _conectarTiempoReal() async {
+    await _ws?.close();
+    _ws = null;
+    if (_esChatBot || widget.conversacion.id.isEmpty) return;
+    try {
+      final url = ChatApiService.baseUrl.replaceFirst('http', 'ws');
+      final ws = await WebSocket.connect('$url/api/chat/ws/${widget.conversacion.id}');
+      if (!mounted) {
+        await ws.close();
+        return;
+      }
+      _ws = ws;
+      ws.listen(
+        (dato) {
+          try {
+            final m = jsonDecode(dato as String) as Map<String, dynamic>;
+            if (m['autor_id'] == widget.usuarioId) return; // mi propio mensaje
+            if (!mounted) return;
+            _agregar(MensajeModelo.fromJson(m));
+          } catch (_) {}
+        },
+        onError: (_) {},
+        onDone: () {},
+        cancelOnError: true,
+      );
+    } catch (_) {
+      // Silencioso: si el WS falla, el chat sigue funcionando (recarga al abrir).
+    }
   }
 
   void _bajar() {
@@ -246,20 +287,30 @@ class _PanelChatState extends State<PanelChat> {
                       horizontal: 24,
                       vertical: 16,
                     ),
-                    itemCount: _mensajes.length + 1 + (_botRespondiendo ? 1 : 0),
+                    itemCount: _mensajes.length + (_botRespondiendo ? 1 : 0),
                     itemBuilder: (_, i) {
-                      if (i == 0) {
-                        return _SeparadorFecha(isDark: isDark, fecha: _mensajes.first.hora);
-                      }
-                      if (i == _mensajes.length + 1) {
+                      if (i == _mensajes.length) {
                         return _BurbujaEscribiendo(isDark: isDark);
                       }
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: BurbujaMensaje(
-                          mensaje: _mensajes[i - 1],
-                          usuarioId: widget.usuarioId,
-                        ),
+                      final mensaje = _mensajes[i];
+                      // Se muestra un separador de fecha encima del mensaje
+                      // cuando es el primero o cuando cambia el día respecto
+                      // al mensaje anterior.
+                      final mostrarFecha = i == 0 ||
+                          !_mismoDia(_mensajes[i - 1].hora, mensaje.hora);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (mostrarFecha)
+                            _SeparadorFecha(isDark: isDark, fecha: mensaje.hora),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: BurbujaMensaje(
+                              mensaje: mensaje,
+                              usuarioId: widget.usuarioId,
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),

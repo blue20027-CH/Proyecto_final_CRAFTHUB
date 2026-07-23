@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/i18n.dart';
 
 class EncabezadoEventos extends StatelessWidget {
   final String titulo;
@@ -113,7 +114,7 @@ class _BotonVolverState extends State<_BotonVolver> {
               const Icon(Icons.arrow_back_rounded, size: 16, color: CraftHubColors.vinoTinto),
               const SizedBox(width: 6),
               Text(
-                'Volver',
+                tr(context, 'compartido.volver'),
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,

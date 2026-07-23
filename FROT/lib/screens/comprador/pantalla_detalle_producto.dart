@@ -743,6 +743,14 @@ class _BotonCorazonState extends State<_BotonCorazon> {
 // ──────────────────────────────────────────────────────────────────────────
 // PANEL DE INFORMACIÓN (título, precio, descripción, specs, acciones)
 // ──────────────────────────────────────────────────────────────────────────
+
+// Una ficha de especificación solo se muestra si tiene un dato real: se
+// oculta cuando está vacía o quedó como "No especificado" por defecto.
+bool _specConDato(String valor) {
+  final v = valor.trim().toLowerCase();
+  return v.isNotEmpty && v != 'no especificado' && v != 'not specified';
+}
+
 class _PanelInformacion extends StatelessWidget {
   final ProductoDetalleModelo detalle;
   final bool oscuro;
@@ -803,14 +811,19 @@ class _PanelInformacion extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Row(children: [
-          Icon(Icons.location_on_outlined, size: 15, color: textoSecundario),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(detalle.ubicacion,
-                style: GoogleFonts.poppins(fontSize: 12.5, color: textoSecundario)),
-          ),
-        ]),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(Icons.location_on_outlined, size: 16, color: textoSecundario),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(detalle.ubicacion,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(fontSize: 12.5, height: 1.0, color: textoSecundario)),
+            ),
+          ],
+        ),
         const SizedBox(height: 8),
         if (detalle.totalValoraciones > 0)
           Row(children: [
@@ -830,13 +843,43 @@ class _PanelInformacion extends StatelessWidget {
         const SizedBox(height: 18),
         Divider(color: CraftHubColors.borde(oscuro)),
         const SizedBox(height: 14),
+        // Solo se muestran las fichas con dato real: Materiales y Dimensiones
+        // se ocultan cuando el vendedor no las especificó (evita el eterno
+        // "No especificado"). Categoría y Técnica siempre tienen valor.
         _FilaSpec(icono: Icons.category_outlined, etiqueta: tr(context, 'comprador_secundario.categoria'), valor: detalle.categoria, oscuro: oscuro),
-        const SizedBox(height: 10),
-        _FilaSpec(icono: Icons.texture_rounded, etiqueta: tr(context, 'comprador_secundario.materiales'), valor: detalle.materiales, oscuro: oscuro),
+        if (_specConDato(detalle.materiales)) ...[
+          const SizedBox(height: 10),
+          _FilaSpec(icono: Icons.texture_rounded, etiqueta: tr(context, 'comprador_secundario.materiales'), valor: detalle.materiales, oscuro: oscuro),
+        ],
         const SizedBox(height: 10),
         _FilaSpec(icono: Icons.brush_outlined, etiqueta: tr(context, 'comprador_secundario.tecnica'), valor: detalle.tecnica, oscuro: oscuro),
-        const SizedBox(height: 10),
-        _FilaSpec(icono: Icons.straighten_rounded, etiqueta: tr(context, 'comprador_secundario.dimensiones'), valor: detalle.dimensiones, oscuro: oscuro),
+        if (_specConDato(detalle.dimensiones)) ...[
+          const SizedBox(height: 10),
+          _FilaSpec(icono: Icons.straighten_rounded, etiqueta: tr(context, 'comprador_secundario.dimensiones'), valor: detalle.dimensiones, oscuro: oscuro),
+        ],
+        // ── Tallas disponibles (solo Vestir/Calzado) ────────────────────
+        if (detalle.tallas.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          Text(tr(context, 'comprador_secundario.tallas_disponibles'),
+              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: textoPrincipal)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: detalle.tallas.map((t) => Container(
+              width: 52,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: CraftHubColors.panel(oscuro),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: CraftHubColors.vinoTinto.withValues(alpha: 0.55), width: 1.3),
+              ),
+              child: Text(t,
+                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
+            )).toList(),
+          ),
+        ],
         const SizedBox(height: 22),
         Wrap(
           spacing: 12,

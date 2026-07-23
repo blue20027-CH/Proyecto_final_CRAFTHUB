@@ -98,6 +98,12 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
     _seleccionar(conv);
   }
 
+  // La conversación con "CraftHub IA" se atiende desde el botón flotante
+  // (BotonFlotanteIA) que vive encima de todas las pantallas, así que se
+  // filtra aquí para no duplicarla en la lista de mensajes normales.
+  List<ConversacionModelo> _sinChatbot(List<ConversacionModelo> lista) =>
+      lista.where((c) => !ChatApiService.esBotIA(c.nombreContacto)).toList();
+
   // Refresca la lista de conversaciones en segundo plano (sin spinner) para
   // que las vistas previas y los contadores de no leídos se mantengan al día
   // aunque no haya ninguna conversación abierta.
@@ -107,7 +113,7 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
       final lista = await ChatApiService.cargarConversaciones(widget.userId);
       if (!mounted) return;
       setState(() {
-        _conversaciones = lista;
+        _conversaciones = _sinChatbot(lista);
       });
     } catch (_) {
       // Silencioso: es un refresco de fondo, no bloquea la interacción.
@@ -144,12 +150,12 @@ class _PantallaMensajesCompradorState extends State<PantallaMensajesComprador> {
       _error = null;
     });
     try {
-      // El asistente CraftHub IA aparece automáticamente en el chat de todos.
-      await ChatApiService.abrirChatbot(widget.userId, widget.nombreComprador);
+      // Ya no se llama abrirChatbot() aquí: el asistente Crafty vive en el
+      // botón flotante y ese widget se encarga de crear su conversación.
       final lista = await ChatApiService.cargarConversaciones(widget.userId);
       if (!mounted) return;
       setState(() {
-        _conversaciones = lista;
+        _conversaciones = _sinChatbot(lista);
         _cargandoConversaciones = false;
       });
     } catch (e) {

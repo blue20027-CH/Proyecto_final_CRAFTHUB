@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/ia", tags=["IA"])
 # Identidad del asistente en el chat: participa como un contacto más en las
 # conversaciones, con un autor_id fijo para distinguir sus mensajes.
 BOT_ID = "00000000-0000-4000-8000-0000c7af41a0"
-BOT_NOMBRE = "CraftHub IA"
+BOT_NOMBRE = "Crafty"
 BOT_ROL = "Asistente IA"
 
 # Identidad de marca (del Manual de Identidad Corporativa de CraftHub): la IA
@@ -133,11 +133,100 @@ Responde ÚNICAMENTE con este JSON, sin texto adicional ni markdown:
         raise HTTPException(status_code=500, detail=f"Error generando con IA: {ex}")
 
 
+class MejorarDescripcionPerfilRequest(BaseModel):
+    user_id: str
+    descripcion_actual: str = ""
+
+
+@router.post("/mejorar-descripcion-perfil")
+def mejorar_descripcion_perfil(req: MejorarDescripcionPerfilRequest):
+    """
+    Reescribe (o genera desde cero) la biografía/descripción del vendedor para
+    su perfil, usando la personalidad de marca configurada. Devuelve una
+    versión pulida en 2-3 frases que el vendedor puede aceptar o editar.
+    🔗 FLUTTER: POST /api/ia/mejorar-descripcion-perfil
+    """
+    if not req.user_id.strip():
+        raise HTTPException(status_code=400, detail="Falta el usuario.")
+
+    try:
+        resp = (
+            supabase.table("perfiles")
+            .select("nombre, categoria, marca_personalidad, ubicacion, provincia")
+            .eq("user_id", req.user_id)
+            .limit(1)
+            .execute()
+        )
+        perfil = (resp.data or [{}])[0]
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"No se pudo leer el perfil: {ex}")
+
+    nombre = (perfil.get("nombre") or "").strip() or "el artesano"
+    categoria = (perfil.get("categoria") or "").strip() or "artesanía"
+    personalidad = (perfil.get("marca_personalidad") or "").strip()
+    ubicacion = (perfil.get("ubicacion") or perfil.get("provincia") or "").strip()
+
+    if personalidad not in TONOS_MARCA:
+        personalidad = tono_recomendado(categoria)
+    instruccion_tono = ""
+    if personalidad in TONOS_MARCA:
+        instruccion_tono = (
+            f"\nLa marca de este artesano tiene personalidad \"{personalidad}\": "
+            f"escribe con {TONOS_MARCA[personalidad]}."
+        )
+
+    borrador = req.descripcion_actual.strip()
+    contexto_borrador = (
+        f"El vendedor ya tiene esta biografía y quiere una versión pulida:\n\"{borrador}\""
+        if borrador
+        else "El vendedor todavía no tiene biografía y quiere que se le genere una desde cero."
+    )
+
+    prompt = f"""Eres el asistente de marketing de CraftHub para sus artesanos.
+
+{IDENTIDAD_MARCA}
+
+Estás mejorando la biografía pública del perfil de un artesano:
+- Nombre: {nombre}
+- Categoría principal: {categoria}
+- Ubicación: {ubicacion or "sin especificar"}
+{instruccion_tono}
+
+{contexto_borrador}
+
+Escribe una biografía natural en primera persona, de 2 a 3 frases (máximo ~55 palabras), que:
+- Suene humana y auténtica, sin frases hechas de marketing ni superlativos vacíos.
+- Resalte el origen panameño y el trabajo artesanal.
+- No invente materiales, años de experiencia ni detalles que el vendedor no haya escrito.
+- No use emojis, ni hashtags, ni comillas dentro del texto.
+
+Responde ÚNICAMENTE con este JSON, sin markdown:
+{{"descripcion": "..."}}"""
+
+    try:
+        cliente = cliente_mistral()
+        respuesta = cliente.chat.complete(
+            model=MODELO_TEXTO,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        contenido = respuesta.choices[0].message.content
+        datos = _extraer_json(contenido)
+        return {
+            "descripcion": (datos.get("descripcion") or "").strip(),
+            "personalidad": personalidad,
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=502, detail="La IA respondió en un formato inesperado. Intenta de nuevo.")
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error generando con IA: {ex}")
+
+
 # ---------------------------------------------------------------------------
 # CHATBOT DE SOPORTE (aparece en el chat de todos los usuarios)
 # ---------------------------------------------------------------------------
 
-PROMPT_SOPORTE = """Eres "CraftHub IA", el asistente oficial de CraftHub, un marketplace panameño de artesanías donde artesanos (vendedores) venden sus piezas a compradores.
+PROMPT_SOPORTE = """Eres "Crafty", el asistente oficial de CraftHub, un marketplace panameño de artesanías donde artesanos (vendedores) venden sus piezas a compradores. Tu mascota es la rana dorada de Panamá — cuando presentes tu nombre, hazlo como "Crafty".
 
 """ + IDENTIDAD_MARCA + """
 
@@ -218,7 +307,7 @@ def abrir_chatbot(req: AbrirChatbotRequest):
         conv_id = nueva.data[0]["id"]
 
         bienvenida = (
-            "¡Hola! 👋 Soy CraftHub IA, tu asistente. Puedo ayudarte con dudas "
+            "¡Hola! 👋 Soy Crafty, tu asistente de CraftHub. Puedo ayudarte con dudas "
             "sobre cómo comprar, pagar, vender tus artesanías o usar la app. "
             "¿En qué te ayudo hoy?"
         )

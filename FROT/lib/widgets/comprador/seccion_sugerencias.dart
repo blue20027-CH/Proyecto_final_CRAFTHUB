@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/favoritos_provider.dart';
+import '../../core/i18n/i18n.dart';
 import '../../services/api_service.dart';
 import '../../screens/comprador/pantalla_detalle_producto.dart';
 import 'tarjeta_producto.dart';
@@ -62,7 +63,7 @@ class _SeccionSugerenciasState extends State<SeccionSugerencias> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'También podría gustarte',
+          tr(context, 'compartido.tambien_podria_gustarte'),
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 17,

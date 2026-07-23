@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/i18n/i18n.dart';
@@ -195,7 +196,19 @@ class _BarraInputChatState extends State<BarraInputChat> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: TextField(
+                child: Focus(
+                  // Enter envía; Shift+Enter inserta un salto de línea. Se
+                  // intercepta a nivel de tecla porque el campo es multilínea.
+                  onKeyEvent: (node, evento) {
+                    if (evento is KeyDownEvent &&
+                        evento.logicalKey == LogicalKeyboardKey.enter &&
+                        !HardwareKeyboard.instance.isShiftPressed) {
+                      _enviar();
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: TextField(
                   controller: _ctrl,
                   focusNode: _foco,
                   maxLines: 4,
@@ -225,6 +238,7 @@ class _BarraInputChatState extends State<BarraInputChat> {
                       borderSide: BorderSide.none,
                     ),
                   ),
+                ),
                 ),
               ),
               const SizedBox(width: 10),

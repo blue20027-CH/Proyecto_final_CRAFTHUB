@@ -314,12 +314,13 @@ class _TarjetaEncabezado extends StatelessWidget {
       ],
     );
 
+    final acento = esOscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto;
     final boton = OutlinedButton.icon(
       onPressed: onEditar,
-      icon: const Icon(Icons.edit_outlined, size: 15, color: CraftHubColors.vinoTinto),
-      label: Text(textoEditar, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto)),
+      icon: Icon(Icons.edit_outlined, size: 15, color: acento),
+      label: Text(textoEditar, style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w600, color: acento)),
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: CraftHubColors.vinoTinto),
+        side: BorderSide(color: acento),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),

@@ -74,6 +74,14 @@ flutter:
     - assets/images/Categoria/calzado.png
     - assets/images/Categoria/accesorios.png
     - assets/images/bolso.png
+    - assets/images/crafty_ia.png
+    - assets/images/crafty_neutral.png
+    - assets/images/crafty_hablando.png
+    - assets/images/crafty_molesta.png
+    - assets/images/crafty_enamorada.png
+    - assets/images/crafty_gritando.png
+    - assets/images/crafty_dormida.png
+    - assets/images/crafty_curiosa.png
     - assets/images/logos/
     - assets/images/avatares/
 

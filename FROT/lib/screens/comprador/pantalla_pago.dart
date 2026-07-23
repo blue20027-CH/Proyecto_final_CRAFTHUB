@@ -6,6 +6,7 @@
 //    POST /api/pagos/crear (BACK/CraftHub/pedidos_router.py)
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/carrito_provider.dart';
@@ -445,6 +446,7 @@ class _PantallaPagoState extends State<PantallaPago> {
             oscuro: oscuro,
             tipoTeclado: TextInputType.number,
             hint: '0000 0000 0000 0000',
+            formatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(16)],
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
@@ -466,6 +468,8 @@ class _PantallaPagoState extends State<PantallaPago> {
                 oscuro: oscuro,
                 tipoTeclado: TextInputType.number,
                 oculto: true,
+                hint: '••••',
+                formatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
                 onChanged: (_) => setState(() {}),
               ),
             ),
@@ -506,13 +510,16 @@ class _PantallaPagoState extends State<PantallaPago> {
         ]);
       default:
         if (_metodoSeleccionado == null) return const SizedBox.shrink();
+        final esCorreo = _campoBilletera == 'correo';
         return _CampoPago(
           controlador: _ctrlContactoBilletera,
-          etiqueta: _campoBilletera == 'correo'
+          etiqueta: esCorreo
               ? '${tr(context, 'comprador_secundario.correo_de')} $_metodoSeleccionado'
               : '${tr(context, 'comprador_secundario.telefono_de')} $_metodoSeleccionado',
           oscuro: oscuro,
-          tipoTeclado: _campoBilletera == 'correo' ? TextInputType.emailAddress : TextInputType.phone,
+          hint: esCorreo ? 'correo@ejemplo.com' : '6000-0000',
+          tipoTeclado: esCorreo ? TextInputType.emailAddress : TextInputType.phone,
+          formatters: esCorreo ? null : [FilteringTextInputFormatter.allow(RegExp(r'[0-9\-]'))],
           onChanged: (_) => setState(() {}),
         );
     }
@@ -573,6 +580,7 @@ class _CampoPago extends StatelessWidget {
   final String? hint;
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onChanged;
+  final List<TextInputFormatter>? formatters;
 
   const _CampoPago({
     required this.controlador,
@@ -583,6 +591,7 @@ class _CampoPago extends StatelessWidget {
     this.hint,
     this.onEditingComplete,
     this.onChanged,
+    this.formatters,
   });
 
   @override
@@ -597,6 +606,7 @@ class _CampoPago extends StatelessWidget {
           controller: controlador,
           keyboardType: tipoTeclado,
           obscureText: oculto,
+          inputFormatters: formatters,
           onEditingComplete: onEditingComplete,
           onChanged: onChanged,
           style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, color: CraftHubColors.textoPrincipal(oscuro)),
@@ -762,11 +772,36 @@ class _LogoMetodoPago extends StatelessWidget {
       // que se aceptan (Visa + Mastercard) uno junto al otro.
       return Row(mainAxisSize: MainAxisSize.min, children: [
         _logoVisaDibujado(),
-        const SizedBox(width: 10),
-        _imagenLogo('mastercard', ancho: 46, alto: 30),
+        const SizedBox(width: 12),
+        _imagenLogo('mastercard', alto: 30),
       ]);
     }
-    return _imagenLogo(id.toLowerCase(), ancho: 92, alto: id == 'Banistmo' ? 40 : 32);
+    if (id == 'Transferencia') {
+      // Transferencia no es una marca con logo: se muestra un ícono de banco
+      // con etiqueta. Se acota el ancho y el texto se ajusta (ellipsis) para
+      // que nunca desborde su tarjeta.
+      return SizedBox(
+        width: 128,
+        child: Row(children: [
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: CraftHubColors.info.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(9)),
+            child: const Icon(Icons.account_balance_rounded, size: 18, color: CraftHubColors.info),
+          ),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text('Transferencia',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w700, color: CraftHubColors.textoClaro)),
+          ),
+        ]),
+      );
+    }
+    // Yappy, PayPal, Banistmo: todos a la MISMA altura para que se vean parejos.
+    return _imagenLogo(id.toLowerCase(), alto: 34);
   }
 
   Widget _logoVisaDibujado() {
@@ -790,20 +825,19 @@ class _LogoMetodoPago extends StatelessWidget {
     'paypal': 'webp',
   };
 
-  // Se acota ancho Y alto (no solo alto) para que ningún logo pueda
-  // desbordarse fuera de su tarjeta ni verse recortado por el vecino,
-  // sin importar la relación de aspecto real de cada imagen.
-  Widget _imagenLogo(String archivo, {required double ancho, required double alto}) {
+  // Todos los logos se renderizan a la MISMA altura (fit: contain), con un
+  // ancho máximo para que no se desborden de su tarjeta. Fijar solo la altura
+  // (en vez de ancho y alto distintos por logo) es lo que los hace verse
+  // parejos entre sí, sin importar la relación de aspecto de cada imagen.
+  Widget _imagenLogo(String archivo, {required double alto}) {
     final extension = _extensiones[archivo] ?? 'png';
-    return SizedBox(
-      width: ancho,
-      height: alto,
-      child: FittedBox(
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 116),
+      child: Image.asset(
+        'assets/images/logos/$archivo.$extension',
+        height: alto,
         fit: BoxFit.contain,
-        child: Image.asset(
-          'assets/images/logos/$archivo.$extension',
-          errorBuilder: (_, _, _) => _logotipoDibujado(),
-        ),
+        errorBuilder: (_, _, _) => _logotipoDibujado(),
       ),
     );
   }
@@ -1001,64 +1035,203 @@ class _PantallaExito extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ordenCorta = numeroOrden.length > 8
+        ? numeroOrden.substring(0, 8).toUpperCase()
+        : numeroOrden.toUpperCase();
+
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
-        child: Column(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+          decoration: BoxDecoration(
+            color: CraftHubColors.panel(oscuro),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: CraftHubColors.borde(oscuro)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: oscuro ? 0.3 : 0.07),
+                blurRadius: 30,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 84,
-              height: 84,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(color: CraftHubColors.exito, shape: BoxShape.circle),
-              child: const Icon(Icons.check_rounded, size: 44, color: Colors.white),
-            ),
-            const SizedBox(height: 22),
-            Text(tr(context, 'comprador_secundario.pedido_confirmado'),
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(oscuro))),
-            const SizedBox(height: 8),
-            Text(tr(context, 'comprador_secundario.artesanos_recibieron_compra'),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(oscuro))),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                color: CraftHubColors.panel(oscuro),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: CraftHubColors.borde(oscuro)),
-              ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(tr(context, 'comprador_secundario.total_pagado'), style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
-                  Text('\$${total.toStringAsFixed(2)}',
-                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700, color: CraftHubColors.vinoTinto)),
-                ]),
-                if (numeroOrden.isNotEmpty) ...[
-                  const SizedBox(width: 28),
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(tr(context, 'comprador_secundario.numero_de_orden'), style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
-                    Text(numeroOrden.length > 8 ? numeroOrden.substring(0, 8).toUpperCase() : numeroOrden.toUpperCase(),
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: CraftHubColors.textoPrincipal(oscuro))),
-                  ]),
+            // ── Check con anillos que laten ─────────────────────────────
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  _AnilloPulso(retraso: 0.ms),
+                  _AnilloPulso(retraso: 700.ms),
+                  Container(
+                    width: 104,
+                    height: 104,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF3FA34D), CraftHubColors.exito],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: CraftHubColors.exito.withValues(alpha: 0.45),
+                          blurRadius: 22,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.check_rounded, size: 56, color: Colors.white),
+                  )
+                      .animate()
+                      .scale(begin: const Offset(0.3, 0.3), end: const Offset(1, 1), duration: 650.ms, curve: Curves.elasticOut)
+                      .fadeIn(duration: 250.ms),
                 ],
-              ]),
+              ),
             ),
             const SizedBox(height: 26),
-            ElevatedButton(
-              onPressed: onContinuar,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: CraftHubColors.vinoTinto,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+
+            Text(tr(context, 'comprador_secundario.pedido_confirmado'),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 25, fontWeight: FontWeight.w800, color: CraftHubColors.textoPrincipal(oscuro)))
+                .animate().fadeIn(delay: 250.ms, duration: 400.ms).slideY(begin: 0.25, end: 0, curve: Curves.easeOut),
+            const SizedBox(height: 10),
+            Text(tr(context, 'comprador_secundario.artesanos_recibieron_compra'),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, height: 1.45, color: CraftHubColors.textoSecundario(oscuro)))
+                .animate().fadeIn(delay: 380.ms, duration: 400.ms).slideY(begin: 0.25, end: 0, curve: Curves.easeOut),
+            const SizedBox(height: 28),
+
+            // ── Tarjeta con total y número de orden (ancho completo) ────
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+              decoration: BoxDecoration(
+                color: CraftHubColors.fondo(oscuro),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: CraftHubColors.borde(oscuro)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: oscuro ? 0.25 : 0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              child: Text(tr(context, 'comprador_secundario.seguir_explorando'),
-                  style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
-            ),
+              child: IntrinsicHeight(
+                child: Row(children: [
+                  Expanded(
+                    child: _DatoExito(
+                      icono: Icons.payments_outlined,
+                      etiqueta: tr(context, 'comprador_secundario.total_pagado'),
+                      valor: '\$${total.toStringAsFixed(2)}',
+                      valorColor: CraftHubColors.vinoTinto,
+                      oscuro: oscuro,
+                    ),
+                  ),
+                  if (numeroOrden.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: VerticalDivider(width: 1, color: CraftHubColors.borde(oscuro)),
+                    ),
+                    Expanded(
+                      child: _DatoExito(
+                        icono: Icons.receipt_long_outlined,
+                        etiqueta: tr(context, 'comprador_secundario.numero_de_orden'),
+                        valor: ordenCorta,
+                        valorColor: CraftHubColors.textoPrincipal(oscuro),
+                        oscuro: oscuro,
+                      ),
+                    ),
+                  ],
+                ]),
+              ),
+            ).animate().fadeIn(delay: 520.ms, duration: 450.ms).slideY(begin: 0.3, end: 0, curve: Curves.easeOut).scale(begin: const Offset(0.94, 0.94), end: const Offset(1, 1), delay: 520.ms, duration: 450.ms),
+            const SizedBox(height: 30),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onContinuar,
+                icon: const Icon(Icons.storefront_rounded, size: 18, color: Colors.white),
+                label: Text(tr(context, 'comprador_secundario.seguir_explorando'),
+                    style: const TextStyle(fontFamily: 'Poppins', fontSize: 14.5, fontWeight: FontWeight.w700, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CraftHubColors.vinoTinto,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                  elevation: 0,
+                ),
+              ),
+            ).animate().fadeIn(delay: 680.ms, duration: 400.ms).scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1), delay: 680.ms, duration: 400.ms, curve: Curves.easeOutBack),
           ],
+          ),
+          ),
         ),
       ),
+    );
+  }
+}
+
+// Anillo verde que se expande y se desvanece en bucle, detrás del check.
+class _AnilloPulso extends StatelessWidget {
+  final Duration retraso;
+  const _AnilloPulso({required this.retraso});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 104,
+      height: 104,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: CraftHubColors.exito.withValues(alpha: 0.5), width: 2),
+      ),
+    )
+        .animate(onPlay: (c) => c.repeat())
+        .scaleXY(begin: 1.0, end: 1.7, duration: 1800.ms, delay: retraso, curve: Curves.easeOut)
+        .fadeOut(duration: 1800.ms, delay: retraso, curve: Curves.easeOut);
+  }
+}
+
+// Bloque "etiqueta + valor" con ícono, usado dentro de la tarjeta de éxito.
+class _DatoExito extends StatelessWidget {
+  final IconData icono;
+  final String etiqueta;
+  final String valor;
+  final Color valorColor;
+  final bool oscuro;
+
+  const _DatoExito({
+    required this.icono,
+    required this.etiqueta,
+    required this.valor,
+    required this.valorColor,
+    required this.oscuro,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(children: [
+          Icon(icono, size: 13, color: CraftHubColors.textoSecundario(oscuro)),
+          const SizedBox(width: 5),
+          Text(etiqueta, style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: CraftHubColors.textoSecundario(oscuro))),
+        ]),
+        const SizedBox(height: 5),
+        Text(valor, style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w800, color: valorColor)),
+      ],
     );
   }
 }

@@ -1,11 +1,16 @@
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
 from supabase_client import supabase
 
 router = APIRouter(prefix="/api/tutoriales", tags=["Tutoriales"])
+
+# Límite de tamaño para videos subidos directamente (protege la cuota gratis
+# de Supabase Storage, que en el plan free ronda los 50 MB por archivo).
+MAX_VIDEO_MB = 50
 
 
 def _id_youtube(url: str) -> str:
@@ -71,7 +76,9 @@ def listar_tutoriales(categoria: Optional[str] = None):
     try:
         query = supabase.table("tutoriales").select("*")
         if categoria and categoria.lower() not in ("todas", "all"):
-            query = query.eq("categoria", categoria)
+            # Case-insensitive: "Joyería" en el chip matchea aunque la fila
+            # esté guardada como "joyería" o "JOYERIA".
+            query = query.ilike("categoria", categoria)
 
         data = query.order("created_at", desc=True).execute().data or []
 
@@ -187,6 +194,34 @@ def registrar_vista(tutorial_id: str):
         raise HTTPException(status_code=500, detail=f"Error registrando vista: {ex}")
 
 
+@router.post("/subir-video")
+async def subir_video(file: UploadFile = File(...)):
+    """
+    Sube un archivo de video al Storage de Supabase y devuelve su URL pública,
+    para tutoriales que el artesano graba y sube directamente (sin YouTube).
+    🔗 FLUTTER: POST /api/tutoriales/subir-video (multipart, campo "file")
+    """
+    try:
+        contenido = await file.read()
+        if len(contenido) > MAX_VIDEO_MB * 1024 * 1024:
+            raise HTTPException(
+                status_code=413,
+                detail=f"El video supera el límite de {MAX_VIDEO_MB} MB. Comprímelo o súbelo a YouTube y pega el enlace.",
+            )
+        extension = (file.filename.split(".")[-1] if file.filename else "mp4").lower()
+        nombre_archivo = f"tutorial_video_{uuid.uuid4().hex[:12]}.{extension}"
+        bucket = "productos"  # bucket público existente; reutilizado para videos
+        supabase.storage.from_(bucket).upload(
+            nombre_archivo, contenido, {"content-type": file.content_type or "video/mp4"}
+        )
+        url = supabase.storage.from_(bucket).get_public_url(nombre_archivo)
+        return {"success": True, "url": url}
+    except HTTPException:
+        raise
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Error al subir el video: {str(ex)}")
+
+
 class TutorialNuevo(BaseModel):
     titulo: str
     descripcion: Optional[str] = None
@@ -210,7 +245,6 @@ def crear_tutorial(payload: TutorialNuevo):
             "categoria": payload.categoria,
             "duracion": payload.duracion,
             "creador_id": payload.creador_id,
-            "vistas": 0,
         }
         resultado = supabase.table("tutoriales").insert(nuevo).execute()
         return {"status": "ok", "tutorial": resultado.data[0] if resultado.data else nuevo}

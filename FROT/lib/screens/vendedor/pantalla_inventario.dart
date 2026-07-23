@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../../models/modelo_producto_inventario.dart';
 import '../../../widgets/vendedor/widgets_inventario.dart';
 import '../../services/vendedor_api_service.dart';
@@ -783,6 +784,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
   late final TextEditingController _ctrlImagen;
   late final TextEditingController _ctrlDescripcion;
   late String _categoria;
+  final Set<String> _tallas = {};
   bool _guardando = false;
   bool _subiendoImagen = false;
   bool _generandoIA = false;
@@ -803,6 +805,9 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     _categoria = _categorias.contains(widget.producto.categoria)
         ? widget.producto.categoria
         : _categorias.first;
+    _tallas.addAll(
+      widget.producto.tallas.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty),
+    );
   }
 
   @override
@@ -938,6 +943,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
         categoria: _categoria,
         imagenUrl: _ctrlImagen.text.trim(),
         descripcion: _ctrlDescripcion.text.trim(),
+        tallas: _categoriaPideTallas(_categoria) ? _tallas.join(',') : null,
       );
       if (!mounted) return;
       Navigator.pop(
@@ -971,10 +977,11 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
     final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      backgroundColor: CraftHubColors.fondo(esModoOscuro),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 680),
+        constraints: const BoxConstraints(maxWidth: 580, maxHeight: 820),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
           child: Column(
@@ -1031,7 +1038,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                         titulo: tr(context, 'vendedor_inventario.seccion_informacion_basica'),
                         child: TextField(
                           controller: _ctrlNombre,
-                          decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_nombre_producto')),
+                          decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_nombre_producto')),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -1046,7 +1053,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                                   child: TextField(
                                     controller: _ctrlPrecio,
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_precio'), prefixText: '\$'),
+                                    decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_precio'), prefixText: '\$ '),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -1054,7 +1061,7 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                                   child: TextField(
                                     controller: _ctrlStock,
                                     keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_stock')),
+                                    decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_stock')),
                                   ),
                                 ),
                               ],
@@ -1062,7 +1069,8 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                             const SizedBox(height: 12),
                             DropdownButtonFormField<String>(
                               value: _categoria,
-                              decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_categoria')),
+                              decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_categoria')),
+                              borderRadius: BorderRadius.circular(12),
                               items: _categorias
                                   .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                   .toList(),
@@ -1072,6 +1080,21 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_precio'),
                       ),
+                      if (_categoriaPideTallas(_categoria)) ...[
+                        const SizedBox(height: 20),
+                        _SeccionFormulario(
+                          icono: Icons.straighten_rounded,
+                          titulo: tr(context, 'vendedor_inventario.seccion_tallas'),
+                          child: _SelectorTallas(
+                            categoria: _categoria,
+                            seleccionadas: _tallas,
+                            onToggle: (t) => setState(() {
+                              _tallas.contains(t) ? _tallas.remove(t) : _tallas.add(t);
+                            }),
+                          ),
+                          tip: tr(context, 'vendedor_inventario.tip_tallas'),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.image_outlined,
@@ -1092,13 +1115,13 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                                 width: 14, height: 14,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(Icons.image_search_rounded, size: 16, color: Color(0xFF821515)),
+                            : Icon(Icons.image_search_rounded, size: 16, color: _acentoBoton(esModoOscuro)),
                         label: Text(_analizandoImagen
                             ? tr(context, 'vendedor_inventario.analizando_imagen')
                             : tr(context, 'vendedor_inventario.analizar_imagen_ia')),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF821515),
-                          side: const BorderSide(color: Color(0xFF821515)),
+                          foregroundColor: _acentoBoton(esModoOscuro),
+                          side: BorderSide(color: _acentoBoton(esModoOscuro)),
                         ),
                       ),
                       if (_analisisImagen != null) ...[
@@ -1115,9 +1138,9 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                         child: TextField(
                           controller: _ctrlDescripcion,
                           maxLines: 3,
-                          decoration: InputDecoration(
-                            labelText: tr(context, 'vendedor_inventario.seccion_descripcion'),
-                            hintText: tr(context, 'vendedor_inventario.hint_descripcion_producto'),
+                          decoration: _decoInput(
+                            esModoOscuro,
+                            hint: tr(context, 'vendedor_inventario.hint_descripcion_producto'),
                           ),
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_descripcion'),
@@ -1130,13 +1153,13 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
                                 width: 14, height: 14,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF821515)),
+                            : Icon(Icons.auto_awesome_rounded, size: 16, color: _acentoBoton(esModoOscuro)),
                         label: Text(_generandoIA
                             ? tr(context, 'vendedor_inventario.generando_ia')
                             : tr(context, 'vendedor_inventario.generar_con_ia')),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF821515),
-                          side: const BorderSide(color: Color(0xFF821515)),
+                          foregroundColor: _acentoBoton(esModoOscuro),
+                          side: BorderSide(color: _acentoBoton(esModoOscuro)),
                         ),
                       ),
                       if (_nombresSugeridos.isNotEmpty) ...[
@@ -1208,7 +1231,89 @@ class _DialogoEditarProductoState extends State<DialogoEditarProducto> {
   }
 }
 
-// ── SECCIÓN DE FORMULARIO: encabezado con ícono + tip de ayuda opcional ──────
+// Tallas sugeridas según el tipo de producto.
+const List<String> _tallasVestir = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const List<String> _tallasCalzado = ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44'];
+
+bool _categoriaPideTallas(String categoria) =>
+    categoria == 'Vestir' || categoria == 'Calzado';
+
+// Color de acento para botones de contorno: el vino oscuro no contrasta contra
+// el fondo oscuro, así que en modo oscuro se usa un rosa más claro y legible.
+Color _acentoBoton(bool oscuro) =>
+    oscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto;
+
+// Decoración de campo con recuadro relleno y redondeado (en vez de la línea
+// inferior por defecto), consistente y theme-aware para los diálogos de
+// producto — se ve más profesional y ordenado.
+InputDecoration _decoInput(bool oscuro, {String? label, String? hint, String? prefixText}) {
+  OutlineInputBorder borde(Color c, [double w = 1]) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: c, width: w),
+      );
+  return InputDecoration(
+    labelText: label,
+    hintText: hint,
+    prefixText: prefixText,
+    labelStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(oscuro)),
+    hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: CraftHubColors.textoSecundario(oscuro)),
+    floatingLabelStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600, color: CraftHubColors.vinoTinto),
+    filled: true,
+    fillColor: oscuro ? const Color(0xFF262019) : const Color(0xFFFBF7F3),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+    border: borde(CraftHubColors.borde(oscuro)),
+    enabledBorder: borde(CraftHubColors.borde(oscuro)),
+    focusedBorder: borde(CraftHubColors.vinoTinto, 1.4),
+  );
+}
+
+// ── SELECTOR DE TALLAS: chips que el vendedor marca (solo Vestir/Calzado) ────
+class _SelectorTallas extends StatelessWidget {
+  final String categoria;
+  final Set<String> seleccionadas;
+  final ValueChanged<String> onToggle;
+  const _SelectorTallas({required this.categoria, required this.seleccionadas, required this.onToggle});
+
+  @override
+  Widget build(BuildContext context) {
+    final presets = categoria == 'Calzado' ? _tallasCalzado : _tallasVestir;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: presets.map((t) {
+        final activa = seleccionadas.contains(t);
+        return GestureDetector(
+          onTap: () => onToggle(t),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            width: 44,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: activa ? CraftHubColors.vinoTinto : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: activa ? CraftHubColors.vinoTinto : const Color(0xFFE3B8B8),
+                width: activa ? 1.6 : 1,
+              ),
+            ),
+            child: Text(
+              t,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: activa ? Colors.white : CraftHubColors.vinoTinto,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ── SECCIÓN DE FORMULARIO: tarjeta con encabezado (ícono en chip) + tip ──────
 class _SeccionFormulario extends StatelessWidget {
   final IconData icono;
   final String titulo;
@@ -1225,29 +1330,53 @@ class _SeccionFormulario extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final esModoOscuro = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icono, size: 15, color: const Color(0xFF821515)),
-            const SizedBox(width: 6),
-            Text(
-              titulo,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-                color: esModoOscuro ? Colors.white60 : const Color(0xFF9E8E85),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: CraftHubColors.panel(esModoOscuro),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CraftHubColors.borde(esModoOscuro)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: esModoOscuro ? 0.22 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: CraftHubColors.vinoTintoSuave,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(icono, size: 16, color: CraftHubColors.vinoTinto),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        child,
-        if (tip != null) _TipAyuda(texto: tip!),
-      ],
+              const SizedBox(width: 10),
+              Text(
+                titulo,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: CraftHubColors.textoPrincipal(esModoOscuro),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+          if (tip != null) _TipAyuda(texto: tip!),
+        ],
+      ),
     );
   }
 }
@@ -1308,69 +1437,114 @@ class _SelectorImagenProducto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: ctrlImagen,
       builder: (context, valor, _) {
+        final tieneImagen = valor.text.isNotEmpty;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    width: 64,
-                    height: 64,
-                    child: subiendo
-                        ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF821515)))
-                        : (valor.text.isEmpty
-                            ? Container(
-                                color: const Color(0xFF821515).withValues(alpha: 0.08),
-                                child: const Icon(Icons.image_outlined, color: Color(0xFF821515), size: 26),
-                              )
-                            : Image.network(
-                                valor.text,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(
-                                  color: const Color(0xFF821515).withValues(alpha: 0.08),
-                                  child: const Icon(Icons.image_outlined, color: Color(0xFF821515), size: 26),
-                                ),
-                              )),
+            // ── Zona grande de subida / vista previa ──────────────────────
+            InkWell(
+              onTap: subiendo ? null : alSubirDesdePC,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                height: 160,
+                width: double.infinity,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: oscuro ? const Color(0xFF262019) : const Color(0xFFFBF7F3),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: tieneImagen ? CraftHubColors.vinoTinto.withValues(alpha: 0.5) : CraftHubColors.borde(oscuro),
+                    width: 1.4,
                   ),
                 ),
-                const SizedBox(width: 12),
+                child: subiendo
+                    ? const Center(child: CircularProgressIndicator(strokeWidth: 2.4, color: CraftHubColors.vinoTinto))
+                    : (tieneImagen
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.network(
+                                valor.text,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: CraftHubColors.vinoTintoSuave,
+                                  child: const Icon(Icons.broken_image_outlined, color: CraftHubColors.vinoTinto, size: 30),
+                                ),
+                              ),
+                              Positioned(
+                                right: 8,
+                                bottom: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.55),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    const Icon(Icons.autorenew_rounded, size: 14, color: Colors.white),
+                                    const SizedBox(width: 5),
+                                    Text(tr(context, 'vendedor_inventario.cambiar_imagen'),
+                                        style: const TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: Colors.white)),
+                                  ]),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: CraftHubColors.vinoTintoSuave,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.add_photo_alternate_outlined, color: CraftHubColors.vinoTinto, size: 24),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(tr(context, 'vendedor_inventario.sube_una_imagen'),
+                                  style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, fontWeight: FontWeight.w600,
+                                      color: CraftHubColors.textoPrincipal(oscuro))),
+                              const SizedBox(height: 3),
+                              Text(tr(context, 'vendedor_inventario.formatos_imagen'),
+                                  style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5,
+                                      color: CraftHubColors.textoSecundario(oscuro))),
+                            ],
+                          )),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // ── Cámara + campo URL como opciones secundarias ──────────────
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: subiendo ? null : alTomarFoto,
+                    icon: Icon(Icons.photo_camera_outlined, size: 16, color: _acentoBoton(oscuro)),
+                    label: Text(tr(context, 'vendedor_inventario.tomar_foto_camara'),
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: _acentoBoton(oscuro))),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(42),
+                      side: BorderSide(color: _acentoBoton(oscuro).withValues(alpha: 0.6)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: ctrlImagen,
-                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_url_imagen')),
+                    style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.textoPrincipal(oscuro)),
+                    decoration: _decoInput(oscuro, hint: tr(context, 'vendedor_inventario.o_pega_url')),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 10),
-            OutlinedButton.icon(
-              onPressed: subiendo ? null : alSubirDesdePC,
-              icon: const Icon(Icons.upload_outlined, size: 16, color: Color(0xFF821515)),
-              label: Text(tr(context, 'vendedor_inventario.subir_imagen_pc'),
-                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(40),
-                side: const BorderSide(color: Color(0xFFE3B8B8)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-              ),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: subiendo ? null : alTomarFoto,
-              icon: const Icon(Icons.photo_camera_outlined, size: 16, color: Color(0xFF821515)),
-              label: Text(tr(context, 'vendedor_inventario.tomar_foto_camara'),
-                  style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF821515))),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(40),
-                side: const BorderSide(color: Color(0xFFE3B8B8)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-              ),
             ),
           ],
         );
@@ -1399,6 +1573,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
   final _ctrlImagen = TextEditingController();
   final _ctrlDescripcion = TextEditingController();
   String _categoria = _categorias.first;
+  final Set<String> _tallas = {};
   bool _guardando = false;
   bool _subiendoImagen = false;
   bool _generandoIA = false;
@@ -1527,6 +1702,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
         creador: widget.nombreVendedor,
         imagenUrl: _ctrlImagen.text.trim(),
         descripcion: _ctrlDescripcion.text.trim(),
+        tallas: _categoriaPideTallas(_categoria) ? _tallas.join(',') : null,
       );
       if (!mounted) return;
       Navigator.pop(context, ProductoInventario.fromJson(respuesta));
@@ -1543,10 +1719,11 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
     final colorTexto = esModoOscuro ? Colors.white : const Color(0xFF1A1A1A);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      backgroundColor: esModoOscuro ? const Color(0xFF1E1E1E) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      backgroundColor: CraftHubColors.fondo(esModoOscuro),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 680),
+        constraints: const BoxConstraints(maxWidth: 580, maxHeight: 820),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
           child: Column(
@@ -1601,7 +1778,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                         titulo: tr(context, 'vendedor_inventario.seccion_informacion_basica'),
                         child: TextField(
                           controller: _ctrlNombre,
-                          decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_nombre_producto')),
+                          decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_nombre_producto')),
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_nombre'),
                       ),
@@ -1617,7 +1794,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                                   child: TextField(
                                     controller: _ctrlPrecio,
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_precio'), prefixText: '\$'),
+                                    decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_precio'), prefixText: '\$ '),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -1625,7 +1802,7 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                                   child: TextField(
                                     controller: _ctrlStock,
                                     keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_stock')),
+                                    decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_stock')),
                                   ),
                                 ),
                               ],
@@ -1633,7 +1810,8 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                             const SizedBox(height: 12),
                             DropdownButtonFormField<String>(
                               value: _categoria,
-                              decoration: InputDecoration(labelText: tr(context, 'vendedor_inventario.label_categoria')),
+                              decoration: _decoInput(esModoOscuro, label: tr(context, 'vendedor_inventario.label_categoria')),
+                              borderRadius: BorderRadius.circular(12),
                               items: _categorias
                                   .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                                   .toList(),
@@ -1643,6 +1821,21 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_precio'),
                       ),
+                      if (_categoriaPideTallas(_categoria)) ...[
+                        const SizedBox(height: 20),
+                        _SeccionFormulario(
+                          icono: Icons.straighten_rounded,
+                          titulo: tr(context, 'vendedor_inventario.seccion_tallas'),
+                          child: _SelectorTallas(
+                            categoria: _categoria,
+                            seleccionadas: _tallas,
+                            onToggle: (t) => setState(() {
+                              _tallas.contains(t) ? _tallas.remove(t) : _tallas.add(t);
+                            }),
+                          ),
+                          tip: tr(context, 'vendedor_inventario.tip_tallas'),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       _SeccionFormulario(
                         icono: Icons.image_outlined,
@@ -1664,13 +1857,13 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                                       width: 14, height: 14,
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     )
-                                  : const Icon(Icons.image_search_rounded, size: 16, color: Color(0xFF821515)),
+                                  : Icon(Icons.image_search_rounded, size: 16, color: _acentoBoton(esModoOscuro)),
                               label: Text(_analizandoImagen
                                   ? tr(context, 'vendedor_inventario.analizando_imagen')
                                   : tr(context, 'vendedor_inventario.analizar_imagen_ia')),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFF821515),
-                                side: const BorderSide(color: Color(0xFF821515)),
+                                foregroundColor: _acentoBoton(esModoOscuro),
+                                side: BorderSide(color: _acentoBoton(esModoOscuro)),
                               ),
                             ),
                             if (_analisisImagen != null) ...[
@@ -1691,9 +1884,9 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                         child: TextField(
                           controller: _ctrlDescripcion,
                           maxLines: 3,
-                          decoration: InputDecoration(
-                            labelText: tr(context, 'vendedor_inventario.seccion_descripcion'),
-                            hintText: tr(context, 'vendedor_inventario.hint_descripcion_producto'),
+                          decoration: _decoInput(
+                            esModoOscuro,
+                            hint: tr(context, 'vendedor_inventario.hint_descripcion_producto'),
                           ),
                         ),
                         tip: tr(context, 'vendedor_inventario.tip_descripcion'),
@@ -1706,13 +1899,13 @@ class _DialogoNuevoProductoState extends State<DialogoNuevoProducto> {
                                 width: 14, height: 14,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF821515)),
+                            : Icon(Icons.auto_awesome_rounded, size: 16, color: _acentoBoton(esModoOscuro)),
                         label: Text(_generandoIA
                             ? tr(context, 'vendedor_inventario.generando_ia')
                             : tr(context, 'vendedor_inventario.generar_con_ia')),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF821515),
-                          side: const BorderSide(color: Color(0xFF821515)),
+                          foregroundColor: _acentoBoton(esModoOscuro),
+                          side: BorderSide(color: _acentoBoton(esModoOscuro)),
                         ),
                       ),
                       if (_nombresSugeridos.isNotEmpty) ...[

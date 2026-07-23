@@ -10,6 +10,11 @@ import '../../services/api_service.dart';
 import '../../services/generador_factura_pdf.dart';
 import 'tarjeta_seccion.dart';
 
+// Vino tinto puro no contrasta sobre el fondo casi negro del modo oscuro,
+// así que ahí usamos un rosa palo (mismo criterio que el resto de la app).
+Color _acento(bool esOscuro) =>
+    esOscuro ? const Color(0xFFE38F8F) : CraftHubColors.vinoTinto;
+
 class SeccionHistorialPedidos extends StatefulWidget {
   final String userId;
   final Map<String, dynamic> perfilComprador;
@@ -150,8 +155,8 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
                                         ),
                                       ),
                                       Text('\$${(pedido['total'] as num?)?.toStringAsFixed(2) ?? '0.00'}',
-                                          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700,
-                                              color: CraftHubColors.vinoTinto)),
+                                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700,
+                                              color: _acento(esOscuro))),
                                       Icon(expandido ? Icons.expand_less_rounded : Icons.expand_more_rounded,
                                           color: CraftHubColors.textoSecundario(esOscuro)),
                                     ],
@@ -182,9 +187,9 @@ class _SeccionHistorialPedidosState extends State<SeccionHistorialPedidos> {
                                           onPressed: _descargando == i ? null : () => _descargarFactura(pedido, i),
                                           icon: _descargando == i
                                               ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                                              : const Icon(Icons.download_outlined, size: 17, color: CraftHubColors.vinoTinto),
+                                              : Icon(Icons.download_outlined, size: 17, color: _acento(esOscuro)),
                                           label: Text(tr(context, 'comprador_secundario.descargar_factura_boton'),
-                                              style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: CraftHubColors.vinoTinto, fontWeight: FontWeight.w600)),
+                                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12.5, color: _acento(esOscuro), fontWeight: FontWeight.w600)),
                                         ),
                                       ),
                                     ],

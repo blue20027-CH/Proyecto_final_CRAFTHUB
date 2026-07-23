@@ -212,84 +212,98 @@ class _SeccionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final esOscuro = Theme.of(context).brightness == Brightness.dark;
-    return SizedBox(
-      height: 240,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Banner de fondo
-          Positioned.fill(
-            child: Image.network(
-              artesano.bannerUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                color: CraftHubColors.vinoTinto.withValues(alpha: 0.15),
-              ),
-            ),
-          ),
-
-          // Velo oscuro sutil
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.25),
-                    Colors.transparent,
-                  ],
+    // Nuevo layout: banner limpio de 220px (para que se aprecie de verdad),
+    // tarjeta debajo con el avatar sobresaliendo hacia el banner, y botones
+    // apilados verticalmente a la derecha.
+    return Column(
+      children: [
+        // ── BANNER LIMPIO ─────────────────────────────────────────
+        SizedBox(
+          height: 220,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.network(
+                artesano.bannerUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        CraftHubColors.vinoTinto.withValues(alpha: 0.35),
+                        CraftHubColors.vinoTinto.withValues(alpha: 0.12),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              // Velo sutil en la parte superior para que el botón volver
+              // se lea bien sin oscurecer el banner completo.
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.28),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.35],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 20,
+                left: 24,
+                child: _BotonVolver(onVolver: onVolver),
+              ),
+            ],
           ),
+        ),
 
-          // Botón volver arriba izquierda
-          Positioned(
-            top: 20,
-            left: 24,
-            child: _BotonVolver(onVolver: onVolver),
-          ),
-
-          // Contenedor blanco flotante informativo
-          Positioned(
-            bottom: -40,
-            left: 24,
-            right: 24,
-            child: Container(
-              padding: const EdgeInsets.all(20),
+        // ── TARJETA DE IDENTIDAD (avatar sobresale hacia el banner) ─
+        // Margen superior negativo para que "muerda" el final del banner
+        // y el avatar quede pisado entre banner y tarjeta.
+        Container(
+              margin: const EdgeInsets.fromLTRB(24, -55, 24, 0),
+              padding: const EdgeInsets.fromLTRB(24, 22, 24, 22),
               decoration: BoxDecoration(
                 color: CraftHubColors.panel(esOscuro),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: CraftHubColors.borde(esOscuro)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: esOscuro ? 0.25 : 0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: esOscuro ? 0.35 : 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      // Avatar circular con borde de verificación integrado corregido
-                      Stack(
+                  // Avatar sobresale ~50px hacia el banner
+                  Transform.translate(
+                    offset: const Offset(0, -50),
+                    child: SizedBox(
+                      height: 116,
+                      width: 116,
+                      child: Stack(
                         clipBehavior: Clip.none,
                         children: [
                           Container(
-                            width: 84,
-                            height: 84,
+                            width: 116,
+                            height: 116,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: CraftHubColors.panel(esOscuro), width: 3),
+                              border: Border.all(color: CraftHubColors.panel(esOscuro), width: 4),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.08),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                                  color: Colors.black.withValues(alpha: 0.18),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -301,7 +315,7 @@ class _SeccionBanner extends StatelessWidget {
                                   color: CraftHubColors.borde(esOscuro),
                                   child: Icon(
                                     Icons.person,
-                                    size: 40,
+                                    size: 56,
                                     color: CraftHubColors.textoSecundario(esOscuro),
                                   ),
                                 ),
@@ -310,70 +324,113 @@ class _SeccionBanner extends StatelessWidget {
                           ),
                           if (artesano.verificado)
                             Positioned(
-                              bottom: 0,
-                              right: 0,
+                              bottom: 2,
+                              right: 2,
                               child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFD4A843), // Dorado
+                                width: 26,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD4A843),
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: CraftHubColors.panel(esOscuro), width: 2),
                                 ),
-                                child: const Icon(
-                                  Icons.check,
-                                  size: 12, 
-                                  color: Colors.white,
-                                ),
+                                child: const Icon(Icons.check, size: 14, color: Colors.white),
                               ),
                             ),
                         ],
                       ),
-                      const SizedBox(width: 16),
-                      // Nombre + Especialidad + Ubicación + Reseñas
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            artesano.nombre,
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: CraftHubColors.textoPrincipal(esOscuro),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            artesano.especialidad,
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              color: CraftHubColors.textoSecundario(esOscuro),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on_outlined, size: 14, color: CraftHubColors.textoSecundario(esOscuro)),
-                              const SizedBox(width: 4),
-                              Text(artesano.ubicacion, style: TextStyle(fontSize: 12, color: CraftHubColors.textoSecundario(esOscuro))),
-                              const SizedBox(width: 16),
-                              const Icon(Icons.star_rounded, size: 14, color: Color(0xFFD4A843)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${artesano.calificacion} (${artesano.totalResenas} reseñas)',
-                                style: TextStyle(fontSize: 12, color: CraftHubColors.textoSecundario(esOscuro)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                  // Botones de acción alineados a la derecha
-                  Row(
+                  const SizedBox(width: 20),
+                  // Info: nombre, especialidad, ubicación, rating + badge
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                artesano.nombre,
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: CraftHubColors.textoPrincipal(esOscuro),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (artesano.verificado) ...[
+                              const SizedBox(width: 8),
+                              const Icon(Icons.verified_rounded, size: 20, color: Color(0xFFD4A843)),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          artesano.especialidad,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w400,
+                            color: CraftHubColors.textoSecundario(esOscuro),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 18,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.location_on_outlined, size: 15, color: CraftHubColors.textoSecundario(esOscuro)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  artesano.ubicacion,
+                                  style: TextStyle(fontSize: 12.5, color: CraftHubColors.textoSecundario(esOscuro)),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.star_rounded, size: 15, color: Color(0xFFD4A843)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${artesano.calificacion} (${artesano.totalResenas} ${tr(context, 'comprador_secundario.resenas_label')})',
+                                  style: TextStyle(fontSize: 12.5, color: CraftHubColors.textoSecundario(esOscuro)),
+                                ),
+                              ],
+                            ),
+                            if (artesano.verificado)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD4A843).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFFD4A843).withValues(alpha: 0.35)),
+                                ),
+                                child: Text(
+                                  tr(context, 'comprador_secundario.artesana_verificada_badge'),
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins', fontSize: 11.5, fontWeight: FontWeight.w600,
+                                    color: Color(0xFFB8892E),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  // Botones apilados verticalmente
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: esPropio
                         ? [
                             _BotonAccion(
@@ -393,7 +450,7 @@ class _SeccionBanner extends StatelessWidget {
                                 onEnviarMensaje?.call();
                               },
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(height: 10),
                             _BotonAccion(
                               texto: tr(context, 'comprador_secundario.seguir_artesana'),
                               icono: Icons.favorite_border_rounded,
@@ -405,9 +462,7 @@ class _SeccionBanner extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -546,7 +601,7 @@ class _SeccionEstadisticas extends StatelessWidget {
   Widget build(BuildContext context) {
     final esOscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      margin: const EdgeInsets.fromLTRB(44, 60, 44, 20),
+      margin: const EdgeInsets.fromLTRB(44, 12, 44, 20),
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         // Corregido: border debe estar contenido obligatoriamente dentro de un BoxDecoration

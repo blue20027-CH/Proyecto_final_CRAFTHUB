@@ -27,6 +27,7 @@ class ProductoUpdate(BaseModel):
     categoria: str = "Artesania"
     descripcion: Optional[str] = None
     img: Optional[str] = None
+    tallas: Optional[str] = None  # "S,M,L,XL" — solo Vestir/Calzado
 
 class ProductoNuevo(BaseModel):
     nombre: str
@@ -37,12 +38,16 @@ class ProductoNuevo(BaseModel):
     img: Optional[str] = None
     color: str = "#C4A882"
     creador: str
+    tallas: Optional[str] = None  # "S,M,L,XL" — solo Vestir/Calzado
 
 
 @router.get("/", response_model=List[dict])
 def obtener_productos(categoria: Optional[str] = None, busqueda: Optional[str] = None):
     try:
-        query = supabase.table("productos").select("*")
+        # Los administradores pueden marcar productos como `oculto = true` desde
+        # Supabase para censurarlos sin borrar la fila; aquí (listado público
+        # que ven los compradores) los filtramos fuera.
+        query = supabase.table("productos").select("*").eq("oculto", False)
         if categoria and categoria != "Todos":
             query = query.eq("categoria", categoria)
         resp = query.execute()
@@ -120,7 +125,15 @@ def obtener_producto(producto_id: int):
     🔗 FLUTTER: GET /productos/{id}
     """
     try:
-        resp = supabase.table("productos").select("*").eq("id", producto_id).execute()
+        # Un producto censurado (oculto = true) no se muestra al comprador ni
+        # aunque intente entrar al detalle con el link directo.
+        resp = (
+            supabase.table("productos")
+            .select("*")
+            .eq("id", producto_id)
+            .eq("oculto", False)
+            .execute()
+        )
         productos = resp.data or []
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al cargar el producto: {str(e)}")
@@ -178,7 +191,15 @@ def obtener_favoritos(user_id: str):
         ids = [f["producto_id"] for f in favs]
         if not ids:
             return {"favoritos": []}
-        productos = supabase.table("productos").select("*").in_("id", ids).execute().data or []
+        productos = (
+            supabase.table("productos")
+            .select("*")
+            .in_("id", ids)
+            .eq("oculto", False)
+            .execute()
+            .data
+            or []
+        )
         return {"favoritos": productos}
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))

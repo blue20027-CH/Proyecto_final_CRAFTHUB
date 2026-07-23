@@ -340,13 +340,6 @@ def metodos_pago():
                 "subtitulo":"Visa, Mastercard, American Express",
                 "icono":    "credit-card",
             },
-            {
-                "id":       "Transferencia",
-                "titulo":   "Transferencia Bancaria",
-                "subtitulo":"Realiza tu pago desde tu banco",
-                "icono":    "building-bank",
-                "bancos":   ["Banistmo", "Banco Nacional", "BAC Credomatic", "Global Bank", "Caja de Ahorros"],
-            },
             {"id": "Yappy",    "titulo": "Yappy",    "icono": "wallet", "campo": "telefono"},
             {"id": "PayPal",   "titulo": "PayPal",   "icono": "wallet", "campo": "correo"},
             {"id": "Banistmo", "titulo": "Banistmo", "icono": "wallet", "campo": "telefono"},

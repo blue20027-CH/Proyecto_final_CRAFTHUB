@@ -311,12 +311,16 @@ class _FormularioRegistro extends StatelessWidget {
             hint: tr(context, 'auth.nombres_hint'),
             icono: Icons.person_outline_rounded,
             esOscuro: esOscuro,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
           ),
           derecha: CampoTexto(
             controlador: ctrlApellidos,
             hint: tr(context, 'auth.apellidos_hint'),
             icono: Icons.person_outline_rounded,
             esOscuro: esOscuro,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
           ),
         ),
 
@@ -328,6 +332,8 @@ class _FormularioRegistro extends StatelessWidget {
           hint: tr(context, 'auth.correo_electronico_hint'),
           icono: Icons.mail_outline_rounded,
           esOscuro: esOscuro,
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => FocusScope.of(context).nextFocus(),
         ),
 
         const SizedBox(height: 10),
@@ -339,6 +345,8 @@ class _FormularioRegistro extends StatelessWidget {
             hint: tr(context, 'auth.nombre_usuario_hint'),
             icono: Icons.badge_outlined,
             esOscuro: esOscuro,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
           ),
           derecha: CampoTexto(
             controlador: ctrlPassword,
@@ -348,6 +356,8 @@ class _FormularioRegistro extends StatelessWidget {
             esPassword: true,
             verPassword: verPassword,
             alAlternarVisibilidad: alAlternarPassword,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
           ),
         ),
 
@@ -360,6 +370,8 @@ class _FormularioRegistro extends StatelessWidget {
     hint: tr(context, 'auth.numero_telefono_hint'),
     icono: Icons.phone_outlined,
     esOscuro: esOscuro,
+    textInputAction: TextInputAction.next,
+    onSubmitted: (_) => FocusScope.of(context).nextFocus(),
   ),
   derecha: CampoTexto(
     controlador: ctrlFechaNacimiento,
@@ -403,6 +415,8 @@ class _FormularioRegistro extends StatelessWidget {
             hint: tr(context, 'auth.ciudad_direccion_hint'),
             icono: Icons.location_on_outlined,
             esOscuro: esOscuro,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
           ),
         ),
 
@@ -415,6 +429,8 @@ class _FormularioRegistro extends StatelessWidget {
             hint: tr(context, 'auth.id_numero_identificacion_hint'),
             icono: Icons.badge_outlined,
             esOscuro: esOscuro,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => alRegistrar(),
           ),
           derecha: CampoDropdown<String>(
             valorSeleccionado: genero,
