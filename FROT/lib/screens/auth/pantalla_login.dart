@@ -147,94 +147,88 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
     return Scaffold(
       body: SizedBox.expand(
-        child: Row(
+        // Todo dentro de un Stack: el fondo (imagen+gradient) ocupa 100% del
+        // ancho, y el panel de login se pinta ENCIMA a la derecha ocupando
+        // ~45% del ancho. Así no hay borde entre "widgets separados" que
+        // pueda dejar la raya sub-pixel que Flutter Web renderiza al usar
+        // Row+Expanded con un color sólido junto a un gradient.
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-
-            // ── LADO IZQUIERDO: imagen + degradado ──────────────────────────────
-            Expanded(
-              flex: 55,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/fondo_in.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.centerRight,
+            // ── FONDO: imagen + degradado (full width) ─────────────────────
+            Image.asset(
+              'assets/images/fondo_in.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.centerLeft,
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: esOscuro
+                        ? [
+                            Colors.transparent,
+                            CraftHubColors.fondoOscuro.withValues(alpha: 0.55),
+                            CraftHubColors.fondoOscuro.withValues(alpha: 0.92),
+                            CraftHubColors.fondoOscuro,
+                          ]
+                        : [
+                            Colors.transparent,
+                            CraftHubColors.fondoClaro.withValues(alpha: 0.55),
+                            CraftHubColors.fondoClaro.withValues(alpha: 0.92),
+                            CraftHubColors.fondoClaro,
+                          ],
+                    stops: const [0.0, 0.35, 0.50, 0.55],
                   ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerRight,
-                          end: Alignment.centerLeft,
-                          colors: esOscuro
-                              ? [
-                                  CraftHubColors.fondoOscuro,
-                                  CraftHubColors.fondoOscuro.withValues(alpha: 0.92),
-                                  CraftHubColors.fondoOscuro.withValues(alpha: 0.55),
-                                  Colors.transparent,
-                                ]
-                              : [
-                                  CraftHubColors.fondoClaro,
-                                  CraftHubColors.fondoClaro.withValues(alpha: 0.92),
-                                  CraftHubColors.fondoClaro.withValues(alpha: 0.55),
-                                  Colors.transparent,
-                                ],
-                          stops: const [0.0, 0.15, 0.45, 1.0],
+                ),
+              ),
+            ),
+
+            // ── PANEL LOGIN (encima, alineado a la derecha) ────────────────
+            // FractionallySizedBox le da un ancho relativo (~45% del stack)
+            // y AnimatedContainer con decoration pinta el fondo opaco. Al
+            // estar en Stack no queda ningún gap sub-pixel con el fondo.
+            Align(
+              alignment: Alignment.centerRight,
+              child: FractionallySizedBox(
+                widthFactor: 0.45,
+                heightFactor: 1.0,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  decoration: BoxDecoration(
+                    color: esOscuro
+                        ? CraftHubColors.fondoOscuro
+                        : CraftHubColors.fondoClaro,
+                  ),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: _PanelLogin(
+                          esOscuro: esOscuro,
+                          ctrlEmail: _ctrlEmail,
+                          ctrlPassword: _ctrlPassword,
+                          verPassword: _verPassword,
+                          cargando: _cargando,
+                          errorMensaje: _errorMensaje,
+                          modoSeleccionado: _modoSeleccionado,
+                          alCambiarModo: (modo) =>
+                              setState(() => _modoSeleccionado = modo),
+                          alAlternarPassword: () =>
+                              setState(() => _verPassword = !_verPassword),
+                          alIniciarSesion: _iniciarSesion,
+                          alIniciarGoogle: _iniciarSesionGoogle,
+                          alRecuperarPassword: _recuperarPassword,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            // ── LADO DERECHO: panel login (sin scroll, altura fija) ─────────────
-            // Usamos `decoration` (no `color`) porque Flutter Web deja un
-            // hairline entre el gradient del panel izquierdo y el color sólido
-            // del derecho cuando se usa `Container.color`. El decoration
-            // renderiza el fondo como una capa opaca y elimina la raya.
-            // Además transformamos el panel 1px a la izquierda para solapar
-            // con el borde del gradient y tapar cualquier sub-pixel gap.
-            Expanded(
-              flex: 45,
-              child: Transform.translate(
-                offset: const Offset(-1, 0),
-                child: AnimatedContainer(
-                duration: const Duration(milliseconds: 400),
-                decoration: BoxDecoration(
-                  color: esOscuro
-                    ? CraftHubColors.fondoOscuro
-                    : CraftHubColors.fondoClaro,
-                ),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 50),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: _PanelLogin(
-                        esOscuro: esOscuro,
-                        ctrlEmail: _ctrlEmail,
-                        ctrlPassword: _ctrlPassword,
-                        verPassword: _verPassword,
-                        cargando: _cargando,
-                        errorMensaje: _errorMensaje,
-                        modoSeleccionado: _modoSeleccionado,
-                        alCambiarModo: (modo) =>
-                            setState(() => _modoSeleccionado = modo),
-                        alAlternarPassword: () =>
-                            setState(() => _verPassword = !_verPassword),
-                        alIniciarSesion: _iniciarSesion,
-                        alIniciarGoogle: _iniciarSesionGoogle,
-                        alRecuperarPassword: _recuperarPassword,
-                      ),
-                    ),
-                  ),
                 ),
               ),
-              ),
             ),
-
           ],
         ),
       ),
