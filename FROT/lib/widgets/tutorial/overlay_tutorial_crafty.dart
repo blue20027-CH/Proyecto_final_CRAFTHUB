@@ -407,7 +407,7 @@ class _Globo extends StatelessWidget {
         ),
         // Puntita del globo apuntando a Crafty
         Padding(
-          padding: const EdgeInsets.only(right: 40, top: -1),
+          padding: const EdgeInsets.only(right: 40),
           child: CustomPaint(
             size: const Size(18, 12),
             painter: _PuntitaGloboPainter(
