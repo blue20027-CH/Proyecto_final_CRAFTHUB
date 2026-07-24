@@ -264,10 +264,13 @@ class _SeccionBanner extends StatelessWidget {
         ),
 
         // ── TARJETA DE IDENTIDAD (avatar sobresale hacia el banner) ─
-        // Margen superior negativo para que "muerda" el final del banner
-        // y el avatar quede pisado entre banner y tarjeta.
-        Container(
-              margin: const EdgeInsets.fromLTRB(24, -55, 24, 0),
+        // En vez de margen negativo (que Flutter Web maneja mal y crashea),
+        // usamos Transform.translate para subir la tarjeta visualmente sin
+        // romper los constraints del Column.
+        Transform.translate(
+          offset: const Offset(0, -55),
+          child: Container(
+              margin: const EdgeInsets.fromLTRB(24, 0, 24, 0),
               padding: const EdgeInsets.fromLTRB(24, 22, 24, 22),
               decoration: BoxDecoration(
                 color: CraftHubColors.panel(esOscuro),
@@ -462,6 +465,7 @@ class _SeccionBanner extends StatelessWidget {
                 ],
               ),
             ),
+        ),
       ],
     );
   }

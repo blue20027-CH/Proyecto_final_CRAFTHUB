@@ -63,7 +63,10 @@ def obtener_perfil(user_id: str):
             "categoria":         perfil.get("categoria") or "",
             "telefono":          perfil.get("telefono") or "",
             "descripcion":       perfil.get("descripcion") or "",
-            "modo":              perfil.get("modo") or perfil.get("rol") or "comprador",
+            # Normalizamos siempre a minúsculas ("vendedor" / "comprador")
+            # porque el registro guarda "Vendedor"/"Comprador" con mayúscula
+            # y el frontend compara con `_modo == 'vendedor'` (case-sensitive).
+            "modo":              (perfil.get("modo") or perfil.get("rol") or "comprador").lower(),
             "genero":            perfil.get("genero") or "",
             "fecha_nacimiento":  perfil.get("fecha_nacimiento") or "",
             "cedula":            perfil.get("cedula") or "",
@@ -142,7 +145,7 @@ def menu_perfil(user_id: str):
         raise HTTPException(status_code=500, detail=str(ex))
 
     nombre = perfil.get("nombre") or "Usuario CraftHub"
-    modo = perfil.get("modo") or "comprador"
+    modo = (perfil.get("modo") or perfil.get("rol") or "comprador").lower()
     iniciales = "".join([p[0].upper() for p in nombre.split()[:2]]) or "CH"
 
     if modo == "vendedor":

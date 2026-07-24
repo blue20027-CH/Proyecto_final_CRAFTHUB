@@ -190,13 +190,23 @@ class _PantallaLoginState extends State<PantallaLogin> {
             ),
 
             // ── LADO DERECHO: panel login (sin scroll, altura fija) ─────────────
+            // Usamos `decoration` (no `color`) porque Flutter Web deja un
+            // hairline entre el gradient del panel izquierdo y el color sólido
+            // del derecho cuando se usa `Container.color`. El decoration
+            // renderiza el fondo como una capa opaca y elimina la raya.
+            // Además transformamos el panel 1px a la izquierda para solapar
+            // con el borde del gradient y tapar cualquier sub-pixel gap.
             Expanded(
               flex: 45,
-              child: AnimatedContainer(
+              child: Transform.translate(
+                offset: const Offset(-1, 0),
+                child: AnimatedContainer(
                 duration: const Duration(milliseconds: 400),
-                color: esOscuro
+                decoration: BoxDecoration(
+                  color: esOscuro
                     ? CraftHubColors.fondoOscuro
                     : CraftHubColors.fondoClaro,
+                ),
                 child: Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -221,6 +231,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     ),
                   ),
                 ),
+              ),
               ),
             ),
 

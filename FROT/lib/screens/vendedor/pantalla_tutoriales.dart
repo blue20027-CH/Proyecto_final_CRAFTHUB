@@ -9,15 +9,20 @@ import '../../widgets/vendedor/chip_categoria_tutorial.dart';
 import '../../widgets/vendedor/dialogo_subir_video.dart';
 import '../comprador/pantalla_detalle_video.dart';
 
+// Alineadas con las categorías de productos (vestir, joyería, muebles…)
+// para que un tutorial de "cómo hacer un collar" caiga en "Joyería" — la
+// misma categoría que sus productos. "General" queda para lo transversal
+// (marketing, empaque, etc).
 const List<Map<String, dynamic>> _categoriasDisponibles = [
-  {'etiqueta': 'Joyería', 'icono': Icons.diamond_outlined},
-  {'etiqueta': 'Cerámica', 'icono': Icons.water_drop_outlined},
-  {'etiqueta': 'Textiles', 'icono': Icons.style_outlined},
-  {'etiqueta': 'Madera', 'icono': Icons.forest_outlined},
-  {'etiqueta': 'Pintura', 'icono': Icons.brush_outlined},
-  {'etiqueta': 'Accesorios', 'icono': Icons.watch_outlined},
-  {'etiqueta': 'Decoración', 'icono': Icons.home_outlined},
   {'etiqueta': 'Todas', 'icono': Icons.apps_rounded},
+  {'etiqueta': 'Vestir', 'icono': Icons.checkroom_outlined},
+  {'etiqueta': 'Artesanía', 'icono': Icons.palette_outlined},
+  {'etiqueta': 'Muebles', 'icono': Icons.chair_outlined},
+  {'etiqueta': 'Joyería', 'icono': Icons.diamond_outlined},
+  {'etiqueta': 'Alimentos', 'icono': Icons.restaurant_outlined},
+  {'etiqueta': 'Accesorios', 'icono': Icons.watch_outlined},
+  {'etiqueta': 'Calzado', 'icono': Icons.hiking_outlined},
+  {'etiqueta': 'General', 'icono': Icons.lightbulb_outline_rounded},
 ];
 
 class PantallaTutoriales extends StatefulWidget {
