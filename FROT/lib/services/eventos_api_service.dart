@@ -13,10 +13,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../core/api_config.dart';
 import '../models/evento_modelo.dart';
 
 class EventosApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   static Future<List<EventoArtesanal>> getEventos({
     String? categoria,

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../core/api_config.dart';
 import '../models/models_chat.dart';
 
 class ChatApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   /// 🔗 GET /api/chat/conversaciones/{userId}
   static Future<List<ConversacionModelo>> cargarConversaciones(String userId) async {
@@ -100,7 +101,7 @@ class ChatApiService {
   /// Sube una imagen de chat y devuelve su URL pública en Supabase Storage.
   /// Reutiliza el endpoint genérico de subida de fotos de producto.
   static Future<String> subirImagenChat(List<int> bytes, String nombreArchivo) async {
-    final uri = Uri.parse('http://127.0.0.1:8080/productos/subir-foto');
+    final uri = Uri.parse('$baseUrl/productos/subir-foto');
     final request = http.MultipartRequest('POST', uri);
     request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombreArchivo));
     final response = await request.send();

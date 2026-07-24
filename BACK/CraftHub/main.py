@@ -33,9 +33,25 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
+# En dev siempre permitimos localhost. En producción, seteá la env var
+# FRONTEND_URL con el dominio del frontend (p. ej. https://crafthub.vercel.app)
+# para agregarlo a los orígenes permitidos.
+_frontend_url = os.environ.get("FRONTEND_URL", "").strip().rstrip("/")
+
+_origenes_cors = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5959",
+    "http://localhost:8080",
+    "http://127.0.0.1:5959",
+    "http://127.0.0.1:8080",
+]
+if _frontend_url:
+    _origenes_cors.append(_frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # ⚠️ En producción reemplaza "*" por tu dominio
+    allow_origins=_origenes_cors,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

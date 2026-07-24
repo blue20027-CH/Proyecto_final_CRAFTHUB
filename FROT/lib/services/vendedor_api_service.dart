@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../core/api_config.dart';
 import '../models/modelo_producto_inventario.dart';
 import '../models/pedido_vendedor_model.dart';
 import '../widgets/vendedor/tarjeta_producto_ranking.dart';
@@ -131,7 +132,7 @@ class InventarioVendedorRespuesta {
 }
 
 class VendedorApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   static Future<DatosDashboardVendedor> cargarDashboard(String nombreVendedor) async {
     final uri = Uri.parse('$baseUrl/api/vendedor/${Uri.encodeComponent(nombreVendedor)}/dashboard');

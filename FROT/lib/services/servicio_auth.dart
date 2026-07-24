@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../core/api_config.dart';
 
 // ─── 1. LOGIN CON EMAIL Y CONTRASEÑA ───────────────────────
 // Endpoint FastAPI esperado: POST /api/auth/login
 
-// RECUERDA: 
-// - Si usas emulador Android, usa: 'http://10.0.2.2:8000'
-// - Si usas simulador iOS o Desktop, usa: 'http://localhost:8000'
-const String baseUrl = "http://127.0.0.1:8080";
+// La URL base se define en lib/core/api_config.dart; en producción se pasa
+// con --dart-define=API_URL=https://... al buildear.
+const String baseUrl = ApiConfig.baseUrl;
 
 Future<Map<String, dynamic>?> loginConEmailYPassword(
   String email,

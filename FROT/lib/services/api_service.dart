@@ -3,12 +3,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../core/api_config.dart';
 import '../models/artesano_modelo.dart';
 import '../widgets/comprador/tarjeta_producto.dart';
 import '../widgets/vendedor/tarjeta_tutorial.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   static Future<List<ProductoModelo>> getProductos({
     String? categoria,

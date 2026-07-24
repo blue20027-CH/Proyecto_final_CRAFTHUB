@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../core/api_config.dart';
 import '../models/proveedor_model.dart';
 
 class ProveedoresApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   /// 🔗 GET /api/proveedores?q=&categoria=&ubicacion=&calificacion_min=&orden=
   static Future<RespuestaProveedores> cargarProveedores({

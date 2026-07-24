@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../core/api_config.dart';
 import '../models/producto_model.dart';
 import '../models/artesano_model.dart';
 
 class CompradorApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = ApiConfig.baseUrl;
 
   // AQUI CONECTARAS TU API DE PYTHON
   // Ejemplo esperado en FastAPI:
