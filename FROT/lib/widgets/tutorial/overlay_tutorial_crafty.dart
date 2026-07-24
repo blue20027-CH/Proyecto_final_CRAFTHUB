@@ -320,21 +320,26 @@ class _OverlayTutorialCraftyState extends State<OverlayTutorialCrafty>
                           width: 2),
                     ),
                   ),
-                  // Bamboleo suave para que se sienta viva
+                  // Bamboleo suave para que se sienta viva. No usamos
+                  // ColorFiltered aquí porque en Flutter Web el BlendMode
+                  // .modulate + Image.asset a veces se renderiza como una
+                  // imagen invisible. Preferimos ver a Crafty en sus
+                  // colores originales antes que no verla.
                   Transform.rotate(
                     angle: math.sin(t * math.pi) * 0.06,
-                    child: ColorFiltered(
-                      colorFilter: const ColorFilter.mode(
-                          _kTinteDorado, BlendMode.modulate),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 400),
-                        child: KeyedSubtree(
-                          key: ValueKey(paso.rutaExpresion),
-                          child: Image.asset(
-                            paso.rutaExpresion,
-                            width: 118,
-                            height: 118,
-                            fit: BoxFit.contain,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      child: KeyedSubtree(
+                        key: ValueKey(paso.rutaExpresion),
+                        child: Image.asset(
+                          paso.rutaExpresion,
+                          width: 118,
+                          height: 118,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Icon(
+                            Icons.pets_rounded,
+                            size: 90,
+                            color: _kTinteDorado,
                           ),
                         ),
                       ),

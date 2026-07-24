@@ -173,13 +173,24 @@ class _HomeCompradorState extends State<HomeComprador> {
   }
 
   Future<void> _revisarTutorialBienvenida() async {
+    // Invitado (sin cuenta): siempre lo ve porque cada visita es "la primera".
+    // Con cuenta: solo la primera vez — después queda marcado en prefs.
+    final esInvitado = widget.userId.isEmpty;
+    if (esInvitado) {
+      if (mounted) setState(() => _mostrarTutorial = true);
+      return;
+    }
     final yaVio = await ServicioTutorial.yaVioTutorial('comprador');
     if (!mounted || yaVio) return;
     setState(() => _mostrarTutorial = true);
   }
 
   Future<void> _cerrarTutorial() async {
-    await ServicioTutorial.marcarComoVisto('comprador');
+    // Solo persistimos "ya visto" cuando hay cuenta. Para invitado,
+    // el tour vuelve a salir la próxima vez que entre.
+    if (widget.userId.isNotEmpty) {
+      await ServicioTutorial.marcarComoVisto('comprador');
+    }
     if (!mounted) return;
     setState(() => _mostrarTutorial = false);
   }
