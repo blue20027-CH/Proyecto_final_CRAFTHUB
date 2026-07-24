@@ -23,7 +23,9 @@ import '../../widgets/comprador/tarjeta_producto.dart';
 import '../../widgets/comprador/carrusel_hero.dart';
 import '../../widgets/topbar_flotante.dart';
 import '../../widgets/chat/boton_flotante_ia.dart';
+import '../../widgets/tutorial/overlay_tutorial_crafty.dart';
 import '../../services/api_service.dart';
+import '../../services/servicio_tutorial.dart';
 import '../../models/artesano_modelo.dart';
 import '../../core/i18n/i18n.dart';
 
@@ -133,6 +135,9 @@ class HomeComprador extends StatefulWidget {
 
 class _HomeCompradorState extends State<HomeComprador> {
   int _navIndice = 0;
+  // Muestra el overlay del tour de bienvenida con Crafty la primera vez
+  // que el usuario entra (o cuando lo relanza desde configuración).
+  bool _mostrarTutorial = false;
   String _categoriaActiva = 'Todos';
   String? _provinciaActiva;
   bool _mostrarProvincias = false;
@@ -164,6 +169,19 @@ class _HomeCompradorState extends State<HomeComprador> {
     _cargarArtesanos();
     _cargarPerfilUsuario(); // ✅ NUEVO
     _revisarAnuncios();
+    _revisarTutorialBienvenida();
+  }
+
+  Future<void> _revisarTutorialBienvenida() async {
+    final yaVio = await ServicioTutorial.yaVioTutorial('comprador');
+    if (!mounted || yaVio) return;
+    setState(() => _mostrarTutorial = true);
+  }
+
+  Future<void> _cerrarTutorial() async {
+    await ServicioTutorial.marcarComoVisto('comprador');
+    if (!mounted) return;
+    setState(() => _mostrarTutorial = false);
   }
 
   Future<void> _revisarAnuncios() async {
@@ -353,7 +371,9 @@ class _HomeCompradorState extends State<HomeComprador> {
 
     return Scaffold(
       backgroundColor: colorFondo,
-      body: BotonFlotanteIA(
+      body: Stack(
+        children: [
+          BotonFlotanteIA(
         userId: widget.userId,
         nombreUsuario: _nombreUsuario,
         child: Row(
@@ -381,6 +401,14 @@ class _HomeCompradorState extends State<HomeComprador> {
             ),
           ],
         ),
+      ),
+          if (_mostrarTutorial)
+            OverlayTutorialCrafty(
+              rol: 'comprador',
+              onCerrar: _cerrarTutorial,
+              onIrASeccion: (i) => setState(() => _navIndice = i),
+            ),
+        ],
       ),
     );
   }

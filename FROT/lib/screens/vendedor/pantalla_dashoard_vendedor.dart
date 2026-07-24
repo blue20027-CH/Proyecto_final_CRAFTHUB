@@ -10,6 +10,8 @@ import '../../core/carrito_provider.dart';
 import '../../core/favoritos_provider.dart';
 import '../../widgets/vendedor/sidebar_vendedor.dart';
 import '../../widgets/chat/boton_flotante_ia.dart';
+import '../../widgets/tutorial/overlay_tutorial_crafty.dart';
+import '../../services/servicio_tutorial.dart';
 import '../../widgets/vendedor/tarjeta_producto_ranking.dart';
 import '../../widgets/vendedor/grafico_ingresos.dart';
 import '../../widgets/vendedor/grafico_evaluaciones.dart';
@@ -48,6 +50,7 @@ class HomeVendedor extends StatefulWidget {
 
 class _HomeVendedorState extends State<HomeVendedor> {
   int _navIndice = 0;
+  bool _mostrarTutorial = false;
   String? _pedidoResaltadoMapa;
   String? _contactoChatPendiente;
   String? _contactoIdChatPendiente;
@@ -75,6 +78,19 @@ class _HomeVendedorState extends State<HomeVendedor> {
     _revisarAnuncios();
     _revisarNotificaciones();
     _cargarGenero();
+    _revisarTutorialBienvenida();
+  }
+
+  Future<void> _revisarTutorialBienvenida() async {
+    final yaVio = await ServicioTutorial.yaVioTutorial('vendedor');
+    if (!mounted || yaVio) return;
+    setState(() => _mostrarTutorial = true);
+  }
+
+  Future<void> _cerrarTutorial() async {
+    await ServicioTutorial.marcarComoVisto('vendedor');
+    if (!mounted) return;
+    setState(() => _mostrarTutorial = false);
   }
 
   Future<void> _cargarGenero() async {
@@ -243,7 +259,9 @@ class _HomeVendedorState extends State<HomeVendedor> {
 
     return Scaffold(
       backgroundColor: colorFondo,
-      body: BotonFlotanteIA(
+      body: Stack(
+        children: [
+          BotonFlotanteIA(
         userId: widget.userId,
         nombreUsuario: widget.nombreVendedor,
         child: Row(
@@ -269,6 +287,14 @@ class _HomeVendedorState extends State<HomeVendedor> {
             ),
           ],
         ),
+      ),
+          if (_mostrarTutorial)
+            OverlayTutorialCrafty(
+              rol: 'vendedor',
+              onCerrar: _cerrarTutorial,
+              onIrASeccion: (i) => setState(() => _navIndice = i),
+            ),
+        ],
       ),
     );
   }
